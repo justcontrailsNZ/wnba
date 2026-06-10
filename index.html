@@ -184,18 +184,7 @@
     </div>
     <div class="controls">
         <select id="team-select">
-            <option value="Atlanta Dream" data-id="19">Atlanta Dream</option>
-            <option value="Chicago Sky" data-id="18">Chicago Sky</option>
-            <option value="Connecticut Sun" data-id="17">Connecticut Sun</option>
-            <option value="Dallas Wings" data-id="24">Dallas Wings</option>
-            <option value="Indiana Fever" data-id="15">Indiana Fever</option>
-            <option value="Las Vegas Aces" data-id="14">Las Vegas Aces</option>
-            <option value="Los Angeles Sparks" data-id="13">Los Angeles Sparks</option>
-            <option value="Minnesota Lynx" data-id="12">Minnesota Lynx</option>
-            <option value="New York Liberty" data-id="11">New York Liberty</option>
-            <option value="Phoenix Mercury" data-id="10">Phoenix Mercury</option>
-            <option value="Seattle Storm" data-id="9">Seattle Storm</option>
-            <option value="Washington Mystics" data-id="8">Washington Mystics</option>
+            <option value="">Loading teams...</option>
         </select>
         <button onclick="fetchTeamData()">Get Team Intel & Props</button>
     </div>
@@ -992,18 +981,39 @@
             if (event.target === modal) closeGameLogModal();
         };
 
-        // -------- Standings, Rankings, Leaders, Slate --------
-        function initGlobalData() {
+        // -------- Dynamic Dropdown Population --------
+        async function populateTeamDropdown() {
             const select = document.getElementById('team-select');
-            for (let i = 0; i < select.options.length; i++) {
-                const opt = select.options[i];
-                const id = opt.getAttribute('data-id');
-                if (id) window.teamNameMap[id] = opt.value;
+            const teamIds = Object.keys(window.teamAnalyticsStore);
+            if (teamIds.length === 0) {
+                setTimeout(populateTeamDropdown, 500);
+                return;
             }
-            fetchLeaders();
-            fetchStandings();
+            select.innerHTML = '';
+            const teams = teamIds.map(id => ({
+                id: id,
+                abbrev: window.teamAnalyticsStore[id].abbrev
+            }));
+            teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.abbrev;
+                option.setAttribute('data-id', team.id);
+                option.textContent = team.abbrev;
+                select.appendChild(option);
+            });
+            // Also populate teamNameMap
+            teams.forEach(team => {
+                window.teamNameMap[team.id] = team.abbrev;
+            });
         }
 
+        // -------- Standings, Rankings, Leaders, Slate --------
+        async function initGlobalData() {
+            await fetchStandings();
+            await populateTeamDropdown();
+            fetchLeaders();
+        }
         async function fetchStandings() {
             try {
                 const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
@@ -1460,7 +1470,7 @@
             const selectEl = document.getElementById('team-select');
             const teamName = selectEl.value;
             const espnId = selectEl.options[selectEl.selectedIndex].getAttribute('data-id');
-            const teamAbbrev = selectEl.options[selectEl.selectedIndex].text.split(' ').pop();
+            const teamAbbrev = selectEl.options[selectEl.selectedIndex].text;
             document.getElementById('team-placeholder').style.display = 'none';
             document.getElementById('team-content').style.display = 'block';
             document.getElementById('main-team-title').innerText = teamAbbrev;
@@ -1498,7 +1508,6 @@
             } catch (error) { container.innerHTML = '<p style="color:red;">News load failed.</p>'; }
         }
 
-        // -------- Chart & Game Card Functions (WNBA URLs) --------
         function getTrendStatus(wins, total) {
             if (total === 0) return { icon: "⚖️", text: "N/A", color: "#555" };
             const pct = wins / total;
@@ -1914,3 +1923,4 @@
     </script>
 </body>
 </html>
+        
