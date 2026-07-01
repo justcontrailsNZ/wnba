@@ -178,15 +178,37 @@
         .trend-up { color: #28a745; font-size: 9px; margin-left: 2px; } .trend-down { color: #c8102e; font-size: 9px; margin-left: 2px; } .trend-flat { color: #888; font-size: 9px; margin-left: 2px; } .trend-num { font-size: 8px; margin-left: 1px; }
         .highlighted-team .rank-abbr { font-weight: bold; background-color: #e6f3ff; }
 
-        /* Bounce-back container */
+        /* ===== ENHANCED BOUNCE-BACK STYLES ===== */
         #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 20px; }
-        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; }
-        .bounce-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; align-items: center; cursor: pointer; }
-        .bounce-item:hover { background-color: #f0f4f8; }
-        .bounce-item:last-child { border-bottom: none; }
-        .bounce-stat { font-weight: bold; color: #28a745; }
-        .bounce-item .player-link { color: #1d428a; font-weight: bold; }
-        .bounce-item .player-link:hover { text-decoration: underline; }
+        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; }
+        #bounce-back-container h3 small { font-weight: normal; font-size: 11px; color: #888; }
+        .bounce-leaderboard { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; }
+        .bounce-card { background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border-left: 4px solid var(--green); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; transition: 0.2s; cursor: default; }
+        .bounce-card:hover { background: #f0f4f8; }
+        .bounce-card .b-player { flex: 2; min-width: 120px; font-weight: bold; color: #1d428a; cursor: pointer; }
+        .bounce-card .b-player:hover { text-decoration: underline; }
+        .bounce-card .b-stat { font-size: 12px; color: #555; min-width: 100px; }
+        .bounce-card .b-confidence { flex: 2; min-width: 120px; display: flex; align-items: center; gap: 8px; }
+        .bounce-card .b-confidence .meter { height: 8px; border-radius: 4px; background: #e9ecef; flex: 1; overflow: hidden; }
+        .bounce-card .b-confidence .meter .fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+        .bounce-card .b-confidence .meter .fill.high { background: #28a745; }
+        .bounce-card .b-confidence .meter .fill.med { background: #ffc107; }
+        .bounce-card .b-confidence .meter .fill.low { background: #dc3545; }
+        .bounce-card .b-confidence .pct { font-weight: bold; font-size: 14px; min-width: 45px; text-align: right; }
+        .bounce-card .b-badge { font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; background: #e9ecef; white-space: nowrap; }
+        .bounce-card .b-badge.hot { background: #28a745; color: #fff; }
+        .bounce-card .b-badge.mod { background: #ffc107; color: #333; }
+        .bounce-card .b-badge.cold { background: #dc3545; color: #fff; }
+        .bounce-card .b-history { font-size: 10px; color: #888; }
+        .bounce-arrows { font-size: 11px; letter-spacing: 1px; font-weight: bold; color: #333; }
+        .bounce-arrows .arrow-up { color: #28a745; }
+        .bounce-arrows .arrow-down { color: #dc3545; }
+        .bounce-why { font-size: 10px; color: #555; background: #fff; padding: 6px 8px; border-radius: 4px; border: 1px dashed #ccc; margin-top: 5px; display: none; width: 100%; }
+        .bounce-card .b-why-toggle { font-size: 10px; color: #1d428a; cursor: pointer; background: none; border: none; padding: 2px 6px; border-radius: 4px; }
+        .bounce-card .b-why-toggle:hover { background: #e9ecef; }
+        .bounce-card .b-why-toggle:focus + .bounce-why { display: block; }
+        .bounce-card .b-why-toggle:focus { outline: none; }
+        .bounce-sub { font-size: 10px; color: #999; margin-left: 5px; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -212,9 +234,10 @@
                 </div>
                 <div class="slate-content" id="slate-data-container"><div class="loading">Waiting for system init...</div></div>
                 <div id="ten-day-summary-container"></div>
-                <!-- NEW: Bounce-Back Bets Container -->
+                <!-- ENHANCED Bounce-Back Container -->
                 <div id="bounce-back-container" style="display:none;">
-                    <h3>🔄 Bounce-Back Bet Signals</h3>
+                    <h3>🔄 Bounce-Back Signals <small>Multi‑Factor Confidence</small></h3>
+                    <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                     <div id="bounce-back-list"></div>
                 </div>
             </div>
@@ -385,7 +408,7 @@
 
         // -------- Utility Functions --------
         function getStatLabelsFromESPN(labels) {
-            const result = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1 };
+            const result = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, fga: -1 };
             for (let i = 0; i < labels.length; i++) {
                 const l = labels[i].toUpperCase();
                 if (l === 'PTS' || l === 'POINTS') result.pts = i;
@@ -394,6 +417,7 @@
                 if (l === 'BLK' || l === 'BLOCKS') result.blk = i;
                 if (l === 'STL' || l === 'STEALS') result.stl = i;
                 if (l === '3PM' || l === '3PT' || l === '3P' || l === 'THREE POINTERS MADE' || l.includes('3PT')) result.tpm = i;
+                if (l === 'FGA' || l === 'FGM' || l === 'FIELD GOALS ATTEMPTED' || l === 'FGA-FGM') result.fga = i;
             }
             return result;
         }
@@ -403,6 +427,12 @@
             const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / (values.length - 1);
             return Math.sqrt(variance);
         }
+        function calcWeightedAvg(values) {
+            if (values.length === 0) return 0;
+            const weights = values.map((_, i) => 0.25 * Math.pow(0.85, i));
+            const totalWeight = weights.reduce((a,b) => a+b, 0);
+            return values.reduce((a, v, i) => a + v * weights[i], 0) / totalWeight;
+        }
         function calibrateLine(rawProjection) {
             if (rawProjection <= 0.3) return 0.5;
             const rounded = Math.round(rawProjection * 2) / 2;
@@ -411,6 +441,7 @@
             return Math.round(rawProjection * 2) / 2;
         }
 
+        // -------- Fetch Player Logs (Enhanced with FGA) --------
         async function fetchPlayerGameLogs(teamId, numGames = 10) {
             if (window.playerGameLogsCache[teamId]) return window.playerGameLogsCache[teamId];
             const scheduleRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
@@ -427,6 +458,7 @@
                 const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(teamId));
                 const oppAbbrev = oppTeam ? (oppTeam.team.abbreviation || oppTeam.team.shortDisplayName) : '???';
                 const oppId = oppTeam ? String(oppTeam.team.id) : null;
+                const teamWin = teamInGame ? !!teamInGame.winner : false;
                 try {
                     const summaryRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gameId}`);
                     const summaryData = await summaryRes.json();
@@ -442,13 +474,14 @@
                         if (!name) continue;
                         if (!playerStats.has(name)) playerStats.set(name, []);
                         const entry = {
-                            date: gameDate, isHome, opponent: oppAbbrev, opponentId: oppId,
+                            date: gameDate, isHome, opponent: oppAbbrev, opponentId: oppId, teamWin,
                             pts: idx.pts >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.pts]) || 0 : 0,
                             reb: idx.reb >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.reb]) || 0 : 0,
                             ast: idx.ast >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.ast]) || 0 : 0,
                             blk: idx.blk >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.blk]) || 0 : 0,
                             stl: idx.stl >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.stl]) || 0 : 0,
                             tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0,
+                            fga: idx.fga >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.fga]) || 0 : 0,
                         };
                         playerStats.get(name).push(entry);
                     }
@@ -475,723 +508,12 @@
             };
         }
 
-        function generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, playerGameLogs) {
-            const oppDefRanks = oppId ? getOpponentDefensiveRanks(oppId) : null;
-            const oppStats = oppId ? window.teamAnalyticsStore[oppId] : null;
-            const teamStats = window.teamAnalyticsStore[teamId];
-            const estPace = (teamStats && oppStats) ? (teamStats.estPace + oppStats.estPace) / 2 : 100;
-            const paceFactor = estPace / 100;
-            const allProps = [];
-            for (const [playerName, games] of playerGameLogs.entries()) {
-                if (games.length < 3) continue;
-                const last3 = games.slice(-3);
-                const last10 = games.slice(-10);
-                const homeGames = games.filter(g => g.isHome);
-                const awayGames = games.filter(g => !g.isHome);
-                for (const [statKey, config] of Object.entries(STAT_CONFIG)) {
-                    const allVals = games.map(g => g[statKey]).filter(v => v > 0 || statKey === 'blk' || statKey === 'stl');
-                    const last3Vals = last3.map(g => g[statKey]);
-                    const last10Vals = last10.map(g => g[statKey]);
-                    const homeVals = homeGames.map(g => g[statKey]);
-                    const awayVals = awayGames.map(g => g[statKey]);
-                    const avgAll = allVals.length > 0 ? allVals.reduce((a,b)=>a+b,0)/allVals.length : 0;
-                    const avgLast3 = last3Vals.length > 0 ? last3Vals.reduce((a,b)=>a+b,0)/last3Vals.length : avgAll;
-                    const avgLast10 = last10Vals.length > 0 ? last10Vals.reduce((a,b)=>a+b,0)/last10Vals.length : avgAll;
-                    const avgHome = homeVals.length > 0 ? homeVals.reduce((a,b)=>a+b,0)/homeVals.length : avgAll;
-                    const avgAway = awayVals.length > 0 ? awayVals.reduce((a,b)=>a+b,0)/awayVals.length : avgAll;
-                    if (avgAll < config.minQualify && statKey !== 'blk' && statKey !== 'stl') continue;
-                    if ((statKey === 'blk' || statKey === 'stl') && avgAll < config.minQualify && allVals.filter(v => v>0).length < 2) continue;
-                    const stdDev = calculateStdDev(allVals.length >= 3 ? allVals : [...allVals, avgAll]);
-                    const recencyWeight = 0.6, baseWeight = 0.4;
-                    let rawProjection = (avgLast3 * recencyWeight) + (avgLast10 * baseWeight);
-                    const homeAwayAdj = isHomeGame ? (avgHome - avgAll) * 0.5 : (avgAway - avgAll) * 0.5;
-                    rawProjection += homeAwayAdj;
-                    if (oppDefRanks) { const defRankDiff = (oppDefRanks[statKey] - 110) / 10; rawProjection += defRankDiff * config.defRtgWeight; }
-                    rawProjection += (paceFactor - 1) * config.paceWeight * avgAll;
-                    if (isHomeGame) rawProjection += config.homeBoost * 0.3;
-                    rawProjection = Math.max(0, rawProjection);
-                    const line = calibrateLine(rawProjection);
-                    const rangeLow = Math.max(0, rawProjection - stdDev * 1.2);
-                    const rangeHigh = rawProjection + stdDev * 1.2;
-                    const gamesOverLine = allVals.filter(v => v > line).length;
-                    const consistencyPct = allVals.length > 0 ? gamesOverLine / allVals.length : 0.5;
-                    const consistencyBonus = consistencyPct >= 0.6 ? 0.08 : (consistencyPct <= 0.35 ? -0.12 : 0);
-                    const variancePenalty = stdDev > (avgAll * 0.5) ? -0.10 : (stdDev < (avgAll * 0.25) ? 0.06 : 0);
-                    let confidenceScore = 0.55;
-                    confidenceScore += (allVals.length >= 7 ? 0.08 : allVals.length >= 5 ? 0.04 : 0);
-                    confidenceScore += consistencyBonus + variancePenalty;
-                    if (oppDefRanks && oppDefRanks.baseDefRtg > 115) confidenceScore += 0.06;
-                    if (oppDefRanks && oppDefRanks.baseDefRtg < 106) confidenceScore -= 0.04;
-                    if (Math.abs(rawProjection - line) > 0.8) confidenceScore += 0.05;
-                    confidenceScore = Math.max(0.25, Math.min(0.95, confidenceScore));
-                    const recommendation = rawProjection > line + 0.3 ? 'OVER' : (rawProjection < line - 0.3 ? 'UNDER' : 'PASS');
-                    const confClass = confidenceScore >= 0.72 ? 'confidence-high' : (confidenceScore >= 0.55 ? 'confidence-med' : 'confidence-low');
-                    allProps.push({
-                        player: playerName, statKey, statLabel: config.label, statIcon: config.icon, isDiscrete: config.isDiscrete,
-                        line, rawProjection, rangeLow, rangeHigh, confidence: Math.round(confidenceScore*100), confidenceClass: confClass,
-                        consistencyPct: Math.round(consistencyPct*100), consistencyClass: consistencyPct>=0.55?'':'low-consistency',
-                        recommendation, stdDev, gamesCount: games.length, isHome: isHomeGame,
-                        avgAll, avgLast3, avgLast10, allVals,
-                        detailFactors: [isHomeGame?'Home':'Away', oppDefRanks?`Opp D:${oppDefRanks.baseDefRtg.toFixed(0)}`:'', `Pace:${estPace.toFixed(0)}`, `L3:${avgLast3.toFixed(1)}`, `σ:${stdDev.toFixed(1)}`].filter(Boolean).join(' · '),
-                        teamAbbrev, teamId, oppId, games
-                    });
-                }
-            }
-            allProps.sort((a,b) => b.confidence - a.confidence);
-            return allProps.slice(0, 10);
-        }
+        // ---------- ENHANCED BOUNCE-BACK ALGORITHM ----------
+        function computeBounceBackSignals(events) {
+            const signals = [];
+            const leagueAvg = { pts: 22, reb: 7, ast: 5, tpm: 2.5 };
+            const leagueDefRtg = 108;
 
-        // -------- Bayesian Model --------
-        function computeBayesianProjection(prop) {
-            const vals = prop.allVals; const n = vals.length;
-            if (n < 3) return null;
-            const sampleMean = vals.reduce((a,b)=>a+b,0)/n;
-            const sampleVar = n>=2 ? vals.reduce((a,b)=>a+(b-sampleMean)**2,0)/(n-1) : 1;
-            const priorMean = prop.avgAll;
-            const priorVar = Math.max(sampleVar*0.8, 0.5);
-            const likelihoodVar = sampleVar/Math.max(n,1);
-            const priorPrecision = 1/priorVar, likelihoodPrecision = 1/Math.max(likelihoodVar,0.01);
-            const posteriorPrecision = priorPrecision + likelihoodPrecision;
-            const posteriorVar = 1/posteriorPrecision;
-            const posteriorMean = (priorMean*priorPrecision + sampleMean*likelihoodPrecision)/posteriorPrecision;
-            const posteriorStd = Math.sqrt(posteriorVar);
-            const ciLow = posteriorMean - 1.96*posteriorStd, ciHigh = posteriorMean + 1.96*posteriorStd;
-            const shift = posteriorMean - priorMean;
-            const shiftPct = priorMean>0 ? Math.round((shift/priorMean)*100) : 0;
-            return {
-                priorMean, posteriorMean, posteriorStd,
-                ciLow: Math.max(0, ciLow), ciHigh,
-                shift, shiftPct,
-                direction: shift > 0.3 ? 'UP ⬆️' : (shift < -0.3 ? 'DOWN ⬇️' : 'STABLE ➡️'),
-                credibleRange: `${ciLow.toFixed(1)} – ${ciHigh.toFixed(1)}`
-            };
-        }
-        function renderBayesianPanel(propsA, propsB) {
-            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
-            if (topProps.length===0) return '<p class="loading">No props available for Bayesian analysis.</p>';
-            let html = '';
-            topProps.forEach(p => {
-                const b = computeBayesianProjection(p);
-                if (!b) return;
-                const shiftColor = b.shift > 0.3 ? '#28a745' : (b.shift < -0.3 ? '#dc3545' : '#888');
-                html += `<div class="model-prop-mini">
-                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
-                    <div class="mini-detail"><span>Prior: <b>${b.priorMean.toFixed(1)}</b></span> <span class="bayesian-arrow">→</span> <span>Posterior: <b style="color:#7b1fa2;">${b.posteriorMean.toFixed(1)}</b> ±${b.posteriorStd.toFixed(1)}</span></div>
-                    <div class="mini-detail"><span>95% CI: <b>${b.credibleRange}</b></span> <span style="color:${shiftColor};margin-left:8px;">${b.direction} (${b.shiftPct>0?'+':''}${b.shiftPct}%)</span></div>
-                    <div class="mini-detail" style="font-size:9px;color:#999;">Line: ${p.line} | Bayesian suggests: <b>${b.posteriorMean > p.line+0.3 ? 'OVER' : (b.posteriorMean < p.line-0.3 ? 'UNDER' : 'PASS')}</b></div>
-                </div>`;
-            });
-            return html || '<p class="loading">Insufficient data for Bayesian updating.</p>';
-        }
-
-        // -------- Opponent Matchup Model --------
-        function computeOpponentMatchup(prop) {
-            const games = prop.games, oppId = prop.oppId;
-            if (!oppId || games.length<2) return null;
-            const matchupGames = games.filter(g => g.opponentId === oppId);
-            const nonMatchupGames = games.filter(g => g.opponentId !== oppId);
-            if (matchupGames.length===0) return { hasHistory: false, matchupCount:0, note:'No prior matchups vs this opponent' };
-            const matchupVals = matchupGames.map(g=>g[prop.statKey]);
-            const nonMatchupVals = nonMatchupGames.map(g=>g[prop.statKey]);
-            const matchupAvg = matchupVals.reduce((a,b)=>a+b,0)/matchupVals.length;
-            const nonMatchupAvg = nonMatchupVals.length>0 ? nonMatchupVals.reduce((a,b)=>a+b,0)/nonMatchupVals.length : prop.avgAll;
-            const diff = matchupAvg - nonMatchupAvg;
-            const diffPct = nonMatchupAvg>0 ? Math.round((diff/nonMatchupAvg)*100) : 0;
-            const recentMatchup = matchupGames.slice(-2);
-            const recentAvg = recentMatchup.length>0 ? recentMatchup.map(g=>g[prop.statKey]).reduce((a,b)=>a+b,0)/recentMatchup.length : matchupAvg;
-            return {
-                hasHistory: true, matchupCount: matchupGames.length,
-                matchupAvg, nonMatchupAvg, diff, diffPct, recentAvg,
-                direction: diff > 1.0 ? 'Overperforms vs opponent 🔥' : (diff < -1.0 ? 'Underperforms vs opponent ❄️' : 'Neutral vs opponent ⚖️'),
-                recentOpponents: recentMatchup.map(g=>g.opponent).join(', ')
-            };
-        }
-        function renderMatchupPanel(propsA, propsB, oppAbbrev) {
-            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
-            if (topProps.length===0) return '<p class="loading">No props for matchup analysis.</p>';
-            let html = `<div style="font-size:10px;color:#777;margin-bottom:8px;text-align:center;">Analyzing player history vs <b>${oppAbbrev||'opponent'}</b></div>`;
-            let hasAny = false;
-            topProps.forEach(p => {
-                const m = computeOpponentMatchup(p);
-                if (!m) return;
-                hasAny = true;
-                if (!m.hasHistory) {
-                    html += `<div class="model-prop-mini"><div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel}</div><div class="mini-detail" style="color:#999;">${m.note}</div></div>`;
-                    return;
-                }
-                const diffColor = m.diff > 1.0 ? '#28a745' : (m.diff < -1.0 ? '#dc3545' : '#888');
-                html += `<div class="model-prop-mini">
-                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
-                    <div class="mini-detail"><span>vs ${oppAbbrev||'OPP'} (${m.matchupCount}g): <b style="color:${diffColor};">${m.matchupAvg.toFixed(1)}</b></span> <span>| vs Others: <b>${m.nonMatchupAvg.toFixed(1)}</b></span></div>
-                    <div class="mini-detail"><span style="color:${diffColor};font-weight:bold;">${m.direction}</span> <span style="font-size:9px;color:#999;"> (${m.diffPct>0?'+':''}${m.diffPct}%)</span></div>
-                    <div class="mini-detail" style="font-size:9px;color:#999;">Last 2 vs OPP: avg ${m.recentAvg.toFixed(1)} | Line: ${p.line}</div>
-                </div>`;
-            });
-            if (!hasAny) html += '<p class="loading">No opponent-specific matchup data available.</p>';
-            return html;
-        }
-
-        // -------- Poisson Model --------
-        function computePoissonModel(prop) {
-            if (!prop.isDiscrete) return null;
-            const vals = prop.allVals, n = vals.length;
-            if (n<3) return null;
-            const lambda = vals.reduce((a,b)=>a+b,0)/n;
-            const lambdaAdj = lambda * (1 + (prop.avgLast3-prop.avgAll)/Math.max(prop.avgAll,0.5)*0.4);
-            const finalLambda = Math.max(0.1, lambdaAdj);
-            function poissonPMF(k, lam) {
-                if (k<0) return 0;
-                let logP = -lam + k*Math.log(lam);
-                for (let i=2; i<=k; i++) logP -= Math.log(i);
-                return Math.exp(logP);
-            }
-            const maxK = Math.max(Math.ceil(finalLambda*3), Math.ceil(prop.line*2), 10);
-            let probOver=0, probUnder=0, probExact=0;
-            for (let k=0; k<=maxK; k++) {
-                const pk = poissonPMF(k, finalLambda);
-                if (k > prop.line) probOver += pk;
-                if (k < prop.line) probUnder += pk;
-                if (Math.abs(k-prop.line)<0.01) probExact = pk;
-            }
-            if (prop.line % 1 !== 0) {
-                probUnder=0; probOver=0;
-                for (let k=0; k<=maxK; k++) {
-                    const pk = poissonPMF(k, finalLambda);
-                    if (k < prop.line) probUnder += pk;
-                    if (k > prop.line) probOver += pk;
-                }
-            }
-            const totalProb = probOver + probUnder + (prop.line%1===0 ? probExact : 0);
-            const normOver = totalProb>0 ? probOver/totalProb : 0.5;
-            const normUnder = totalProb>0 ? probUnder/totalProb : 0.5;
-            const bestBet = normOver > 0.55 ? 'OVER' : (normUnder > 0.55 ? 'UNDER' : 'PASS');
-            const bestProb = Math.round(Math.max(normOver, normUnder)*100);
-            return {
-                lambda: finalLambda, probOver: Math.round(normOver*100), probUnder: Math.round(normUnder*100),
-                probPush: prop.line%1===0 ? Math.round((probExact/Math.max(totalProb,0.001))*100) : 0,
-                bestBet, bestProb, expectedValue: finalLambda
-            };
-        }
-        function renderPoissonPanel(propsA, propsB) {
-            const discreteProps = [...propsA, ...propsB].filter(p=>p.isDiscrete).slice(0,6);
-            if (discreteProps.length===0) return '<p class="loading">No discrete stats (BLK/STL/3PM) available for Poisson modeling.</p>';
-            let html = '';
-            discreteProps.forEach(p => {
-                const po = computePoissonModel(p);
-                if (!po) return;
-                const overWidth = po.probOver, underWidth = po.probUnder;
-                const bestColor = po.bestBet==='OVER' ? '#28a745' : (po.bestBet==='UNDER' ? '#dc3545' : '#888');
-                html += `<div class="model-prop-mini">
-                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
-                    <div class="mini-detail">λ: <b>${po.lambda.toFixed(2)}</b> | Expected: ${po.expectedValue.toFixed(1)} | Line: ${p.line}</div>
-                    <div class="poisson-prob-bar">
-                        <div class="poisson-prob-fill under-fill" style="width:${underWidth}%;float:left;border-radius:7px 0 0 7px;"></div>
-                        <div class="poisson-prob-fill over-fill" style="width:${overWidth}%;float:right;border-radius:0 7px 7px 0;"></div>
-                        <div style="position:absolute;width:100%;text-align:center;font-size:8px;font-weight:bold;line-height:14px;color:#333;">UNDER ${po.probUnder}% | OVER ${po.probOver}%${po.probPush>0?' | PUSH '+po.probPush+'%':''}</div>
-                    </div>
-                    <div class="mini-detail"><span>Best bet: <b style="color:${bestColor};">${po.bestBet}</b> (${po.bestProb}%)</span></div>
-                </div>`;
-            });
-            return html || '<p class="loading">No discrete stat props to model.</p>';
-        }
-
-        // -------- Gradient-Boosted ML Model --------
-        function computeGBMProjection(prop) {
-            const games = prop.games, n = games.length;
-            if (n<3) return null;
-            const features = {};
-            features['RecentForm(L3)'] = { value: prop.avgLast3, weight: 0.22, importance: 22 };
-            features['Home/Away'] = { value: prop.isHome ? prop.avgAll*1.04 : prop.avgAll*0.96, weight: 0.10, importance: 10 };
-            features['OppDefRtg'] = { value: prop.avgAll*(1+(prop.rawProjection-prop.avgAll)/Math.max(prop.avgAll,0.5)*0.3), weight: 0.18, importance: 18 };
-            features['PaceFactor'] = { value: prop.avgAll*(prop.rawProjection/Math.max(prop.avgAll,0.5)*0.5+0.5), weight: 0.14, importance: 14 };
-            features['Consistency'] = { value: prop.consistencyPct>55 ? prop.avgAll*1.03 : prop.avgAll*0.97, weight: 0.12, importance: 12 };
-            features['StdDevPenalty'] = { value: prop.stdDev<prop.avgAll*0.3 ? prop.avgAll*1.02 : prop.avgAll*0.98, weight: 0.10, importance: 10 };
-            features['GamesPlayed'] = { value: n>=8 ? prop.avgAll*1.01 : prop.avgAll*0.99, weight: 0.06, importance: 6 };
-            features['RestEstimate'] = { value: prop.avgAll*1.005, weight: 0.04, importance: 4 };
-            features['SeasonFatigue'] = { value: prop.avgAll*0.995, weight: 0.04, importance: 4 };
-            let weightedSum=0, totalWeight=0;
-            const featureList = [];
-            for (const [name, f] of Object.entries(features)) {
-                weightedSum += f.value*f.weight;
-                totalWeight += f.weight;
-                featureList.push({ name, importance: f.importance, contrib: Math.round(f.value*f.weight*10)/10 });
-            }
-            const gbmProjection = totalWeight>0 ? weightedSum/totalWeight : prop.avgAll;
-            featureList.sort((a,b)=>b.importance-a.importance);
-            const topFeatures = featureList.slice(0,5);
-            const agreement = Math.abs(gbmProjection-prop.rawProjection)<1.5 ? 'strong' : (Math.abs(gbmProjection-prop.rawProjection)<3.0 ? 'moderate' : 'weak');
-            const agreementLabel = agreement==='strong' ? 'Strong Consensus ✅' : (agreement==='moderate' ? 'Moderate 🤔' : 'Weak/Divergent ⚠️');
-            const agreementClass = 'agreement-'+agreement;
-            return { gbmProjection, topFeatures, agreement, agreementLabel, agreementClass,
-                recommendation: gbmProjection > prop.line+0.3 ? 'OVER' : (gbmProjection < prop.line-0.3 ? 'UNDER' : 'PASS') };
-        }
-        function renderGBMPanel(propsA, propsB) {
-            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
-            if (topProps.length===0) return '<p class="loading">No props for GBM analysis.</p>';
-            let html = '';
-            topProps.forEach(p => {
-                const g = computeGBMProjection(p);
-                if (!g) return;
-                const gbmColor = g.recommendation==='OVER' ? '#28a745' : (g.recommendation==='UNDER' ? '#dc3545' : '#888');
-                html += `<div class="model-prop-mini">
-                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
-                    <div class="mini-detail"><span>GBM Proj: <b style="color:#b71c1c;">${g.gbmProjection.toFixed(1)}</b></span> <span>| Line: ${p.line}</span> <span>| Rec: <b style="color:${gbmColor};">${g.recommendation}</b></span></div>
-                    <div class="mini-detail"><span class="ensemble-agreement ${g.agreementClass}">${g.agreementLabel}</span> <span style="font-size:9px;color:#999;"> (vs ensemble: ${p.rawProjection.toFixed(1)})</span></div>
-                    <div style="font-size:9px;color:#555;margin-top:4px;"><b>Top Features:</b></div>
-                    <ul class="gbm-feature-list">${g.topFeatures.map(f => `<li><span>${f.name}</span><span><span class="gbm-feature-bar" style="width:${f.importance}px;"></span>${f.importance}%</span></li>`).join('')}</ul>
-                </div>`;
-            });
-            return html || '<p class="loading">GBM model requires more data.</p>';
-        }
-
-        // -------- Unified Probability & Parlay Builder --------
-        function normCDF(x) {
-            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
-            const p = 0.3275911;
-            const sign = x < 0 ? -1 : 1;
-            x = Math.abs(x) / Math.sqrt(2);
-            const t = 1.0 / (1.0 + p * x);
-            const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
-            return 0.5 * (1.0 + sign * y);
-        }
-
-        function enrichPropsWithModelResults(propList) {
-            return propList.map(prop => {
-                const enriched = { ...prop };
-                enriched.bayesian = computeBayesianProjection(prop);
-                enriched.matchup = computeOpponentMatchup(prop);
-                enriched.poisson = prop.isDiscrete ? computePoissonModel(prop) : null;
-                enriched.gbm = computeGBMProjection(prop);
-                return enriched;
-            });
-        }
-
-        function computeUnifiedProb(prop) {
-            if (prop.recommendation === 'PASS') return 0.5;
-            const rec = prop.recommendation;
-            const probabilities = [], weights = [];
-            const conf = prop.confidence/100;
-            const diff = prop.rawProjection - prop.line;
-            const z_multi = (prop.stdDev>0) ? diff/prop.stdDev : 0;
-            let probMulti = 0.5 + 0.3 * z_multi * conf;
-            probMulti = Math.min(0.95, Math.max(0.05, probMulti));
-            if (rec === 'UNDER') probMulti = 1 - probMulti;
-            probabilities.push(probMulti); weights.push(0.25);
-            if (prop.bayesian) {
-                const b = prop.bayesian;
-                const z_bayes = (b.posteriorStd>0) ? (b.posteriorMean - prop.line)/b.posteriorStd : 0;
-                let probBayes = normCDF(z_bayes);
-                if (rec === 'UNDER') probBayes = 1 - probBayes;
-                probabilities.push(probBayes); weights.push(0.25);
-            }
-            if (prop.gbm) {
-                const g = prop.gbm;
-                const sigma_gbm = prop.stdDev*0.9 || 1;
-                const z_gbm = (prop.stdDev>0) ? (g.gbmProjection - prop.line)/sigma_gbm : 0;
-                let probGbm = normCDF(z_gbm);
-                if (rec === 'UNDER') probGbm = 1 - probGbm;
-                probabilities.push(probGbm); weights.push(0.15);
-            }
-            if (prop.poisson) {
-                const po = prop.poisson;
-                let probPoisson = rec==='OVER' ? po.probOver/100 : (rec==='UNDER' ? po.probUnder/100 : 0.5);
-                probPoisson = Math.min(0.8, Math.max(0.3, probPoisson));
-                probabilities.push(probPoisson); weights.push(0.20);
-            }
-            if (prop.matchup && prop.matchup.hasHistory) {
-                const m = prop.matchup;
-                const edge = (prop.stdDev>0) ? (m.matchupAvg - m.nonMatchupAvg)/(prop.stdDev+0.5) : 0;
-                let probMatchup = 0.5 + edge*0.45;
-                probMatchup = Math.min(0.8, Math.max(0.2, probMatchup));
-                if (rec === 'UNDER') probMatchup = 1 - probMatchup;
-                probabilities.push(probMatchup); weights.push(0.15);
-            }
-            const totalWeight = weights.reduce((s,w)=>s+w,0);
-            if (totalWeight===0) return 0.5;
-            const avgProb = probabilities.reduce((s,p,i)=> s + p*weights[i], 0)/totalWeight;
-            return Math.min(0.95, Math.max(0.05, avgProb));
-        }
-
-        function buildDiverseParlays(enrichedPropsAll) {
-            const props = enrichedPropsAll.filter(p => p.recommendation !== 'PASS');
-            if (props.length < 2) return [];
-            const maxLegs = Math.min(4, props.length);
-            const combos = [];
-            const generateCombos = (start, current) => {
-                if (current.length >= 2 && current.length <= maxLegs) {
-                    const probProduct = current.reduce((prod, p) => prod * p.unifiedProb, 1);
-                    const independenceScore = (() => {
-                        if (current.length <= 1) return 1.0;
-                        let score = 1.0;
-                        const teams = new Set(current.map(p => p.teamId));
-                        const stats = new Set(current.map(p => p.statKey));
-                        const players = new Set(current.map(p => p.player));
-                        if (teams.size >= 2) score += 0.25;
-                        if (stats.size >= current.length-1) score += 0.30;
-                        if (stats.size === current.length) score += 0.20;
-                        if (players.size === current.length) score += 0.15;
-                        if (teams.size === 1 && stats.size <= 2) score -= 0.20;
-                        return Math.max(0.5, score);
-                    })();
-                    const totalScore = probProduct * independenceScore;
-                    combos.push({
-                        legs: [...current], probProduct, independenceScore, totalScore,
-                        numLegs: current.length,
-                        legTokens: current.map(l => `${l.player}|${l.statKey}|${l.teamId}`).sort()
-                    });
-                }
-                if (current.length >= maxLegs) return;
-                for (let i = start; i < props.length; i++) {
-                    const p = props[i];
-                    if (current.some(c => c.player === p.player && c.statKey === p.statKey)) continue;
-                    generateCombos(i+1, [...current, p]);
-                }
-            };
-            generateCombos(0, []);
-            combos.sort((a,b) => b.totalScore - a.totalScore);
-            const selected = [];
-            const jaccardSimilarity = (setA, setB) => {
-                const intersection = setA.filter(x => setB.includes(x)).length;
-                const union = new Set([...setA, ...setB]).size;
-                return union === 0 ? 0 : intersection / union;
-            };
-            for (const combo of combos) {
-                const tokenSet = combo.legTokens;
-                let tooSimilar = false;
-                for (const sel of selected) {
-                    if (jaccardSimilarity(tokenSet, sel.legTokens) > 0.6) {
-                        tooSimilar = true;
-                        break;
-                    }
-                }
-                if (!tooSimilar) {
-                    selected.push(combo);
-                    if (selected.length >= 8) break;
-                }
-            }
-            return selected;
-        }
-
-        // -------- Update Props & Models --------
-        async function updateAdvancedPropsSection(teamId, oppId, teamAbbrev, oppAbbrev) {
-            const propsSection = document.getElementById('props-recommendation-section');
-            const listA = document.getElementById('props-list-team-a');
-            const listB = document.getElementById('props-list-team-b');
-            const titleA = document.getElementById('props-team-a-title');
-            const titleB = document.getElementById('props-team-b-title');
-            const parlaySection = document.getElementById('parlay-optimizer-section');
-            const parlayList = document.getElementById('parlay-list');
-            const teamBCol = document.getElementById('props-team-b-column');
-            const deepDiveSection = document.getElementById('model-deep-dive-section');
-            const bayesianContent = document.getElementById('bayesian-content');
-            const matchupContent = document.getElementById('matchup-content');
-            const poissonContent = document.getElementById('poisson-content');
-            const gbmContent = document.getElementById('gbm-content');
-
-            if (!oppId) { propsSection.style.display = 'none'; return; }
-            propsSection.style.display = 'block';
-            titleA.textContent = `🔥 ${teamAbbrev} Props`;
-            titleB.textContent = `🔥 ${oppAbbrev} Props`;
-            teamBCol.style.display = 'block';
-            listA.innerHTML = '<div class="loading">Running multi-factor model...</div>';
-            listB.innerHTML = '<div class="loading">Running multi-factor model...</div>';
-            parlaySection.style.display = 'none'; parlayList.innerHTML = '';
-            deepDiveSection.style.display = 'none';
-            bayesianContent.innerHTML = '<div class="loading">Computing...</div>';
-            matchupContent.innerHTML = '<div class="loading">Analyzing...</div>';
-            poissonContent.innerHTML = '<div class="loading">Estimating...</div>';
-            gbmContent.innerHTML = '<div class="loading">Training...</div>';
-
-            const [logsA, logsB] = await Promise.all([fetchPlayerGameLogs(teamId, 10), fetchPlayerGameLogs(oppId, 10)]);
-            const isHomeGame = true;
-            let propsA = generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, logsA);
-            let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, !isHomeGame, logsB);
-
-            propsA = enrichPropsWithModelResults(propsA);
-            propsB = enrichPropsWithModelResults(propsB);
-            propsA.forEach(p => p.unifiedProb = computeUnifiedProb(p));
-            propsB.forEach(p => p.unifiedProb = computeUnifiedProb(p));
-
-            listA.innerHTML = renderPropCards(propsA, teamId);
-            listB.innerHTML = renderPropCards(propsB, oppId);
-
-            const allEnriched = [...propsA, ...propsB];
-            const diverseParlays = buildDiverseParlays(allEnriched);
-            if (diverseParlays.length > 0) {
-                parlaySection.style.display = 'block';
-                parlayList.innerHTML = diverseParlays.map(p => {
-                    const legsHtml = p.legs.map(l => `<span class="parlay-leg">${l.player} ${l.statLabel} ${l.line} (${l.teamAbbrev})</span>`).join(' ');
-                    const scorePercent = Math.round(p.totalScore * 100);
-                    const color = scorePercent > 30 ? '#28a745' : (scorePercent > 15 ? '#d48806' : '#888');
-                    return `<div class="parlay-card">
-                        <div class="parlay-legs">${legsHtml}</div>
-                        <div class="parlay-independence">Indep: ${Math.round(p.independenceScore*100)}%</div>
-                        <div class="parlay-score" style="color:${color}">${p.numLegs}-Leg<br>${scorePercent}%</div>
-                    </div>`;
-                }).join('');
-            }
-
-            deepDiveSection.style.display = 'block';
-            bayesianContent.innerHTML = renderBayesianPanel(propsA, propsB);
-            matchupContent.innerHTML = renderMatchupPanel(propsA, propsB, oppAbbrev);
-            poissonContent.innerHTML = renderPoissonPanel(propsA, propsB);
-            gbmContent.innerHTML = renderGBMPanel(propsA, propsB);
-        }
-
-        function renderPropCards(props, teamId) {
-            if (props.length === 0) return '<p class="loading">No qualifying props found.</p>';
-            return props.map(p => {
-                const recClass = p.recommendation === 'OVER' ? 'recommend-over' : (p.recommendation === 'UNDER' ? 'recommend-under' : '');
-                const lineColorClass = p.recommendation === 'OVER' ? 'over-color' : (p.recommendation === 'UNDER' ? 'under-color' : '');
-                const rangePct = p.rangeHigh > p.rangeLow ? ((p.line - p.rangeLow) / (p.rangeHigh - p.rangeLow)) * 100 : 50;
-                const rangeWidth = p.rangeHigh > p.rangeLow ? ((p.rangeHigh - p.rangeLow) / Math.max(p.rangeHigh,1)) * 100 : 40;
-                const recBadge = p.recommendation === 'OVER' ? '📈 OVER' : (p.recommendation === 'UNDER' ? '📉 UNDER' : '➖ PASS');
-                const isHomeTag = p.isHome ? 'home-tag' : 'away-tag';
-                const homeLabel = p.isHome ? '🏠 Home' : '✈️ Away';
-                const clickHandler = `showPlayerGameLog('${teamId}', '${p.player.replace(/'/g, "\\'")}')`;
-                return `<div class="prop-card ${recClass}">
-                    <div class="prop-player" onclick="${clickHandler}" title="Click to view last 10 game log">
-                        <span>${p.player}</span>
-                        <span class="prop-confidence ${p.confidenceClass}">${p.confidence}%</span>
-                    </div>
-                    <div class="prop-stat-icon"><span>${p.statIcon} ${p.statLabel}</span><span style="font-weight:bold;font-size:12px;color:#d48806;">${recBadge}</span></div>
-                    <div style="display:flex;align-items:baseline;gap:8px;"><span class="prop-line-big ${lineColorClass}">${p.line}</span><span style="font-size:11px;color:#888;">proj: ${p.rawProjection.toFixed(1)}</span></div>
-                    <div class="prop-range-bar"><div class="prop-range-fill" style="left:${Math.max(0,50-rangeWidth/2)}%;width:${Math.min(100,rangeWidth)}%;"></div><div class="prop-range-marker" style="left:${Math.min(98,Math.max(2,rangePct))}%;"></div></div>
-                    <div style="font-size:9px;color:#888;text-align:center;margin-bottom:4px;">Range: ${p.rangeLow.toFixed(1)} – ${p.rangeHigh.toFixed(1)}</div>
-                    <div class="prop-footer">
-                        <span class="prop-consistency ${p.consistencyClass}">Consistency: ${p.consistencyPct}%</span>
-                        <span class="prop-tag ${isHomeTag}">${homeLabel}</span>
-                        <span style="font-size:9px;color:#999;">n=${p.gamesCount} gms</span>
-                    </div>
-                    <div style="font-size:9px;color:#aaa;margin-top:4px;">${p.detailFactors}</div>
-                </div>`;
-            }).join('');
-        }
-
-        // -------- Game Log Modal --------
-        function showPlayerGameLog(teamId, playerName) {
-            const modal = document.getElementById('game-log-modal');
-            const playerNameEl = document.getElementById('modal-player-name');
-            const contentEl = document.getElementById('modal-game-log-content');
-            playerNameEl.textContent = `${playerName} - Last 10 Games`;
-            contentEl.innerHTML = '<div class="loading">Loading game log...</div>';
-            modal.style.display = 'flex';
-            const cache = window.playerGameLogsCache[teamId];
-            if (!cache || !cache.has(playerName)) {
-                contentEl.innerHTML = '<p style="color:red;">Game log data not available for this player.</p>';
-                return;
-            }
-            const games = cache.get(playerName).slice(-10).reverse();
-            if (games.length === 0) { contentEl.innerHTML = '<p>No recent game data.</p>'; return; }
-            let html = '<table class="game-log-table"><thead><tr><th>Date</th><th>Opp</th><th>Loc</th><th>PTS</th><th>REB</th><th>AST</th><th>BLK</th><th>STL</th><th>3PM</th></tr></thead><tbody>';
-            games.forEach(g => {
-                const dateStr = g.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const loc = g.isHome ? 'Home' : 'Away';
-                html += `<tr><td>${dateStr}</td><td class="opponent-cell">${g.opponent}</td><td class="location-cell">${loc}</td><td>${g.pts}</td><td>${g.reb}</td><td>${g.ast}</td><td>${g.blk}</td><td>${g.stl}</td><td>${g.tpm}</td></tr>`;
-            });
-            html += '</tbody></table>';
-            contentEl.innerHTML = html;
-        }
-        function closeGameLogModal() { document.getElementById('game-log-modal').style.display = 'none'; }
-        window.onclick = function(event) {
-            const modal = document.getElementById('game-log-modal');
-            if (event.target === modal) closeGameLogModal();
-        };
-
-        // -------- Dynamic Dropdown Population --------
-        async function populateTeamDropdown() {
-            const select = document.getElementById('team-select');
-            const teamIds = Object.keys(window.teamAnalyticsStore);
-            if (teamIds.length === 0) {
-                setTimeout(populateTeamDropdown, 500);
-                return;
-            }
-            select.innerHTML = '';
-            const teams = teamIds.map(id => ({
-                id: id,
-                abbrev: window.teamAnalyticsStore[id].abbrev
-            }));
-            teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
-            teams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team.abbrev;
-                option.setAttribute('data-id', team.id);
-                option.textContent = team.abbrev;
-                select.appendChild(option);
-            });
-            // Also populate teamNameMap
-            teams.forEach(team => {
-                window.teamNameMap[team.id] = team.abbrev;
-            });
-        }
-
-        // -------- Standings, Rankings, Leaders, Slate --------
-        async function initGlobalData() {
-            await fetchStandings();
-            await populateTeamDropdown();
-            fetchLeaders();
-        }
-        async function fetchStandings() {
-            try {
-                const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
-                const data = await res.json();
-                if (data && data.children) {
-                    const east = data.children.find(c => c.name.includes('Eastern'));
-                    const west = data.children.find(c => c.name.includes('Western'));
-                    let totalLeaguePF = 0, totalLeaguePA = 0, teamCount = 0;
-                    const allEntries = [...east.standings.entries, ...west.standings.entries];
-                    allEntries.forEach(t => {
-                        const wins = t.stats.find(s => s.name === 'wins')?.value || 0;
-                        const losses = t.stats.find(s => s.name === 'losses')?.value || 0;
-                        const gp = (wins + losses) || 1;
-                        totalLeaguePF += parseFloat(t.stats.find(s => s.name === 'pointsFor')?.value || 110) / gp;
-                        totalLeaguePA += parseFloat(t.stats.find(s => s.name === 'pointsAgainst')?.value || 110) / gp;
-                        teamCount++;
-                    });
-                    const lgAvgPF = totalLeaguePF / teamCount, lgAvgPA = totalLeaguePA / teamCount;
-                    const baselinePace = 100.0;
-                    let html = '<div class="standings-wrapper">';
-                    const buildTable = (conf) => {
-                        if (!conf) return '';
-                        let tHtml = `<div class="conf-box"><div class="conf-title">${conf.name.replace('Conference','').trim()}</div><table class="standings-table"><tr><th>#</th><th>TM</th><th>W-L</th><th>GB</th><th>L10</th></tr>`;
-                        let sortedTeams = conf.standings.entries.sort((a,b) => parseInt(a.stats.find(s=>s.name==='playoffSeed')?.value||99) - parseInt(b.stats.find(s=>s.name==='playoffSeed')?.value||99));
-                        sortedTeams.forEach(team => {
-                            const seed = team.stats.find(s => s.name === 'playoffSeed')?.value || '-';
-                            const wins = team.stats.find(s => s.name === 'wins')?.value || 0;
-                            const losses = team.stats.find(s => s.name === 'losses')?.value || 0;
-                            const gamesPlayed = (wins + losses) || 1;
-                            const gb = team.stats.find(s => s.name === 'gamesBehind')?.displayValue || '-';
-                            const l10 = team.stats.find(s => s.abbreviation==='L10'||s.name==='last10Games')?.displayValue || '-';
-                            const abbrev = team.team.abbreviation || team.team.shortDisplayName.substring(0,3).toUpperCase();
-                            const ppg = (team.stats.find(s => s.name === 'pointsFor')?.value || 110) / gamesPlayed;
-                            const oppPpg = (team.stats.find(s => s.name === 'pointsAgainst')?.value || 110) / gamesPlayed;
-                            let l10Wins = l10 !== '-' ? parseInt(l10.split('-')[0]) : 5;
-                            const estPace = baselinePace * ((ppg + oppPpg) / (lgAvgPF + lgAvgPA));
-                            window.teamAnalyticsStore[team.team.id] = {
-                                winPct: (wins / gamesPlayed) || 0.5,
-                                estPace, offRtg: (ppg / estPace) * 100, defRtg: (oppPpg / estPace) * 100,
-                                formWeight: l10Wins / 10, ppg, oppg: oppPpg, abbrev, teamId: team.team.id
-                            };
-                            tHtml += `<tr data-team-id="${team.team.id}"><td><b>${seed}</b></td><td><b>${abbrev}</b></td><td>${wins}-${losses}</td><td>${gb}</td><td>${l10}</td></tr>`;
-                        });
-                        return tHtml + '</table></div>';
-                    };
-                    html += buildTable(west) + buildTable(east) + '</div>';
-                    document.getElementById('standings-container').innerHTML = html;
-                    await fetchLast20ForAllTeams();
-                    loadDailySlate(0);
-                }
-            } catch (e) { document.getElementById('standings-container').innerHTML = '<p style="color:red">Failed to load standings.</p>'; }
-        }
-
-        async function fetchLast20ForAllTeams() {
-            const rankingsContainer = document.getElementById('rankings-container');
-            rankingsContainer.innerHTML = '<div class="loading">Fetching last 20 games for all teams...</div>';
-            const teamIds = Object.keys(window.teamAnalyticsStore);
-            if (teamIds.length === 0) { rankingsContainer.innerHTML = '<div class="loading">No team data available.</div>'; return; }
-            const promises = teamIds.map(async (teamId) => {
-                try {
-                    const scheduleRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
-                    const scheduleData = await scheduleRes.json();
-                    const completedGames = scheduleData.events.filter(e => e.competitions[0].status.type.completed === true);
-                    const season = window.teamAnalyticsStore[teamId];
-                    const last10 = completedGames.slice(-10);
-                    let curPts = 0, curOppPts = 0;
-                    last10.forEach(game => {
-                        const comp = game.competitions[0];
-                        const me = comp.competitors.find(c => String(c.team.id) === teamId);
-                        const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
-                        if (me && me.score && opp && opp.score) { curPts += parseInt(me.score.value); curOppPts += parseInt(opp.score.value); }
-                    });
-                    const curGames = last10.length;
-                    const curAvgPts = curGames > 0 ? curPts / curGames : 0;
-                    const curAvgOppPts = curGames > 0 ? curOppPts / curGames : 0;
-                    const baselinePace = 100.0;
-                    const curTotalAvg = curAvgPts + curAvgOppPts;
-                    const curPace = baselinePace * (curTotalAvg / 230);
-                    const curOffRtg = (curAvgPts / curPace) * 100;
-                    const curDefRtg = (curAvgOppPts / curPace) * 100;
-                    let prevPts = null, prevOppPts = null, prevPace = null, prevOffRtg = null, prevDefRtg = null;
-                    if (completedGames.length >= 20) {
-                        const prev10 = completedGames.slice(-20, -10);
-                        let prevPtsSum = 0, prevOppPtsSum = 0;
-                        prev10.forEach(game => {
-                            const comp = game.competitions[0];
-                            const me = comp.competitors.find(c => String(c.team.id) === teamId);
-                            const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
-                            if (me && me.score && opp && opp.score) { prevPtsSum += parseInt(me.score.value); prevOppPtsSum += parseInt(opp.score.value); }
-                        });
-                        const prevGames = prev10.length;
-                        if (prevGames > 0) {
-                            prevPts = prevPtsSum / prevGames;
-                            prevOppPts = prevOppPtsSum / prevGames;
-                            const prevTotalAvg = prevPts + prevOppPts;
-                            prevPace = baselinePace * (prevTotalAvg / 230);
-                            prevOffRtg = (prevPts / prevPace) * 100;
-                            prevDefRtg = (prevOppPts / prevPace) * 100;
-                        }
-                    }
-                    window.teamLast10Store[teamId] = {
-                        abbrev: season.abbrev, curPace, curOffRtg, curDefRtg,
-                        prevPace, prevOffRtg, prevDefRtg
-                    };
-                } catch (e) {
-                    const season = window.teamAnalyticsStore[teamId];
-                    window.teamLast10Store[teamId] = { abbrev: season.abbrev, curPace: season.estPace, curOffRtg: season.offRtg, curDefRtg: season.defRtg, prevPace: null, prevOffRtg: null, prevDefRtg: null };
-                }
-            });
-            await Promise.all(promises);
-            updateLast10Rankings();
-        }
-
-        function getTrendHtml(current, previous, higherIsBetter = true) {
-            if (previous === null || previous === undefined) return '<span class="trend-flat">–</span>';
-            const diff = current - previous;
-            if (Math.abs(diff) < 0.05) return '<span class="trend-flat">–</span>';
-            const arrow = diff > 0 ? '▲' : '▼';
-            const color = diff > 0 ? 'trend-up' : 'trend-down';
-            return `<span class="${color}">${arrow} ${diff>0?'+':''}${diff.toFixed(1)}</span>`;
-        }
-        function updateLast10Rankings() {
-            const teams = Object.values(window.teamLast10Store);
-            if (teams.length === 0) { document.getElementById('rankings-container').innerHTML = '<div class="loading">No data</div>'; return; }
-            const paceSorted = [...teams].sort((a,b) => b.curPace - a.curPace);
-            const offSorted = [...teams].sort((a,b) => b.curOffRtg - a.curOffRtg);
-            const defSorted = [...teams].sort((a,b) => a.curDefRtg - b.curDefRtg);
-            const paceList = paceSorted.map(t => {
-                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
-                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curPace.toFixed(1)}</span> ${getTrendHtml(t.curPace,t.prevPace,true)}</li>`;
-            }).join('');
-            const offList = offSorted.map(t => {
-                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
-                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curOffRtg.toFixed(1)}</span> ${getTrendHtml(t.curOffRtg,t.prevOffRtg,true)}</li>`;
-            }).join('');
-            const defList = defSorted.map(t => {
-                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
-                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curDefRtg.toFixed(1)}</span> ${getTrendHtml(t.curDefRtg,t.prevDefRtg,false)}</li>`;
-            }).join('');
-            document.getElementById('rankings-container').innerHTML = `
-            <div class="rankings-grid">
-                <div class="rank-category"><h3>Pace (Fastest)</h3><ul class="rank-list">${paceList}</ul></div>
-                <div class="rank-category"><h3>Offensive Rating</h3><ul class="rank-list">${offList}</ul></div>
-                <div class="rank-category"><h3>Defensive Rating</h3><ul class="rank-list">${defList}</ul></div>
-            </div>
-            <p style="font-size:9px;text-align:center;margin:5px 0 0;color:#888;">Based on last 10 games · Trend vs previous 10</p>`;
-            if (window.currentTeamId) highlightTeamAndOpponent(window.currentTeamId, window.currentOppId);
-        }
-        function highlightTeamAndOpponent(teamId, oppId) {
-            document.querySelectorAll('#standings-container tr.highlighted-team, #rankings-container li.highlighted-team').forEach(el => el.classList.remove('highlighted-team'));
-            if (teamId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${teamId}"]`); if (tr) tr.classList.add('highlighted-team'); }
-            if (oppId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${oppId}"]`); if (tr) tr.classList.add('highlighted-team'); }
-            if (teamId) { document.querySelectorAll(`#rankings-container li[data-team-id="${teamId}"]`).forEach(el => el.classList.add('highlighted-team')); }
-            if (oppId) { document.querySelectorAll(`#rankings-container li[data-team-id="${oppId}"]`).forEach(el => el.classList.add('highlighted-team')); }
-        }
-
-        function changeSlateDate(offset) { loadDailySlate(offset); }
-
-        // ----- NEW: Bounce-Back Bet Computation -----
-        function computeBounceBackBetsForSlate(events) {
-            const bets = [];
             events.forEach(evt => {
                 const comp = evt.competitions[0];
                 const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
@@ -1200,135 +522,188 @@
                     const teamId = team.team.id;
                     const logs = window.playerGameLogsCache[teamId];
                     if (!logs) return;
-                    const playerData = [];
-                    logs.forEach((gameEntries, playerName) => {
-                        if (gameEntries.length < 3) return; // need at least 3 games
-                        const totalGames = gameEntries.length;
-                        const sumPts = gameEntries.reduce((s,g) => s+g.pts, 0);
-                        const sumReb = gameEntries.reduce((s,g) => s+g.reb, 0);
-                        const sumAst = gameEntries.reduce((s,g) => s+g.ast, 0);
-                        const sumTpm = gameEntries.reduce((s,g) => s+g.tpm, 0);
-                        const avgPts = sumPts/totalGames;
-                        const avgReb = sumReb/totalGames;
-                        const avgAst = sumAst/totalGames;
-                        const avgTpm = sumTpm/totalGames;
-                        const lastGame = gameEntries[gameEntries.length-1];
-                        const lastPts = lastGame.pts;
-                        const lastReb = lastGame.reb;
-                        const lastAst = lastGame.ast;
-                        const lastTpm = lastGame.tpm;
-                        playerData.push({
-                            name: playerName,
-                            teamId: teamId,
-                            teamAbbrev: team.team.abbreviation,
-                            avgPts, avgReb, avgAst, avgTpm,
-                            lastPts, lastReb, lastAst, lastTpm,
-                            games: totalGames,
-                            opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
-                        });
-                    });
-                    // Rank for each stat
-                    const sortedPts = [...playerData].sort((a,b) => b.avgPts - a.avgPts);
-                    const topPts = sortedPts.slice(0,3);
-                    const sortedReb = [...playerData].sort((a,b) => b.avgReb - a.avgReb);
-                    const topReb = sortedReb.slice(0,2);
-                    const sortedAst = [...playerData].sort((a,b) => b.avgAst - a.avgAst);
-                    const topAst = sortedAst.slice(0,1);
-                    const sortedTpm = [...playerData].sort((a,b) => b.avgTpm - a.avgTpm);
-                    const topTpm = sortedTpm.slice(0,1);
 
-                    const candidates = [];
-                    // Points: top 3
-                    topPts.forEach(p => {
-                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Points',
-                                avg: p.avgPts,
-                                last: p.lastPts,
-                                threshold: p.avgPts * 0.7,
-                                bounce: p.avgPts - p.lastPts
-                            });
-                        }
-                    });
-                    // Rebounds: top 2
-                    topReb.forEach(p => {
-                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Rebounds',
-                                avg: p.avgReb,
-                                last: p.lastReb,
-                                threshold: p.avgReb * 0.7,
-                                bounce: p.avgReb - p.lastReb
-                            });
-                        }
-                    });
-                    // Assists: top 1
-                    topAst.forEach(p => {
-                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Assists',
-                                avg: p.avgAst,
-                                last: p.lastAst,
-                                threshold: p.avgAst * 0.7,
-                                bounce: p.avgAst - p.lastAst
-                            });
-                        }
-                    });
-                    // 3PM: top 1
-                    topTpm.forEach(p => {
-                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: '3PM',
-                                avg: p.avgTpm,
-                                last: p.lastTpm,
-                                threshold: p.avgTpm * 0.7,
-                                bounce: p.avgTpm - p.lastTpm
-                            });
-                        }
-                    });
-                    // Add to bets
-                    candidates.forEach(c => {
-                        bets.push({
-                            player: c.name,
-                            team: c.teamAbbrev,
-                            teamId: c.teamId,
-                            stat: c.stat,
-                            avg: c.avg,
-                            last: c.last,
-                            bounce: c.bounce,
-                            opponent: c.opponent
+                    logs.forEach((gameEntries, playerName) => {
+                        if (gameEntries.length < 3) return;
+                        const sortedGames = [...gameEntries].sort((a,b) => a.date - b.date);
+                        const lastGame = sortedGames[sortedGames.length - 1];
+                        const prevGames = sortedGames.slice(0, -1);
+                        if (prevGames.length < 2) return;
+
+                        const statKeys = ['pts', 'reb', 'ast', 'tpm'];
+                        let bestCandidate = null;
+                        statKeys.forEach(statKey => {
+                            const vals = sortedGames.map(g => g[statKey]);
+                            const lastVal = vals[vals.length - 1];
+                            const prevVals = vals.slice(0, -1);
+                            if (prevVals.length < 2) return;
+                            const weightedAvg = calcWeightedAvg(prevVals.slice().reverse());
+                            if (weightedAvg < 1) return;
+
+                            const stdDev = calculateStdDev(prevVals);
+                            const cov = weightedAvg > 0 ? stdDev / weightedAvg : 0;
+
+                            // 1. Mean Reversion
+                            const leagueAvgVal = leagueAvg[statKey] || 5;
+                            const n = prevVals.length;
+                            const shrinkage = n / (n + 15);
+                            const trueTalent = weightedAvg * shrinkage + leagueAvgVal * (1 - shrinkage);
+
+                            // 2. Opponent Adjustment
+                            const oppDefRtg = (lastGame.opponentId && window.teamAnalyticsStore[lastGame.opponentId]) 
+                                ? window.teamAnalyticsStore[lastGame.opponentId].defRtg : leagueDefRtg;
+                            const oppAdj = (leagueDefRtg / oppDefRtg);
+                            const adjustedLast = lastVal * oppAdj;
+
+                            // 3. Usage
+                            const lastFga = lastGame.fga || 0;
+                            const avgFga = sortedGames.map(g => g.fga || 0).reduce((a,b)=>a+b,0) / sortedGames.length;
+                            const usageFactor = (avgFga > 0 && lastFga < avgFga * 0.6) ? 1.2 : 1.0;
+
+                            // 4. Consistency
+                            const covFactor = cov > 0.5 ? 1.2 : (cov < 0.2 ? 0.8 : 1.0);
+
+                            // 5. Zig-Zag
+                            const teamLost = !lastGame.teamWin;
+                            const zigZagFactor = teamLost ? 1.15 : 1.0;
+
+                            // 6. Fatigue
+                            let fatigueFactor = 1.0;
+                            if (sortedGames.length >= 2) {
+                                const prevDate = sortedGames[sortedGames.length - 2].date;
+                                const daysDiff = (lastGame.date - prevDate) / (1000 * 60 * 60 * 24);
+                                if (daysDiff <= 1) fatigueFactor = 1.2;
+                                else if (daysDiff >= 3) fatigueFactor = 0.9;
+                            }
+
+                            // 7. Historical Bounce Rate
+                            let bounceCount = 0, totalBadGames = 0;
+                            for (let i = 1; i < sortedGames.length; i++) {
+                                const prev5 = sortedGames.slice(Math.max(0, i-5), i);
+                                if (prev5.length < 2) continue;
+                                const avg5 = prev5.reduce((s,g) => s+g[statKey], 0) / prev5.length;
+                                if (sortedGames[i-1][statKey] < avg5 * 0.7) {
+                                    totalBadGames++;
+                                    if (sortedGames[i][statKey] >= avg5) bounceCount++;
+                                }
+                            }
+                            const historicalBounceRate = totalBadGames > 0 ? bounceCount / totalBadGames : 0.5;
+
+                            // Combined Score
+                            let score = 0;
+                            const threshold = weightedAvg * 0.7;
+                            if (lastVal < threshold) {
+                                const deficit = (threshold - lastVal) / threshold;
+                                score += deficit * 0.30;
+                                const reversionBoost = Math.min(1, (trueTalent - lastVal) / (weightedAvg + 1));
+                                score += reversionBoost * 0.20;
+                                const oppBoost = Math.min(0.5, (adjustedLast - lastVal) / (lastVal + 1));
+                                score += oppBoost * 0.10;
+                                score += (usageFactor - 1) * 0.10;
+                                score += (covFactor - 1) * 0.05;
+                                score += (zigZagFactor - 1) * 0.10;
+                                score += (fatigueFactor - 1) * 0.10;
+                                score += (historicalBounceRate - 0.5) * 0.15;
+                            } else { return; }
+
+                            let confidence = Math.min(100, Math.max(5, score * 100));
+                            if (historicalBounceRate > 0.6) confidence = Math.min(100, confidence * 1.1);
+                            if (teamLost) confidence = Math.min(100, confidence * 1.05);
+
+                            const last5 = sortedGames.slice(-5).map(g => g[statKey]);
+                            const arrows = last5.map(v => v >= weightedAvg ? '↑' : '↓').join('');
+
+                            const why = `Last game: ${lastVal.toFixed(1)} (${((lastVal/weightedAvg-1)*100).toFixed(0)}% vs avg). ` +
+                                `Weighted avg: ${weightedAvg.toFixed(1)}. ` +
+                                (teamLost ? 'Team lost → bounce motivation. ' : '') +
+                                (fatigueFactor > 1.1 ? 'Back-to-back fatigue. ' : '') +
+                                `Historical bounce: ${Math.round(historicalBounceRate*100)}%. ` +
+                                `Usage: ${usageFactor>1?'Low FGA → due for more shots. ':'Normal usage. '}` +
+                                `Opponent D adj: ${lastVal.toFixed(1)} → ${adjustedLast.toFixed(1)}.`;
+
+                            if (!bestCandidate || confidence > bestCandidate.confidence) {
+                                bestCandidate = {
+                                    player: playerName,
+                                    teamId: teamId,
+                                    teamAbbrev: team.team.abbreviation,
+                                    statKey: statKey,
+                                    statLabel: STAT_CONFIG[statKey]?.label || statKey.toUpperCase(),
+                                    avg: weightedAvg,
+                                    last: lastVal,
+                                    confidence: Math.round(confidence),
+                                    historicalBounceRate: Math.round(historicalBounceRate * 100),
+                                    arrows: arrows,
+                                    why: why,
+                                    teamLost: teamLost,
+                                    opponent: lastGame.opponent
+                                };
+                            }
                         });
+                        if (bestCandidate) signals.push(bestCandidate);
                     });
                 });
             });
-            return bets;
+            signals.sort((a,b) => b.confidence - a.confidence);
+            return signals;
         }
 
-        function renderBounceBackBets(bets) {
+        function renderBounceBackSignals(signals) {
             const container = document.getElementById('bounce-back-container');
+            const leaderboard = document.getElementById('bounce-leaderboard');
             const list = document.getElementById('bounce-back-list');
-            if (!container || !list) return;
-            if (bets.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
+            if (!container || !leaderboard || !list) return;
+            if (signals.length === 0) { container.style.display = 'none'; return; }
             container.style.display = 'block';
-            let html = '';
-            bets.forEach(b => {
-                const playerSafe = b.player.replace(/'/g, "\\'");
-                html += `<div class="bounce-item" onclick="showPlayerGameLog('${b.teamId}', '${playerSafe}')">
-                    <span><b class="player-link">${b.player}</b> (${b.team}) - ${b.stat}: avg ${b.avg.toFixed(1)}, last ${b.last.toFixed(1)}</span>
-                    <span class="bounce-stat">+${b.bounce.toFixed(1)} bounce potential</span>
+
+            const top5 = signals.slice(0,5);
+            const rest = signals.slice(5);
+
+            let lbHtml = '';
+            top5.forEach((s, idx) => {
+                const badgeClass = s.confidence >= 75 ? 'hot' : (s.confidence >= 55 ? 'mod' : 'cold');
+                const badgeText = s.confidence >= 75 ? '🔥 Hot' : (s.confidence >= 55 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = s.confidence >= 75 ? 'high' : (s.confidence >= 55 ? 'med' : 'low');
+                const safeName = s.player.replace(/'/g, "\\'");
+                lbHtml += `<div class="bounce-card" style="border-left-color:${s.confidence>=75?'#28a745':s.confidence>=55?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}', '${safeName}')" tabindex="0">#${idx+1} ${s.player}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence">
+                        <div class="meter"><div class="fill ${meterClass}" style="width:${s.confidence}%;"></div></div>
+                        <span class="pct">${s.confidence}%</span>
+                    </div>
+                    <div class="b-badge ${badgeClass}">${badgeText}</div>
+                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-arrows">${s.arrows}</div>
+                    <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
+                    <div class="bounce-why">${s.why}</div>
                 </div>`;
             });
-            list.innerHTML = html;
+            leaderboard.innerHTML = lbHtml;
+
+            let restHtml = '';
+            rest.forEach(s => {
+                const badgeClass = s.confidence >= 75 ? 'hot' : (s.confidence >= 55 ? 'mod' : 'cold');
+                const badgeText = s.confidence >= 75 ? '🔥 Hot' : (s.confidence >= 55 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = s.confidence >= 75 ? 'high' : (s.confidence >= 55 ? 'med' : 'low');
+                const safeName = s.player.replace(/'/g, "\\'");
+                restHtml += `<div class="bounce-card" style="border-left-color:${s.confidence>=75?'#28a745':s.confidence>=55?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}', '${safeName}')" tabindex="0">${s.player}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence">
+                        <div class="meter"><div class="fill ${meterClass}" style="width:${s.confidence}%;"></div></div>
+                        <span class="pct">${s.confidence}%</span>
+                    </div>
+                    <div class="b-badge ${badgeClass}">${badgeText}</div>
+                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-arrows">${s.arrows}</div>
+                    <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
+                    <div class="bounce-why">${s.why}</div>
+                </div>`;
+            });
+            list.innerHTML = restHtml;
         }
 
-        // ----- Modified loadDailySlate to include bounce-back bets -----
+        // -------- Modified loadDailySlate to use new algorithm --------
         async function loadDailySlate(offset = 0) {
             currentSlateDate.setDate(currentSlateDate.getDate() + offset);
             const container = document.getElementById('slate-data-container');
@@ -1359,18 +734,17 @@
                     return;
                 }
 
-                // Fetch player logs for all teams in slate
                 const teamIds = new Set();
                 data.events.forEach(evt => {
                     evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
                 });
                 await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
 
-                // Compute bounce-back bets
-                const bounceBackBets = computeBounceBackBetsForSlate(data.events);
-                renderBounceBackBets(bounceBackBets);
+                // Enhanced Bounce-Back
+                const bounceSignals = computeBounceBackSignals(data.events);
+                renderBounceBackSignals(bounceSignals);
 
-                // Continue with slate rendering
+                // Slate rendering (original)
                 let html = '';
                 let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0;
                 let spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
@@ -1581,6 +955,7 @@
             }
         }
 
+        // -------- The rest of the script (Full original functionality) --------
         async function fetchAggregatedSummary(referenceDate, daysBack, containerId, title) {
             const container = document.getElementById(containerId);
             container.innerHTML = '<div class="loading">Loading summary...</div>';
@@ -1704,6 +1079,7 @@
             return [parseFloat(((rim / total) * 100).toFixed(1)), parseFloat(((paint / total) * 100).toFixed(1)), parseFloat(((mid / total) * 100).toFixed(1)), parseFloat(((c3 / total) * 100).toFixed(1)), parseFloat(((ab3 / total) * 100).toFixed(1))];
         }
 
+        // -------- Fetch games and draw charts (Original) --------
         async function fetchGamesAndDrawCharts(espnId, teamAbbrev) {
             const nextContainer = document.getElementById('next-game-container');
             const pastContainer = document.getElementById('past-games-container');
@@ -2098,6 +1474,715 @@
                 return `<div class="game-card"><p style="color:red;font-size:12px;">Error loading game details</p></div>`;
             }
         }
+
+        // -------- Props Section (Original) --------
+        function generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, playerGameLogs) {
+            const oppDefRanks = oppId ? getOpponentDefensiveRanks(oppId) : null;
+            const oppStats = oppId ? window.teamAnalyticsStore[oppId] : null;
+            const teamStats = window.teamAnalyticsStore[teamId];
+            const estPace = (teamStats && oppStats) ? (teamStats.estPace + oppStats.estPace) / 2 : 100;
+            const paceFactor = estPace / 100;
+            const allProps = [];
+            for (const [playerName, games] of playerGameLogs.entries()) {
+                if (games.length < 3) continue;
+                const last3 = games.slice(-3);
+                const last10 = games.slice(-10);
+                const homeGames = games.filter(g => g.isHome);
+                const awayGames = games.filter(g => !g.isHome);
+                for (const [statKey, config] of Object.entries(STAT_CONFIG)) {
+                    const allVals = games.map(g => g[statKey]).filter(v => v > 0 || statKey === 'blk' || statKey === 'stl');
+                    const last3Vals = last3.map(g => g[statKey]);
+                    const last10Vals = last10.map(g => g[statKey]);
+                    const homeVals = homeGames.map(g => g[statKey]);
+                    const awayVals = awayGames.map(g => g[statKey]);
+                    const avgAll = allVals.length > 0 ? allVals.reduce((a,b)=>a+b,0)/allVals.length : 0;
+                    const avgLast3 = last3Vals.length > 0 ? last3Vals.reduce((a,b)=>a+b,0)/last3Vals.length : avgAll;
+                    const avgLast10 = last10Vals.length > 0 ? last10Vals.reduce((a,b)=>a+b,0)/last10Vals.length : avgAll;
+                    const avgHome = homeVals.length > 0 ? homeVals.reduce((a,b)=>a+b,0)/homeVals.length : avgAll;
+                    const avgAway = awayVals.length > 0 ? awayVals.reduce((a,b)=>a+b,0)/awayVals.length : avgAll;
+                    if (avgAll < config.minQualify && statKey !== 'blk' && statKey !== 'stl') continue;
+                    if ((statKey === 'blk' || statKey === 'stl') && avgAll < config.minQualify && allVals.filter(v => v>0).length < 2) continue;
+                    const stdDev = calculateStdDev(allVals.length >= 3 ? allVals : [...allVals, avgAll]);
+                    const recencyWeight = 0.6, baseWeight = 0.4;
+                    let rawProjection = (avgLast3 * recencyWeight) + (avgLast10 * baseWeight);
+                    const homeAwayAdj = isHomeGame ? (avgHome - avgAll) * 0.5 : (avgAway - avgAll) * 0.5;
+                    rawProjection += homeAwayAdj;
+                    if (oppDefRanks) { const defRankDiff = (oppDefRanks[statKey] - 110) / 10; rawProjection += defRankDiff * config.defRtgWeight; }
+                    rawProjection += (paceFactor - 1) * config.paceWeight * avgAll;
+                    if (isHomeGame) rawProjection += config.homeBoost * 0.3;
+                    rawProjection = Math.max(0, rawProjection);
+                    const line = calibrateLine(rawProjection);
+                    const rangeLow = Math.max(0, rawProjection - stdDev * 1.2);
+                    const rangeHigh = rawProjection + stdDev * 1.2;
+                    const gamesOverLine = allVals.filter(v => v > line).length;
+                    const consistencyPct = allVals.length > 0 ? gamesOverLine / allVals.length : 0.5;
+                    const consistencyBonus = consistencyPct >= 0.6 ? 0.08 : (consistencyPct <= 0.35 ? -0.12 : 0);
+                    const variancePenalty = stdDev > (avgAll * 0.5) ? -0.10 : (stdDev < (avgAll * 0.25) ? 0.06 : 0);
+                    let confidenceScore = 0.55;
+                    confidenceScore += (allVals.length >= 7 ? 0.08 : allVals.length >= 5 ? 0.04 : 0);
+                    confidenceScore += consistencyBonus + variancePenalty;
+                    if (oppDefRanks && oppDefRanks.baseDefRtg > 115) confidenceScore += 0.06;
+                    if (oppDefRanks && oppDefRanks.baseDefRtg < 106) confidenceScore -= 0.04;
+                    if (Math.abs(rawProjection - line) > 0.8) confidenceScore += 0.05;
+                    confidenceScore = Math.max(0.25, Math.min(0.95, confidenceScore));
+                    const recommendation = rawProjection > line + 0.3 ? 'OVER' : (rawProjection < line - 0.3 ? 'UNDER' : 'PASS');
+                    const confClass = confidenceScore >= 0.72 ? 'confidence-high' : (confidenceScore >= 0.55 ? 'confidence-med' : 'confidence-low');
+                    allProps.push({
+                        player: playerName, statKey, statLabel: config.label, statIcon: config.icon, isDiscrete: config.isDiscrete,
+                        line, rawProjection, rangeLow, rangeHigh, confidence: Math.round(confidenceScore*100), confidenceClass: confClass,
+                        consistencyPct: Math.round(consistencyPct*100), consistencyClass: consistencyPct>=0.55?'':'low-consistency',
+                        recommendation, stdDev, gamesCount: games.length, isHome: isHomeGame,
+                        avgAll, avgLast3, avgLast10, allVals,
+                        detailFactors: [isHomeGame?'Home':'Away', oppDefRanks?`Opp D:${oppDefRanks.baseDefRtg.toFixed(0)}`:'', `Pace:${estPace.toFixed(0)}`, `L3:${avgLast3.toFixed(1)}`, `σ:${stdDev.toFixed(1)}`].filter(Boolean).join(' · '),
+                        teamAbbrev, teamId, oppId, games
+                    });
+                }
+            }
+            allProps.sort((a,b) => b.confidence - a.confidence);
+            return allProps.slice(0, 10);
+        }
+
+        function computeBayesianProjection(prop) {
+            const vals = prop.allVals; const n = vals.length;
+            if (n < 3) return null;
+            const sampleMean = vals.reduce((a,b)=>a+b,0)/n;
+            const sampleVar = n>=2 ? vals.reduce((a,b)=>a+(b-sampleMean)**2,0)/(n-1) : 1;
+            const priorMean = prop.avgAll;
+            const priorVar = Math.max(sampleVar*0.8, 0.5);
+            const likelihoodVar = sampleVar/Math.max(n,1);
+            const priorPrecision = 1/priorVar, likelihoodPrecision = 1/Math.max(likelihoodVar,0.01);
+            const posteriorPrecision = priorPrecision + likelihoodPrecision;
+            const posteriorVar = 1/posteriorPrecision;
+            const posteriorMean = (priorMean*priorPrecision + sampleMean*likelihoodPrecision)/posteriorPrecision;
+            const posteriorStd = Math.sqrt(posteriorVar);
+            const ciLow = posteriorMean - 1.96*posteriorStd, ciHigh = posteriorMean + 1.96*posteriorStd;
+            const shift = posteriorMean - priorMean;
+            const shiftPct = priorMean>0 ? Math.round((shift/priorMean)*100) : 0;
+            return {
+                priorMean, posteriorMean, posteriorStd,
+                ciLow: Math.max(0, ciLow), ciHigh,
+                shift, shiftPct,
+                direction: shift > 0.3 ? 'UP ⬆️' : (shift < -0.3 ? 'DOWN ⬇️' : 'STABLE ➡️'),
+                credibleRange: `${ciLow.toFixed(1)} – ${ciHigh.toFixed(1)}`
+            };
+        }
+        function renderBayesianPanel(propsA, propsB) {
+            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
+            if (topProps.length===0) return '<p class="loading">No props available for Bayesian analysis.</p>';
+            let html = '';
+            topProps.forEach(p => {
+                const b = computeBayesianProjection(p);
+                if (!b) return;
+                const shiftColor = b.shift > 0.3 ? '#28a745' : (b.shift < -0.3 ? '#dc3545' : '#888');
+                html += `<div class="model-prop-mini">
+                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
+                    <div class="mini-detail"><span>Prior: <b>${b.priorMean.toFixed(1)}</b></span> <span class="bayesian-arrow">→</span> <span>Posterior: <b style="color:#7b1fa2;">${b.posteriorMean.toFixed(1)}</b> ±${b.posteriorStd.toFixed(1)}</span></div>
+                    <div class="mini-detail"><span>95% CI: <b>${b.credibleRange}</b></span> <span style="color:${shiftColor};margin-left:8px;">${b.direction} (${b.shiftPct>0?'+':''}${b.shiftPct}%)</span></div>
+                    <div class="mini-detail" style="font-size:9px;color:#999;">Line: ${p.line} | Bayesian suggests: <b>${b.posteriorMean > p.line+0.3 ? 'OVER' : (b.posteriorMean < p.line-0.3 ? 'UNDER' : 'PASS')}</b></div>
+                </div>`;
+            });
+            return html || '<p class="loading">Insufficient data for Bayesian updating.</p>';
+        }
+
+        function computeOpponentMatchup(prop) {
+            const games = prop.games, oppId = prop.oppId;
+            if (!oppId || games.length<2) return null;
+            const matchupGames = games.filter(g => g.opponentId === oppId);
+            const nonMatchupGames = games.filter(g => g.opponentId !== oppId);
+            if (matchupGames.length===0) return { hasHistory: false, matchupCount:0, note:'No prior matchups vs this opponent' };
+            const matchupVals = matchupGames.map(g=>g[prop.statKey]);
+            const nonMatchupVals = nonMatchupGames.map(g=>g[prop.statKey]);
+            const matchupAvg = matchupVals.reduce((a,b)=>a+b,0)/matchupVals.length;
+            const nonMatchupAvg = nonMatchupVals.length>0 ? nonMatchupVals.reduce((a,b)=>a+b,0)/nonMatchupVals.length : prop.avgAll;
+            const diff = matchupAvg - nonMatchupAvg;
+            const diffPct = nonMatchupAvg>0 ? Math.round((diff/nonMatchupAvg)*100) : 0;
+            const recentMatchup = matchupGames.slice(-2);
+            const recentAvg = recentMatchup.length>0 ? recentMatchup.map(g=>g[prop.statKey]).reduce((a,b)=>a+b,0)/recentMatchup.length : matchupAvg;
+            return {
+                hasHistory: true, matchupCount: matchupGames.length,
+                matchupAvg, nonMatchupAvg, diff, diffPct, recentAvg,
+                direction: diff > 1.0 ? 'Overperforms vs opponent 🔥' : (diff < -1.0 ? 'Underperforms vs opponent ❄️' : 'Neutral vs opponent ⚖️'),
+                recentOpponents: recentMatchup.map(g=>g.opponent).join(', ')
+            };
+        }
+        function renderMatchupPanel(propsA, propsB, oppAbbrev) {
+            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
+            if (topProps.length===0) return '<p class="loading">No props for matchup analysis.</p>';
+            let html = `<div style="font-size:10px;color:#777;margin-bottom:8px;text-align:center;">Analyzing player history vs <b>${oppAbbrev||'opponent'}</b></div>`;
+            let hasAny = false;
+            topProps.forEach(p => {
+                const m = computeOpponentMatchup(p);
+                if (!m) return;
+                hasAny = true;
+                if (!m.hasHistory) {
+                    html += `<div class="model-prop-mini"><div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel}</div><div class="mini-detail" style="color:#999;">${m.note}</div></div>`;
+                    return;
+                }
+                const diffColor = m.diff > 1.0 ? '#28a745' : (m.diff < -1.0 ? '#dc3545' : '#888');
+                html += `<div class="model-prop-mini">
+                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
+                    <div class="mini-detail"><span>vs ${oppAbbrev||'OPP'} (${m.matchupCount}g): <b style="color:${diffColor};">${m.matchupAvg.toFixed(1)}</b></span> <span>| vs Others: <b>${m.nonMatchupAvg.toFixed(1)}</b></span></div>
+                    <div class="mini-detail"><span style="color:${diffColor};font-weight:bold;">${m.direction}</span> <span style="font-size:9px;color:#999;"> (${m.diffPct>0?'+':''}${m.diffPct}%)</span></div>
+                    <div class="mini-detail" style="font-size:9px;color:#999;">Last 2 vs OPP: avg ${m.recentAvg.toFixed(1)} | Line: ${p.line}</div>
+                </div>`;
+            });
+            if (!hasAny) html += '<p class="loading">No opponent-specific matchup data available.</p>';
+            return html;
+        }
+
+        function computePoissonModel(prop) {
+            if (!prop.isDiscrete) return null;
+            const vals = prop.allVals, n = vals.length;
+            if (n<3) return null;
+            const lambda = vals.reduce((a,b)=>a+b,0)/n;
+            const lambdaAdj = lambda * (1 + (prop.avgLast3-prop.avgAll)/Math.max(prop.avgAll,0.5)*0.4);
+            const finalLambda = Math.max(0.1, lambdaAdj);
+            function poissonPMF(k, lam) {
+                if (k<0) return 0;
+                let logP = -lam + k*Math.log(lam);
+                for (let i=2; i<=k; i++) logP -= Math.log(i);
+                return Math.exp(logP);
+            }
+            const maxK = Math.max(Math.ceil(finalLambda*3), Math.ceil(prop.line*2), 10);
+            let probOver=0, probUnder=0, probExact=0;
+            for (let k=0; k<=maxK; k++) {
+                const pk = poissonPMF(k, finalLambda);
+                if (k > prop.line) probOver += pk;
+                if (k < prop.line) probUnder += pk;
+                if (Math.abs(k-prop.line)<0.01) probExact = pk;
+            }
+            if (prop.line % 1 !== 0) {
+                probUnder=0; probOver=0;
+                for (let k=0; k<=maxK; k++) {
+                    const pk = poissonPMF(k, finalLambda);
+                    if (k < prop.line) probUnder += pk;
+                    if (k > prop.line) probOver += pk;
+                }
+            }
+            const totalProb = probOver + probUnder + (prop.line%1===0 ? probExact : 0);
+            const normOver = totalProb>0 ? probOver/totalProb : 0.5;
+            const normUnder = totalProb>0 ? probUnder/totalProb : 0.5;
+            const bestBet = normOver > 0.55 ? 'OVER' : (normUnder > 0.55 ? 'UNDER' : 'PASS');
+            const bestProb = Math.round(Math.max(normOver, normUnder)*100);
+            return {
+                lambda: finalLambda, probOver: Math.round(normOver*100), probUnder: Math.round(normUnder*100),
+                probPush: prop.line%1===0 ? Math.round((probExact/Math.max(totalProb,0.001))*100) : 0,
+                bestBet, bestProb, expectedValue: finalLambda
+            };
+        }
+        function renderPoissonPanel(propsA, propsB) {
+            const discreteProps = [...propsA, ...propsB].filter(p=>p.isDiscrete).slice(0,6);
+            if (discreteProps.length===0) return '<p class="loading">No discrete stats (BLK/STL/3PM) available for Poisson modeling.</p>';
+            let html = '';
+            discreteProps.forEach(p => {
+                const po = computePoissonModel(p);
+                if (!po) return;
+                const overWidth = po.probOver, underWidth = po.probUnder;
+                const bestColor = po.bestBet==='OVER' ? '#28a745' : (po.bestBet==='UNDER' ? '#dc3545' : '#888');
+                html += `<div class="model-prop-mini">
+                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
+                    <div class="mini-detail">λ: <b>${po.lambda.toFixed(2)}</b> | Expected: ${po.expectedValue.toFixed(1)} | Line: ${p.line}</div>
+                    <div class="poisson-prob-bar">
+                        <div class="poisson-prob-fill under-fill" style="width:${underWidth}%;float:left;border-radius:7px 0 0 7px;"></div>
+                        <div class="poisson-prob-fill over-fill" style="width:${overWidth}%;float:right;border-radius:0 7px 7px 0;"></div>
+                        <div style="position:absolute;width:100%;text-align:center;font-size:8px;font-weight:bold;line-height:14px;color:#333;">UNDER ${po.probUnder}% | OVER ${po.probOver}%${po.probPush>0?' | PUSH '+po.probPush+'%':''}</div>
+                    </div>
+                    <div class="mini-detail"><span>Best bet: <b style="color:${bestColor};">${po.bestBet}</b> (${po.bestProb}%)</span></div>
+                </div>`;
+            });
+            return html || '<p class="loading">No discrete stat props to model.</p>';
+        }
+
+        function computeGBMProjection(prop) {
+            const games = prop.games, n = games.length;
+            if (n<3) return null;
+            const features = {};
+            features['RecentForm(L3)'] = { value: prop.avgLast3, weight: 0.22, importance: 22 };
+            features['Home/Away'] = { value: prop.isHome ? prop.avgAll*1.04 : prop.avgAll*0.96, weight: 0.10, importance: 10 };
+            features['OppDefRtg'] = { value: prop.avgAll*(1+(prop.rawProjection-prop.avgAll)/Math.max(prop.avgAll,0.5)*0.3), weight: 0.18, importance: 18 };
+            features['PaceFactor'] = { value: prop.avgAll*(prop.rawProjection/Math.max(prop.avgAll,0.5)*0.5+0.5), weight: 0.14, importance: 14 };
+            features['Consistency'] = { value: prop.consistencyPct>55 ? prop.avgAll*1.03 : prop.avgAll*0.97, weight: 0.12, importance: 12 };
+            features['StdDevPenalty'] = { value: prop.stdDev<prop.avgAll*0.3 ? prop.avgAll*1.02 : prop.avgAll*0.98, weight: 0.10, importance: 10 };
+            features['GamesPlayed'] = { value: n>=8 ? prop.avgAll*1.01 : prop.avgAll*0.99, weight: 0.06, importance: 6 };
+            features['RestEstimate'] = { value: prop.avgAll*1.005, weight: 0.04, importance: 4 };
+            features['SeasonFatigue'] = { value: prop.avgAll*0.995, weight: 0.04, importance: 4 };
+            let weightedSum=0, totalWeight=0;
+            const featureList = [];
+            for (const [name, f] of Object.entries(features)) {
+                weightedSum += f.value*f.weight;
+                totalWeight += f.weight;
+                featureList.push({ name, importance: f.importance, contrib: Math.round(f.value*f.weight*10)/10 });
+            }
+            const gbmProjection = totalWeight>0 ? weightedSum/totalWeight : prop.avgAll;
+            featureList.sort((a,b)=>b.importance-a.importance);
+            const topFeatures = featureList.slice(0,5);
+            const agreement = Math.abs(gbmProjection-prop.rawProjection)<1.5 ? 'strong' : (Math.abs(gbmProjection-prop.rawProjection)<3.0 ? 'moderate' : 'weak');
+            const agreementLabel = agreement==='strong' ? 'Strong Consensus ✅' : (agreement==='moderate' ? 'Moderate 🤔' : 'Weak/Divergent ⚠️');
+            const agreementClass = 'agreement-'+agreement;
+            return { gbmProjection, topFeatures, agreement, agreementLabel, agreementClass,
+                recommendation: gbmProjection > prop.line+0.3 ? 'OVER' : (gbmProjection < prop.line-0.3 ? 'UNDER' : 'PASS') };
+        }
+        function renderGBMPanel(propsA, propsB) {
+            const topProps = [...propsA.slice(0,3), ...propsB.slice(0,3)];
+            if (topProps.length===0) return '<p class="loading">No props for GBM analysis.</p>';
+            let html = '';
+            topProps.forEach(p => {
+                const g = computeGBMProjection(p);
+                if (!g) return;
+                const gbmColor = g.recommendation==='OVER' ? '#28a745' : (g.recommendation==='UNDER' ? '#dc3545' : '#888');
+                html += `<div class="model-prop-mini">
+                    <div class="mini-player">${p.player} · ${p.statIcon} ${p.statLabel} <span style="font-size:9px;color:#777;">(${p.teamAbbrev})</span></div>
+                    <div class="mini-detail"><span>GBM Proj: <b style="color:#b71c1c;">${g.gbmProjection.toFixed(1)}</b></span> <span>| Line: ${p.line}</span> <span>| Rec: <b style="color:${gbmColor};">${g.recommendation}</b></span></div>
+                    <div class="mini-detail"><span class="ensemble-agreement ${g.agreementClass}">${g.agreementLabel}</span> <span style="font-size:9px;color:#999;"> (vs ensemble: ${p.rawProjection.toFixed(1)})</span></div>
+                    <div style="font-size:9px;color:#555;margin-top:4px;"><b>Top Features:</b></div>
+                    <ul class="gbm-feature-list">${g.topFeatures.map(f => `<li><span>${f.name}</span><span><span class="gbm-feature-bar" style="width:${f.importance}px;"></span>${f.importance}%</span></li>`).join('')}</ul>
+                </div>`;
+            });
+            return html || '<p class="loading">GBM model requires more data.</p>';
+        }
+
+        function normCDF(x) {
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+            const p = 0.3275911;
+            const sign = x < 0 ? -1 : 1;
+            x = Math.abs(x) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
+            return 0.5 * (1.0 + sign * y);
+        }
+
+        function enrichPropsWithModelResults(propList) {
+            return propList.map(prop => {
+                const enriched = { ...prop };
+                enriched.bayesian = computeBayesianProjection(prop);
+                enriched.matchup = computeOpponentMatchup(prop);
+                enriched.poisson = prop.isDiscrete ? computePoissonModel(prop) : null;
+                enriched.gbm = computeGBMProjection(prop);
+                return enriched;
+            });
+        }
+
+        function computeUnifiedProb(prop) {
+            if (prop.recommendation === 'PASS') return 0.5;
+            const rec = prop.recommendation;
+            const probabilities = [], weights = [];
+            const conf = prop.confidence/100;
+            const diff = prop.rawProjection - prop.line;
+            const z_multi = (prop.stdDev>0) ? diff/prop.stdDev : 0;
+            let probMulti = 0.5 + 0.3 * z_multi * conf;
+            probMulti = Math.min(0.95, Math.max(0.05, probMulti));
+            if (rec === 'UNDER') probMulti = 1 - probMulti;
+            probabilities.push(probMulti); weights.push(0.25);
+            if (prop.bayesian) {
+                const b = prop.bayesian;
+                const z_bayes = (b.posteriorStd>0) ? (b.posteriorMean - prop.line)/b.posteriorStd : 0;
+                let probBayes = normCDF(z_bayes);
+                if (rec === 'UNDER') probBayes = 1 - probBayes;
+                probabilities.push(probBayes); weights.push(0.25);
+            }
+            if (prop.gbm) {
+                const g = prop.gbm;
+                const sigma_gbm = prop.stdDev*0.9 || 1;
+                const z_gbm = (prop.stdDev>0) ? (g.gbmProjection - prop.line)/sigma_gbm : 0;
+                let probGbm = normCDF(z_gbm);
+                if (rec === 'UNDER') probGbm = 1 - probGbm;
+                probabilities.push(probGbm); weights.push(0.15);
+            }
+            if (prop.poisson) {
+                const po = prop.poisson;
+                let probPoisson = rec==='OVER' ? po.probOver/100 : (rec==='UNDER' ? po.probUnder/100 : 0.5);
+                probPoisson = Math.min(0.8, Math.max(0.3, probPoisson));
+                probabilities.push(probPoisson); weights.push(0.20);
+            }
+            if (prop.matchup && prop.matchup.hasHistory) {
+                const m = prop.matchup;
+                const edge = (prop.stdDev>0) ? (m.matchupAvg - m.nonMatchupAvg)/(prop.stdDev+0.5) : 0;
+                let probMatchup = 0.5 + edge*0.45;
+                probMatchup = Math.min(0.8, Math.max(0.2, probMatchup));
+                if (rec === 'UNDER') probMatchup = 1 - probMatchup;
+                probabilities.push(probMatchup); weights.push(0.15);
+            }
+            const totalWeight = weights.reduce((s,w)=>s+w,0);
+            if (totalWeight===0) return 0.5;
+            const avgProb = probabilities.reduce((s,p,i)=> s + p*weights[i], 0)/totalWeight;
+            return Math.min(0.95, Math.max(0.05, avgProb));
+        }
+
+        function buildDiverseParlays(enrichedPropsAll) {
+            const props = enrichedPropsAll.filter(p => p.recommendation !== 'PASS');
+            if (props.length < 2) return [];
+            const maxLegs = Math.min(4, props.length);
+            const combos = [];
+            const generateCombos = (start, current) => {
+                if (current.length >= 2 && current.length <= maxLegs) {
+                    const probProduct = current.reduce((prod, p) => prod * p.unifiedProb, 1);
+                    const independenceScore = (() => {
+                        if (current.length <= 1) return 1.0;
+                        let score = 1.0;
+                        const teams = new Set(current.map(p => p.teamId));
+                        const stats = new Set(current.map(p => p.statKey));
+                        const players = new Set(current.map(p => p.player));
+                        if (teams.size >= 2) score += 0.25;
+                        if (stats.size >= current.length-1) score += 0.30;
+                        if (stats.size === current.length) score += 0.20;
+                        if (players.size === current.length) score += 0.15;
+                        if (teams.size === 1 && stats.size <= 2) score -= 0.20;
+                        return Math.max(0.5, score);
+                    })();
+                    const totalScore = probProduct * independenceScore;
+                    combos.push({
+                        legs: [...current], probProduct, independenceScore, totalScore,
+                        numLegs: current.length,
+                        legTokens: current.map(l => `${l.player}|${l.statKey}|${l.teamId}`).sort()
+                    });
+                }
+                if (current.length >= maxLegs) return;
+                for (let i = start; i < props.length; i++) {
+                    const p = props[i];
+                    if (current.some(c => c.player === p.player && c.statKey === p.statKey)) continue;
+                    generateCombos(i+1, [...current, p]);
+                }
+            };
+            generateCombos(0, []);
+            combos.sort((a,b) => b.totalScore - a.totalScore);
+            const selected = [];
+            const jaccardSimilarity = (setA, setB) => {
+                const intersection = setA.filter(x => setB.includes(x)).length;
+                const union = new Set([...setA, ...setB]).size;
+                return union === 0 ? 0 : intersection / union;
+            };
+            for (const combo of combos) {
+                const tokenSet = combo.legTokens;
+                let tooSimilar = false;
+                for (const sel of selected) {
+                    if (jaccardSimilarity(tokenSet, sel.legTokens) > 0.6) {
+                        tooSimilar = true;
+                        break;
+                    }
+                }
+                if (!tooSimilar) {
+                    selected.push(combo);
+                    if (selected.length >= 8) break;
+                }
+            }
+            return selected;
+        }
+
+        async function updateAdvancedPropsSection(teamId, oppId, teamAbbrev, oppAbbrev) {
+            const propsSection = document.getElementById('props-recommendation-section');
+            const listA = document.getElementById('props-list-team-a');
+            const listB = document.getElementById('props-list-team-b');
+            const titleA = document.getElementById('props-team-a-title');
+            const titleB = document.getElementById('props-team-b-title');
+            const parlaySection = document.getElementById('parlay-optimizer-section');
+            const parlayList = document.getElementById('parlay-list');
+            const teamBCol = document.getElementById('props-team-b-column');
+            const deepDiveSection = document.getElementById('model-deep-dive-section');
+            const bayesianContent = document.getElementById('bayesian-content');
+            const matchupContent = document.getElementById('matchup-content');
+            const poissonContent = document.getElementById('poisson-content');
+            const gbmContent = document.getElementById('gbm-content');
+
+            if (!oppId) { propsSection.style.display = 'none'; return; }
+            propsSection.style.display = 'block';
+            titleA.textContent = `🔥 ${teamAbbrev} Props`;
+            titleB.textContent = `🔥 ${oppAbbrev} Props`;
+            teamBCol.style.display = 'block';
+            listA.innerHTML = '<div class="loading">Running multi-factor model...</div>';
+            listB.innerHTML = '<div class="loading">Running multi-factor model...</div>';
+            parlaySection.style.display = 'none'; parlayList.innerHTML = '';
+            deepDiveSection.style.display = 'none';
+            bayesianContent.innerHTML = '<div class="loading">Computing...</div>';
+            matchupContent.innerHTML = '<div class="loading">Analyzing...</div>';
+            poissonContent.innerHTML = '<div class="loading">Estimating...</div>';
+            gbmContent.innerHTML = '<div class="loading">Training...</div>';
+
+            const [logsA, logsB] = await Promise.all([fetchPlayerGameLogs(teamId, 10), fetchPlayerGameLogs(oppId, 10)]);
+            const isHomeGame = true;
+            let propsA = generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, logsA);
+            let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, !isHomeGame, logsB);
+
+            propsA = enrichPropsWithModelResults(propsA);
+            propsB = enrichPropsWithModelResults(propsB);
+            propsA.forEach(p => p.unifiedProb = computeUnifiedProb(p));
+            propsB.forEach(p => p.unifiedProb = computeUnifiedProb(p));
+
+            listA.innerHTML = renderPropCards(propsA, teamId);
+            listB.innerHTML = renderPropCards(propsB, oppId);
+
+            const allEnriched = [...propsA, ...propsB];
+            const diverseParlays = buildDiverseParlays(allEnriched);
+            if (diverseParlays.length > 0) {
+                parlaySection.style.display = 'block';
+                parlayList.innerHTML = diverseParlays.map(p => {
+                    const legsHtml = p.legs.map(l => `<span class="parlay-leg">${l.player} ${l.statLabel} ${l.line} (${l.teamAbbrev})</span>`).join(' ');
+                    const scorePercent = Math.round(p.totalScore * 100);
+                    const color = scorePercent > 30 ? '#28a745' : (scorePercent > 15 ? '#d48806' : '#888');
+                    return `<div class="parlay-card">
+                        <div class="parlay-legs">${legsHtml}</div>
+                        <div class="parlay-independence">Indep: ${Math.round(p.independenceScore*100)}%</div>
+                        <div class="parlay-score" style="color:${color}">${p.numLegs}-Leg<br>${scorePercent}%</div>
+                    </div>`;
+                }).join('');
+            }
+
+            deepDiveSection.style.display = 'block';
+            bayesianContent.innerHTML = renderBayesianPanel(propsA, propsB);
+            matchupContent.innerHTML = renderMatchupPanel(propsA, propsB, oppAbbrev);
+            poissonContent.innerHTML = renderPoissonPanel(propsA, propsB);
+            gbmContent.innerHTML = renderGBMPanel(propsA, propsB);
+        }
+
+        function renderPropCards(props, teamId) {
+            if (props.length === 0) return '<p class="loading">No qualifying props found.</p>';
+            return props.map(p => {
+                const recClass = p.recommendation === 'OVER' ? 'recommend-over' : (p.recommendation === 'UNDER' ? 'recommend-under' : '');
+                const lineColorClass = p.recommendation === 'OVER' ? 'over-color' : (p.recommendation === 'UNDER' ? 'under-color' : '');
+                const rangePct = p.rangeHigh > p.rangeLow ? ((p.line - p.rangeLow) / (p.rangeHigh - p.rangeLow)) * 100 : 50;
+                const rangeWidth = p.rangeHigh > p.rangeLow ? ((p.rangeHigh - p.rangeLow) / Math.max(p.rangeHigh,1)) * 100 : 40;
+                const recBadge = p.recommendation === 'OVER' ? '📈 OVER' : (p.recommendation === 'UNDER' ? '📉 UNDER' : '➖ PASS');
+                const isHomeTag = p.isHome ? 'home-tag' : 'away-tag';
+                const homeLabel = p.isHome ? '🏠 Home' : '✈️ Away';
+                const clickHandler = `showPlayerGameLog('${teamId}', '${p.player.replace(/'/g, "\\'")}')`;
+                return `<div class="prop-card ${recClass}">
+                    <div class="prop-player" onclick="${clickHandler}" title="Click to view last 10 game log">
+                        <span>${p.player}</span>
+                        <span class="prop-confidence ${p.confidenceClass}">${p.confidence}%</span>
+                    </div>
+                    <div class="prop-stat-icon"><span>${p.statIcon} ${p.statLabel}</span><span style="font-weight:bold;font-size:12px;color:#d48806;">${recBadge}</span></div>
+                    <div style="display:flex;align-items:baseline;gap:8px;"><span class="prop-line-big ${lineColorClass}">${p.line}</span><span style="font-size:11px;color:#888;">proj: ${p.rawProjection.toFixed(1)}</span></div>
+                    <div class="prop-range-bar"><div class="prop-range-fill" style="left:${Math.max(0,50-rangeWidth/2)}%;width:${Math.min(100,rangeWidth)}%;"></div><div class="prop-range-marker" style="left:${Math.min(98,Math.max(2,rangePct))}%;"></div></div>
+                    <div style="font-size:9px;color:#888;text-align:center;margin-bottom:4px;">Range: ${p.rangeLow.toFixed(1)} – ${p.rangeHigh.toFixed(1)}</div>
+                    <div class="prop-footer">
+                        <span class="prop-consistency ${p.consistencyClass}">Consistency: ${p.consistencyPct}%</span>
+                        <span class="prop-tag ${isHomeTag}">${homeLabel}</span>
+                        <span style="font-size:9px;color:#999;">n=${p.gamesCount} gms</span>
+                    </div>
+                    <div style="font-size:9px;color:#aaa;margin-top:4px;">${p.detailFactors}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // -------- Game Log Modal --------
+        function showPlayerGameLog(teamId, playerName) {
+            const modal = document.getElementById('game-log-modal');
+            const playerNameEl = document.getElementById('modal-player-name');
+            const contentEl = document.getElementById('modal-game-log-content');
+            playerNameEl.textContent = `${playerName} - Last 10 Games`;
+            contentEl.innerHTML = '<div class="loading">Loading game log...</div>';
+            modal.style.display = 'flex';
+            const cache = window.playerGameLogsCache[teamId];
+            if (!cache || !cache.has(playerName)) {
+                contentEl.innerHTML = '<p style="color:red;">Game log data not available for this player.</p>';
+                return;
+            }
+            const games = cache.get(playerName).slice(-10).reverse();
+            if (games.length === 0) { contentEl.innerHTML = '<p>No recent game data.</p>'; return; }
+            let html = '<table class="game-log-table"><thead><tr><th>Date</th><th>Opp</th><th>Loc</th><th>PTS</th><th>REB</th><th>AST</th><th>BLK</th><th>STL</th><th>3PM</th></tr></thead><tbody>';
+            games.forEach(g => {
+                const dateStr = g.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const loc = g.isHome ? 'Home' : 'Away';
+                html += `<tr><td>${dateStr}</td><td class="opponent-cell">${g.opponent}</td><td class="location-cell">${loc}</td><td>${g.pts}</td><td>${g.reb}</td><td>${g.ast}</td><td>${g.blk}</td><td>${g.stl}</td><td>${g.tpm}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            contentEl.innerHTML = html;
+        }
+        function closeGameLogModal() { document.getElementById('game-log-modal').style.display = 'none'; }
+        window.onclick = function(event) {
+            const modal = document.getElementById('game-log-modal');
+            if (event.target === modal) closeGameLogModal();
+        };
+
+        // -------- Dynamic Dropdown, Standings, Rankings, Init --------
+        async function populateTeamDropdown() {
+            const select = document.getElementById('team-select');
+            const teamIds = Object.keys(window.teamAnalyticsStore);
+            if (teamIds.length === 0) {
+                setTimeout(populateTeamDropdown, 500);
+                return;
+            }
+            select.innerHTML = '';
+            const teams = teamIds.map(id => ({
+                id: id,
+                abbrev: window.teamAnalyticsStore[id].abbrev
+            }));
+            teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.abbrev;
+                option.setAttribute('data-id', team.id);
+                option.textContent = team.abbrev;
+                select.appendChild(option);
+            });
+            teams.forEach(team => {
+                window.teamNameMap[team.id] = team.abbrev;
+            });
+        }
+
+        async function initGlobalData() {
+            await fetchStandings();
+            await populateTeamDropdown();
+            fetchLeaders();
+        }
+        async function fetchStandings() {
+            try {
+                const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
+                const data = await res.json();
+                if (data && data.children) {
+                    const east = data.children.find(c => c.name.includes('Eastern'));
+                    const west = data.children.find(c => c.name.includes('Western'));
+                    let totalLeaguePF = 0, totalLeaguePA = 0, teamCount = 0;
+                    const allEntries = [...east.standings.entries, ...west.standings.entries];
+                    allEntries.forEach(t => {
+                        const wins = t.stats.find(s => s.name === 'wins')?.value || 0;
+                        const losses = t.stats.find(s => s.name === 'losses')?.value || 0;
+                        const gp = (wins + losses) || 1;
+                        totalLeaguePF += parseFloat(t.stats.find(s => s.name === 'pointsFor')?.value || 110) / gp;
+                        totalLeaguePA += parseFloat(t.stats.find(s => s.name === 'pointsAgainst')?.value || 110) / gp;
+                        teamCount++;
+                    });
+                    const lgAvgPF = totalLeaguePF / teamCount, lgAvgPA = totalLeaguePA / teamCount;
+                    const baselinePace = 100.0;
+                    let html = '<div class="standings-wrapper">';
+                    const buildTable = (conf) => {
+                        if (!conf) return '';
+                        let tHtml = `<div class="conf-box"><div class="conf-title">${conf.name.replace('Conference','').trim()}</div><table class="standings-table"><tr><th>#</th><th>TM</th><th>W-L</th><th>GB</th><th>L10</th></tr>`;
+                        let sortedTeams = conf.standings.entries.sort((a,b) => parseInt(a.stats.find(s=>s.name==='playoffSeed')?.value||99) - parseInt(b.stats.find(s=>s.name==='playoffSeed')?.value||99));
+                        sortedTeams.forEach(team => {
+                            const seed = team.stats.find(s => s.name === 'playoffSeed')?.value || '-';
+                            const wins = team.stats.find(s => s.name === 'wins')?.value || 0;
+                            const losses = team.stats.find(s => s.name === 'losses')?.value || 0;
+                            const gamesPlayed = (wins + losses) || 1;
+                            const gb = team.stats.find(s => s.name === 'gamesBehind')?.displayValue || '-';
+                            const l10 = team.stats.find(s => s.abbreviation==='L10'||s.name==='last10Games')?.displayValue || '-';
+                            const abbrev = team.team.abbreviation || team.team.shortDisplayName.substring(0,3).toUpperCase();
+                            const ppg = (team.stats.find(s => s.name === 'pointsFor')?.value || 110) / gamesPlayed;
+                            const oppPpg = (team.stats.find(s => s.name === 'pointsAgainst')?.value || 110) / gamesPlayed;
+                            let l10Wins = l10 !== '-' ? parseInt(l10.split('-')[0]) : 5;
+                            const estPace = baselinePace * ((ppg + oppPpg) / (lgAvgPF + lgAvgPA));
+                            window.teamAnalyticsStore[team.team.id] = {
+                                winPct: (wins / gamesPlayed) || 0.5,
+                                estPace, offRtg: (ppg / estPace) * 100, defRtg: (oppPpg / estPace) * 100,
+                                formWeight: l10Wins / 10, ppg, oppg: oppPpg, abbrev, teamId: team.team.id
+                            };
+                            tHtml += `<tr data-team-id="${team.team.id}"><td><b>${seed}</b></td><td><b>${abbrev}</b></td><td>${wins}-${losses}</td><td>${gb}</td><td>${l10}</td></tr>`;
+                        });
+                        return tHtml + '</table></div>';
+                    };
+                    html += buildTable(west) + buildTable(east) + '</div>';
+                    document.getElementById('standings-container').innerHTML = html;
+                    await fetchLast20ForAllTeams();
+                    loadDailySlate(0);
+                }
+            } catch (e) { document.getElementById('standings-container').innerHTML = '<p style="color:red">Failed to load standings.</p>'; }
+        }
+
+        async function fetchLast20ForAllTeams() {
+            const rankingsContainer = document.getElementById('rankings-container');
+            rankingsContainer.innerHTML = '<div class="loading">Fetching last 20 games for all teams...</div>';
+            const teamIds = Object.keys(window.teamAnalyticsStore);
+            if (teamIds.length === 0) { rankingsContainer.innerHTML = '<div class="loading">No team data available.</div>'; return; }
+            const promises = teamIds.map(async (teamId) => {
+                try {
+                    const scheduleRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
+                    const scheduleData = await scheduleRes.json();
+                    const completedGames = scheduleData.events.filter(e => e.competitions[0].status.type.completed === true);
+                    const season = window.teamAnalyticsStore[teamId];
+                    const last10 = completedGames.slice(-10);
+                    let curPts = 0, curOppPts = 0;
+                    last10.forEach(game => {
+                        const comp = game.competitions[0];
+                        const me = comp.competitors.find(c => String(c.team.id) === teamId);
+                        const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
+                        if (me && me.score && opp && opp.score) { curPts += parseInt(me.score.value); curOppPts += parseInt(opp.score.value); }
+                    });
+                    const curGames = last10.length;
+                    const curAvgPts = curGames > 0 ? curPts / curGames : 0;
+                    const curAvgOppPts = curGames > 0 ? curOppPts / curGames : 0;
+                    const baselinePace = 100.0;
+                    const curTotalAvg = curAvgPts + curAvgOppPts;
+                    const curPace = baselinePace * (curTotalAvg / 230);
+                    const curOffRtg = (curAvgPts / curPace) * 100;
+                    const curDefRtg = (curAvgOppPts / curPace) * 100;
+                    let prevPts = null, prevOppPts = null, prevPace = null, prevOffRtg = null, prevDefRtg = null;
+                    if (completedGames.length >= 20) {
+                        const prev10 = completedGames.slice(-20, -10);
+                        let prevPtsSum = 0, prevOppPtsSum = 0;
+                        prev10.forEach(game => {
+                            const comp = game.competitions[0];
+                            const me = comp.competitors.find(c => String(c.team.id) === teamId);
+                            const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
+                            if (me && me.score && opp && opp.score) { prevPtsSum += parseInt(me.score.value); prevOppPtsSum += parseInt(opp.score.value); }
+                        });
+                        const prevGames = prev10.length;
+                        if (prevGames > 0) {
+                            prevPts = prevPtsSum / prevGames;
+                            prevOppPts = prevOppPtsSum / prevGames;
+                            const prevTotalAvg = prevPts + prevOppPts;
+                            prevPace = baselinePace * (prevTotalAvg / 230);
+                            prevOffRtg = (prevPts / prevPace) * 100;
+                            prevDefRtg = (prevOppPts / prevPace) * 100;
+                        }
+                    }
+                    window.teamLast10Store[teamId] = {
+                        abbrev: season.abbrev, curPace, curOffRtg, curDefRtg,
+                        prevPace, prevOffRtg, prevDefRtg
+                    };
+                } catch (e) {
+                    const season = window.teamAnalyticsStore[teamId];
+                    window.teamLast10Store[teamId] = { abbrev: season.abbrev, curPace: season.estPace, curOffRtg: season.offRtg, curDefRtg: season.defRtg, prevPace: null, prevOffRtg: null, prevDefRtg: null };
+                }
+            });
+            await Promise.all(promises);
+            updateLast10Rankings();
+        }
+
+        function getTrendHtml(current, previous, higherIsBetter = true) {
+            if (previous === null || previous === undefined) return '<span class="trend-flat">–</span>';
+            const diff = current - previous;
+            if (Math.abs(diff) < 0.05) return '<span class="trend-flat">–</span>';
+            const arrow = diff > 0 ? '▲' : '▼';
+            const color = diff > 0 ? 'trend-up' : 'trend-down';
+            return `<span class="${color}">${arrow} ${diff>0?'+':''}${diff.toFixed(1)}</span>`;
+        }
+        function updateLast10Rankings() {
+            const teams = Object.values(window.teamLast10Store);
+            if (teams.length === 0) { document.getElementById('rankings-container').innerHTML = '<div class="loading">No data</div>'; return; }
+            const paceSorted = [...teams].sort((a,b) => b.curPace - a.curPace);
+            const offSorted = [...teams].sort((a,b) => b.curOffRtg - a.curOffRtg);
+            const defSorted = [...teams].sort((a,b) => a.curDefRtg - b.curDefRtg);
+            const paceList = paceSorted.map(t => {
+                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
+                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curPace.toFixed(1)}</span> ${getTrendHtml(t.curPace,t.prevPace,true)}</li>`;
+            }).join('');
+            const offList = offSorted.map(t => {
+                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
+                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curOffRtg.toFixed(1)}</span> ${getTrendHtml(t.curOffRtg,t.prevOffRtg,true)}</li>`;
+            }).join('');
+            const defList = defSorted.map(t => {
+                const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
+                return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curDefRtg.toFixed(1)}</span> ${getTrendHtml(t.curDefRtg,t.prevDefRtg,false)}</li>`;
+            }).join('');
+            document.getElementById('rankings-container').innerHTML = `
+            <div class="rankings-grid">
+                <div class="rank-category"><h3>Pace (Fastest)</h3><ul class="rank-list">${paceList}</ul></div>
+                <div class="rank-category"><h3>Offensive Rating</h3><ul class="rank-list">${offList}</ul></div>
+                <div class="rank-category"><h3>Defensive Rating</h3><ul class="rank-list">${defList}</ul></div>
+            </div>
+            <p style="font-size:9px;text-align:center;margin:5px 0 0;color:#888;">Based on last 10 games · Trend vs previous 10</p>`;
+            if (window.currentTeamId) highlightTeamAndOpponent(window.currentTeamId, window.currentOppId);
+        }
+        function highlightTeamAndOpponent(teamId, oppId) {
+            document.querySelectorAll('#standings-container tr.highlighted-team, #rankings-container li.highlighted-team').forEach(el => el.classList.remove('highlighted-team'));
+            if (teamId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${teamId}"]`); if (tr) tr.classList.add('highlighted-team'); }
+            if (oppId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${oppId}"]`); if (tr) tr.classList.add('highlighted-team'); }
+            if (teamId) { document.querySelectorAll(`#rankings-container li[data-team-id="${teamId}"]`).forEach(el => el.classList.add('highlighted-team')); }
+            if (oppId) { document.querySelectorAll(`#rankings-container li[data-team-id="${oppId}"]`).forEach(el => el.classList.add('highlighted-team')); }
+        }
+
+        function changeSlateDate(offset) { loadDailySlate(offset); }
+
+        // The main init is already defined above.
     </script>
 </body>
 </html>
