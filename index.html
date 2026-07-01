@@ -145,6 +145,8 @@
         .performer-list { list-style-type: none; margin: 0; color: #333; background-color: #fafafa; padding: 6px; }
         .performer-list li { margin-bottom: 4px; display: flex; flex-direction: column; border-bottom: 1px solid #eee; padding-bottom: 4px; font-size: 11px; }
         .performer-list li:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .performer-list li .player-link { cursor: pointer; color: #1d428a; font-weight: bold; }
+        .performer-list li .player-link:hover { text-decoration: underline; }
         .widget-box { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; border: 1px solid #e1e4e8; position: relative; }
         .widget-box h2 { font-size: 16px; color: #333; margin-top: 0; border-bottom: 2px solid #1d428a; padding-bottom: 5px; margin-bottom: 15px; }
         .leader-dropdown { position: absolute; top: 10px; right: 15px; padding: 4px; font-size: 11px; border-radius: 4px; cursor: pointer; }
@@ -179,9 +181,12 @@
         /* Bounce-back container */
         #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 20px; }
         #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; }
-        .bounce-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; align-items: center; }
+        .bounce-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; align-items: center; cursor: pointer; }
+        .bounce-item:hover { background-color: #f0f4f8; }
         .bounce-item:last-child { border-bottom: none; }
         .bounce-stat { font-weight: bold; color: #28a745; }
+        .bounce-item .player-link { color: #1d428a; font-weight: bold; }
+        .bounce-item .player-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -1290,6 +1295,7 @@
                         bets.push({
                             player: c.name,
                             team: c.teamAbbrev,
+                            teamId: c.teamId,
                             stat: c.stat,
                             avg: c.avg,
                             last: c.last,
@@ -1313,8 +1319,9 @@
             container.style.display = 'block';
             let html = '';
             bets.forEach(b => {
-                html += `<div class="bounce-item">
-                    <span><b>${b.player}</b> (${b.team}) - ${b.stat}: avg ${b.avg.toFixed(1)}, last ${b.last.toFixed(1)}</span>
+                const playerSafe = b.player.replace(/'/g, "\\'");
+                html += `<div class="bounce-item" onclick="showPlayerGameLog('${b.teamId}', '${playerSafe}')">
+                    <span><b class="player-link">${b.player}</b> (${b.team}) - ${b.stat}: avg ${b.avg.toFixed(1)}, last ${b.last.toFixed(1)}</span>
                     <span class="bounce-stat">+${b.bounce.toFixed(1)} bounce potential</span>
                 </div>`;
             });
@@ -1348,12 +1355,11 @@
                 if (!data.events || data.events.length === 0) {
                     container.innerHTML = '<p style="text-align:center;color:#666;font-size:12px;margin-top:20px;">No games scheduled for this date.</p>';
                     fetchAggregatedSummary(currentSlateDate,10,'ten-day-summary-container','📊 Last 10 Game Days');
-                    // No games, hide bounce-back
                     document.getElementById('bounce-back-container').style.display = 'none';
                     return;
                 }
 
-                // ----- NEW: Fetch player logs for all teams in slate -----
+                // Fetch player logs for all teams in slate
                 const teamIds = new Set();
                 data.events.forEach(evt => {
                     evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
@@ -1994,6 +2000,7 @@
                     data.boxscore.players.forEach(teamData => {
                         const tName = teamData.team.displayName || 'Team';
                         const bgColor = teamData.team.color || '333333';
+                        const teamId = teamData.team.id;
                         const statsData = teamData.statistics[0];
                         performersHTML += `<div class="performers-box" style="margin-top:4px;"><div class="team-perf-title" style="background-color:#${bgColor};">${tName} Top 3</div><ul class="performer-list">`;
                         if (statsData && statsData.athletes) {
@@ -2004,7 +2011,9 @@
                             const activePlayers = statsData.athletes.filter(a => !a.didNotPlay);
                             activePlayers.sort((a, b) => parseInt((b.stats && b.stats[ptsIdx]) || 0) - parseInt((a.stats && a.stats[ptsIdx]) || 0));
                             activePlayers.slice(0, 3).forEach(p => {
-                                performersHTML += `<li><b>${p.athlete?.shortName||'Unknown'}</b> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
+                                const playerName = p.athlete?.shortName || 'Unknown';
+                                const safeName = playerName.replace(/'/g, "\\'");
+                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
                             });
                         }
                         performersHTML += `</ul></div>`;
@@ -2062,6 +2071,7 @@
                     data.boxscore.players.forEach(teamData => {
                         const tName = teamData.team.displayName || 'Team';
                         const bgColor = teamData.team.color || '333333';
+                        const teamId = teamData.team.id;
                         const statsData = teamData.statistics[0];
                         performersHTML += `<div class="performers-box"><div class="team-perf-title" style="background-color:#${bgColor};">${tName} Top 3</div><ul class="performer-list">`;
                         if (statsData && statsData.athletes) {
@@ -2072,7 +2082,9 @@
                             const activePlayers = statsData.athletes.filter(a => !a.didNotPlay);
                             activePlayers.sort((a, b) => parseInt((b.stats && b.stats[ptsIdx]) || 0) - parseInt((a.stats && a.stats[ptsIdx]) || 0));
                             activePlayers.slice(0, 3).forEach(p => {
-                                performersHTML += `<li><b>${p.athlete?.shortName||'Unknown'}</b> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
+                                const playerName = p.athlete?.shortName || 'Unknown';
+                                const safeName = playerName.replace(/'/g, "\\'");
+                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
                             });
                         }
                         performersHTML += `</ul></div>`;
