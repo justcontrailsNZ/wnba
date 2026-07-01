@@ -1191,122 +1191,185 @@
 
         // ----- NEW: Bounce-Back Bet Computation -----
         function computeBounceBackBetsForSlate(events) {
-            const bets = [];
-            events.forEach(evt => {
-                const comp = evt.competitions[0];
-                const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
-                const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
-                [homeTeam, awayTeam].forEach(team => {
-                    const teamId = team.team.id;
-                    const logs = window.playerGameLogsCache[teamId];
-                    if (!logs) return;
-                    const playerData = [];
-                    logs.forEach((gameEntries, playerName) => {
-                        if (gameEntries.length < 3) return; // need at least 3 games
-                        const totalGames = gameEntries.length;
-                        const sumPts = gameEntries.reduce((s,g) => s+g.pts, 0);
-                        const sumReb = gameEntries.reduce((s,g) => s+g.reb, 0);
-                        const sumAst = gameEntries.reduce((s,g) => s+g.ast, 0);
-                        const sumTpm = gameEntries.reduce((s,g) => s+g.tpm, 0);
-                        const avgPts = sumPts/totalGames;
-                        const avgReb = sumReb/totalGames;
-                        const avgAst = sumAst/totalGames;
-                        const avgTpm = sumTpm/totalGames;
-                        const lastGame = gameEntries[gameEntries.length-1];
-                        const lastPts = lastGame.pts;
-                        const lastReb = lastGame.reb;
-                        const lastAst = lastGame.ast;
-                        const lastTpm = lastGame.tpm;
-                        playerData.push({
-                            name: playerName,
-                            teamId: teamId,
-                            teamAbbrev: team.team.abbreviation,
-                            avgPts, avgReb, avgAst, avgTpm,
-                            lastPts, lastReb, lastAst, lastTpm,
-                            games: totalGames,
-                            opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
-                        });
-                    });
-                    // Rank for each stat
-                    const sortedPts = [...playerData].sort((a,b) => b.avgPts - a.avgPts);
-                    const topPts = sortedPts.slice(0,3);
-                    const sortedReb = [...playerData].sort((a,b) => b.avgReb - a.avgReb);
-                    const topReb = sortedReb.slice(0,2);
-                    const sortedAst = [...playerData].sort((a,b) => b.avgAst - a.avgAst);
-                    const topAst = sortedAst.slice(0,1);
-                    const sortedTpm = [...playerData].sort((a,b) => b.avgTpm - a.avgTpm);
-                    const topTpm = sortedTpm.slice(0,1);
+    const bets = [];
 
-                    const candidates = [];
-                    // Points: top 3
-                    topPts.forEach(p => {
-                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Points',
-                                avg: p.avgPts,
-                                last: p.lastPts,
-                                threshold: p.avgPts * 0.7,
-                                bounce: p.avgPts - p.lastPts
-                            });
-                        }
-                    });
-                    // Rebounds: top 2
-                    topReb.forEach(p => {
-                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Rebounds',
-                                avg: p.avgReb,
-                                last: p.lastReb,
-                                threshold: p.avgReb * 0.7,
-                                bounce: p.avgReb - p.lastReb
-                            });
-                        }
-                    });
-                    // Assists: top 1
-                    topAst.forEach(p => {
-                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: 'Assists',
-                                avg: p.avgAst,
-                                last: p.lastAst,
-                                threshold: p.avgAst * 0.7,
-                                bounce: p.avgAst - p.lastAst
-                            });
-                        }
-                    });
-                    // 3PM: top 1
-                    topTpm.forEach(p => {
-                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
-                            candidates.push({
-                                ...p,
-                                stat: '3PM',
-                                avg: p.avgTpm,
-                                last: p.lastTpm,
-                                threshold: p.avgTpm * 0.7,
-                                bounce: p.avgTpm - p.lastTpm
-                            });
-                        }
-                    });
-                    // Add to bets
-                    candidates.forEach(c => {
-                        bets.push({
-                            player: c.name,
-                            team: c.teamAbbrev,
-                            teamId: c.teamId,
-                            stat: c.stat,
-                            avg: c.avg,
-                            last: c.last,
-                            bounce: c.bounce,
-                            opponent: c.opponent
-                        });
-                    });
+    events.forEach(evt => {
+        const comp = evt.competitions[0];
+        const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
+        const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
+
+        [homeTeam, awayTeam].forEach(team => {
+            const teamId = team.team.id;
+            const logs = window.playerGameLogsCache[teamId];
+            if (!logs) return;
+
+            const playerData = [];
+
+            logs.forEach((gameEntries, playerName) => {
+
+                // Minimum sample size
+                if (gameEntries.length < 5) return;
+
+                const totalGames = gameEntries.length;
+
+                const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+
+                const ptsVals = gameEntries.map(g => g.pts);
+                const rebVals = gameEntries.map(g => g.reb);
+                const astVals = gameEntries.map(g => g.ast);
+                const tpmVals = gameEntries.map(g => g.tpm);
+
+                const avgPts = avg(ptsVals);
+                const avgReb = avg(rebVals);
+                const avgAst = avg(astVals);
+                const avgTpm = avg(tpmVals);
+
+                // Standard deviation helper
+                const stdDev = values => {
+                    const mean = avg(values);
+                    const variance =
+                        values.reduce((s,v)=>s + Math.pow(v - mean,2),0) /
+                        values.length;
+                    return Math.sqrt(variance);
+                };
+
+                // Consistency checks
+                const cvPts = avgPts > 0 ? stdDev(ptsVals)/avgPts : 999;
+                const cvReb = avgReb > 0 ? stdDev(rebVals)/avgReb : 999;
+                const cvAst = avgAst > 0 ? stdDev(astVals)/avgAst : 999;
+                const cvTpm = avgTpm > 0 ? stdDev(tpmVals)/avgTpm : 999;
+
+                const lastGame = gameEntries[gameEntries.length - 1];
+
+                // Remove highly volatile players
+                const consistentScorer = avgPts >= 8 && cvPts < 0.60;
+                const consistentRebounder = avgReb >= 4 && cvReb < 0.65;
+                const consistentPlaymaker = avgAst >= 3 && cvAst < 0.70;
+                const consistentShooter = avgTpm >= 1.5 && cvTpm < 0.80;
+
+                playerData.push({
+                    name: playerName,
+                    teamId,
+                    teamAbbrev: team.team.abbreviation,
+                    games: totalGames,
+                    opponent: comp.competitors.find(
+                        c => c.team.id !== teamId
+                    )?.team.abbreviation || '?',
+
+                    avgPts,
+                    avgReb,
+                    avgAst,
+                    avgTpm,
+
+                    lastPts: lastGame.pts,
+                    lastReb: lastGame.reb,
+                    lastAst: lastGame.ast,
+                    lastTpm: lastGame.tpm,
+
+                    consistentScorer,
+                    consistentRebounder,
+                    consistentPlaymaker,
+                    consistentShooter
                 });
             });
-            return bets;
-        }
+
+            const sortedPts = [...playerData].sort((a,b)=>b.avgPts-a.avgPts);
+            const topPts = sortedPts.slice(0,3);
+
+            const sortedReb = [...playerData].sort((a,b)=>b.avgReb-a.avgReb);
+            const topReb = sortedReb.slice(0,2);
+
+            const sortedAst = [...playerData].sort((a,b)=>b.avgAst-a.avgAst);
+            const topAst = sortedAst.slice(0,1);
+
+            const sortedTpm = [...playerData].sort((a,b)=>b.avgTpm-a.avgTpm);
+            const topTpm = sortedTpm.slice(0,1);
+
+            const candidates = [];
+
+            // POINTS
+            topPts.forEach(p => {
+                if (
+                    p.consistentScorer &&
+                    p.lastPts < p.avgPts * 0.70
+                ) {
+                    candidates.push({
+                        ...p,
+                        stat: 'Points',
+                        avg: p.avgPts,
+                        last: p.lastPts,
+                        bounce: p.avgPts - p.lastPts
+                    });
+                }
+            });
+
+            // REBOUNDS
+            topReb.forEach(p => {
+                if (
+                    p.consistentRebounder &&
+                    p.lastReb < p.avgReb * 0.70
+                ) {
+                    candidates.push({
+                        ...p,
+                        stat: 'Rebounds',
+                        avg: p.avgReb,
+                        last: p.lastReb,
+                        bounce: p.avgReb - p.lastReb
+                    });
+                }
+            });
+
+            // ASSISTS
+            topAst.forEach(p => {
+                if (
+                    p.consistentPlaymaker &&
+                    p.lastAst < p.avgAst * 0.70
+                ) {
+                    candidates.push({
+                        ...p,
+                        stat: 'Assists',
+                        avg: p.avgAst,
+                        last: p.lastAst,
+                        bounce: p.avgAst - p.lastAst
+                    });
+                }
+            });
+
+            // 3PM
+            topTpm.forEach(p => {
+                if (
+                    p.consistentShooter &&
+                    p.lastTpm < p.avgTpm * 0.70
+                ) {
+                    candidates.push({
+                        ...p,
+                        stat: '3PM',
+                        avg: p.avgTpm,
+                        last: p.lastTpm,
+                        bounce: p.avgTpm - p.lastTpm
+                    });
+                }
+            });
+
+            candidates.forEach(c => {
+                bets.push({
+                    player: c.name,
+                    team: c.teamAbbrev,
+                    teamId: c.teamId,
+                    stat: c.stat,
+                    avg: c.avg,
+                    last: c.last,
+                    bounce: c.bounce,
+                    opponent: c.opponent
+                });
+            });
+        });
+    });
+
+    return bets
+        .sort((a,b) => b.bounce - a.bounce)
+        .slice(0,10);
+}
 
         function renderBounceBackBets(bets) {
             const container = document.getElementById('bounce-back-container');
