@@ -208,7 +208,7 @@
                 <div class="slate-content" id="slate-data-container"><div class="loading">Waiting for system init...</div></div>
                 <div id="ten-day-summary-container"></div>
                 <div id="bounce-back-container" style="display:none;">
-                    <h3>🔄 Bounce-Back Signals <small>Filtered: ≥5 GP, ≥3 FGA, min avg stats</small></h3>
+                    <h3>🔄 Bounce-Back Signals <small>Filtered: ≥5 GP, min avg stats</small></h3>
                     <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                     <div id="bounce-back-list"></div>
                 </div>
@@ -336,55 +336,58 @@
             tpm:{label:'3PT Made',icon:'🎯',minQualify:1.5,defRtgWeight:1.3,paceWeight:0.9,homeBoost:0.6,restPenalty:-0.7,isDiscrete:true}
         };
 
-        function getStatLabelsFromESPN(labels){const r={pts:-1,reb:-1,ast:-1,blk:-1,stl:-1,tpm:-1,fga:-1};for(let i=0;i<labels.length;i++){const l=labels[i].toUpperCase();if(l==='PTS'||l==='POINTS')r.pts=i;if(l==='REB'||l==='REBOUNDS')r.reb=i;if(l==='AST'||l==='ASSISTS')r.ast=i;if(l==='BLK'||l==='BLOCKS')r.blk=i;if(l==='STL'||l==='STEALS')r.stl=i;if(l==='3PM'||l==='3PT'||l==='3P'||l.includes('3PT'))r.tpm=i;if(l==='FGA'||l==='FGM'||l==='FIELD GOALS ATTEMPTED')r.fga=i;}return r;}
+        function getStatLabelsFromESPN(labels){const r={pts:-1,reb:-1,ast:-1,blk:-1,stl:-1,tpm:-1};for(let i=0;i<labels.length;i++){const l=labels[i].toUpperCase();if(l==='PTS'||l==='POINTS')r.pts=i;if(l==='REB'||l==='REBOUNDS')r.reb=i;if(l==='AST'||l==='ASSISTS')r.ast=i;if(l==='BLK'||l==='BLOCKS')r.blk=i;if(l==='STL'||l==='STEALS')r.stl=i;if(l==='3PM'||l==='3PT'||l==='3P'||l.includes('3PT'))r.tpm=i;}return r;}
         function calculateStdDev(v){if(v.length<2)return 0;const m=v.reduce((a,b)=>a+b,0)/v.length;return Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/(v.length-1));}
         function calcWeightedAvg(v){if(!v.length)return 0;const w=v.map((_,i)=>0.25*Math.pow(0.85,i));const tw=w.reduce((a,b)=>a+b,0);return v.reduce((a,val,i)=>a+val*w[i],0)/tw;}
         function calibrateLine(rp){if(rp<=0.3)return 0.5;const rd=Math.round(rp*2)/2;if(rd<0.5)return 0.5;if(Math.abs(rd-rp)<0.15)return rd;return Math.round(rp*2)/2;}
 
         async function fetchPlayerGameLogs(teamId,numGames=10){
             if(window.playerGameLogsCache[teamId])return window.playerGameLogsCache[teamId];
-            const sr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
-            const sd=await sr.json();
-            const cg=sd.events.filter(e=>e.competitions[0].status.type.completed===true);
-            const gf=cg.slice(-numGames);
-            const ps=new Map();
-            for(const game of gf){
-                const gid=game.id,comp=game.competitions[0];
-                const tig=comp.competitors.find(c=>String(c.team.id)===String(teamId));
-                const isHome=tig?tig.homeAway==='home':false;
-                const gd=new Date(comp.date);
-                const oppTeam=comp.competitors.find(c=>String(c.team.id)!==String(teamId));
-                const oppAbbr=oppTeam?(oppTeam.team.abbreviation||oppTeam.team.shortDisplayName):'???';
-                const oppId=oppTeam?String(oppTeam.team.id):null;
-                const teamWin=tig?!!tig.winner:false;
-                try{
-                    const sr2=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
-                    const sd2=await sr2.json();
-                    if(!sd2.boxscore||!sd2.boxscore.players)continue;
-                    const ts=sd2.boxscore.players.find(p=>String(p.team.id)===String(teamId));
-                    if(!ts||!ts.statistics||!ts.statistics[0])continue;
-                    const sa=ts.statistics[0];if(!sa.athletes)continue;
-                    const idx=getStatLabelsFromESPN(sa.labels||[]);
-                    for(const ath of sa.athletes){
-                        if(ath.didNotPlay)continue;
-                        const name=ath.athlete.shortName||ath.athlete.displayName;
-                        if(!name)continue;
-                        if(!ps.has(name))ps.set(name,[]);
-                        ps.get(name).push({
-                            date:gd,isHome,opponent:oppAbbr,opponentId:oppId,teamWin,
-                            pts:idx.pts>=0&&ath.stats?parseFloat(ath.stats[idx.pts])||0:0,
-                            reb:idx.reb>=0&&ath.stats?parseFloat(ath.stats[idx.reb])||0:0,
-                            ast:idx.ast>=0&&ath.stats?parseFloat(ath.stats[idx.ast])||0:0,
-                            blk:idx.blk>=0&&ath.stats?parseFloat(ath.stats[idx.blk])||0:0,
-                            stl:idx.stl>=0&&ath.stats?parseFloat(ath.stats[idx.stl])||0:0,
-                            tpm:idx.tpm>=0&&ath.stats?parseFloat(ath.stats[idx.tpm])||0:0,
-                            fga:idx.fga>=0&&ath.stats?parseFloat(ath.stats[idx.fga])||0:0
-                        });
-                    }
-                }catch(e){}
-            }
-            window.playerGameLogsCache[teamId]=ps;
-            return ps;
+            try{
+                const sr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
+                if(!sr.ok)return new Map();
+                const sd=await sr.json();
+                const cg=sd.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===true);
+                const gf=cg.slice(-numGames);
+                const ps=new Map();
+                for(const game of gf){
+                    const gid=game.id,comp=game.competitions[0];
+                    const tig=comp.competitors.find(c=>String(c.team.id)===String(teamId));
+                    const isHome=tig?tig.homeAway==='home':false;
+                    const gd=new Date(comp.date);
+                    const oppTeam=comp.competitors.find(c=>String(c.team.id)!==String(teamId));
+                    const oppAbbr=oppTeam?(oppTeam.team.abbreviation||oppTeam.team.shortDisplayName):'???';
+                    const oppId=oppTeam?String(oppTeam.team.id):null;
+                    const teamWin=tig?!!tig.winner:false;
+                    try{
+                        const sr2=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
+                        if(!sr2.ok)continue;
+                        const sd2=await sr2.json();
+                        if(!sd2.boxscore||!sd2.boxscore.players)continue;
+                        const ts=sd2.boxscore.players.find(p=>String(p.team.id)===String(teamId));
+                        if(!ts||!ts.statistics||!ts.statistics[0])continue;
+                        const sa=ts.statistics[0];if(!sa.athletes)continue;
+                        const idx=getStatLabelsFromESPN(sa.labels||[]);
+                        for(const ath of sa.athletes){
+                            if(ath.didNotPlay)continue;
+                            const name=ath.athlete.shortName||ath.athlete.displayName;
+                            if(!name)continue;
+                            if(!ps.has(name))ps.set(name,[]);
+                            ps.get(name).push({
+                                date:gd,isHome,opponent:oppAbbr,opponentId:oppId,teamWin,
+                                pts:idx.pts>=0&&ath.stats?parseFloat(ath.stats[idx.pts])||0:0,
+                                reb:idx.reb>=0&&ath.stats?parseFloat(ath.stats[idx.reb])||0:0,
+                                ast:idx.ast>=0&&ath.stats?parseFloat(ath.stats[idx.ast])||0:0,
+                                blk:idx.blk>=0&&ath.stats?parseFloat(ath.stats[idx.blk])||0:0,
+                                stl:idx.stl>=0&&ath.stats?parseFloat(ath.stats[idx.stl])||0:0,
+                                tpm:idx.tpm>=0&&ath.stats?parseFloat(ath.stats[idx.tpm])||0:0
+                            });
+                        }
+                    }catch(e){continue;}
+                }
+                window.playerGameLogsCache[teamId]=ps;
+                return ps;
+            }catch(e){return new Map();}
         }
 
         function getOpponentDefensiveRanks(oppId){
@@ -396,7 +399,6 @@
             return {pts:bdr+df*8+pr(seed,0)*6-3,reb:bdr+df*4+pr(seed,1)*4-2,ast:bdr+df*5+pr(seed,2)*5-2.5,blk:bdr+df*3+pr(seed,3)*3-1.5,stl:bdr+df*3.5+pr(seed,4)*3.5-1.75,tpm:bdr+df*6+pr(seed,5)*7-3.5,baseDefRtg:bdr};
         }
 
-        // ---- MODEL COMPUTATIONS ----
         function computeBayesianProjection(prop){
             const vals=prop.allVals,n=vals.length;if(n<3)return null;
             const sm=vals.reduce((a,b)=>a+b,0)/n;
@@ -442,7 +444,6 @@
             return {gbmProjection:tw>0?ws/tw:prop.avgAll};
         }
 
-        // ---- UNIFIED PROP ALPHA (UPA) ----
         function computeUPA(prop){
             const mfProj=prop.rawProjection,line=prop.line,stdDev=prop.stdDev||1;
             const bayes=computeBayesianProjection(prop);
@@ -502,7 +503,7 @@
         }
 
         function renderUnifiedProps(propsList,teamId){
-            if(!propsList||!propsList.length)return '<p class="loading">No qualifying props.</p>';
+            if(!propsList||!propsList.length)return '<p class="loading">No qualifying props for this team.</p>';
             const enriched=propsList.map(p=>{const u=computeUPA(p);return {...p,upa:u};});
             enriched.sort((a,b)=>Math.abs(b.upa.rawScore)-Math.abs(a.upa.rawScore));
             let html='';
@@ -600,20 +601,26 @@
             teamBCol.style.display='block';
             listA.innerHTML='<div class="loading">Running Unified Prop Alpha...</div>';
             listB.innerHTML='<div class="loading">Running Unified Prop Alpha...</div>';
-            const[logsA,logsB]=await Promise.all([fetchPlayerGameLogs(teamId,10),fetchPlayerGameLogs(oppId,10)]);
-            let propsA=generateAdvancedPropsForTeam(teamId,oppId,teamAbbrev,true,logsA);
-            let propsB=generateAdvancedPropsForTeam(oppId,teamId,oppAbbrev,false,logsB);
-            listA.innerHTML=renderUnifiedProps(propsA,teamId);
-            listB.innerHTML=renderUnifiedProps(propsB,oppId);
+            try{
+                const[logsA,logsB]=await Promise.all([
+                    fetchPlayerGameLogs(teamId,10).catch(()=>new Map()),
+                    fetchPlayerGameLogs(oppId,10).catch(()=>new Map())
+                ]);
+                let propsA=generateAdvancedPropsForTeam(teamId,oppId,teamAbbrev,true,logsA);
+                let propsB=generateAdvancedPropsForTeam(oppId,teamId,oppAbbrev,false,logsB);
+                listA.innerHTML=renderUnifiedProps(propsA,teamId);
+                listB.innerHTML=renderUnifiedProps(propsB,oppId);
+            }catch(e){
+                listA.innerHTML='<p class="loading">Error loading props. Please try again.</p>';
+                listB.innerHTML='<p class="loading">Error loading props. Please try again.</p>';
+            }
         }
 
-        // ===== ENHANCED BOUNCE-BACK WITH FILTERS =====
+        // ===== SIMPLIFIED BOUNCE-BACK (No FGA dependency) =====
         function computeBounceBackSignals(events){
-            const signals=[],leagueAvg={pts:22,reb:7,ast:5,tpm:2.5},leagueDefRtg=108;
-            // MINIMUM THRESHOLDS
+            const signals=[];
             const MIN_GAMES=5;
-            const MIN_FGA=3.0;
-            const MIN_STATS={pts:8.0,reb:3.0,ast:2.0,tpm:1.0};
+            const MIN_STATS={pts:6.0,reb:2.5,ast:1.5,tpm:0.8};
 
             events.forEach(evt=>{
                 const comp=evt.competitions[0];
@@ -621,106 +628,141 @@
                     if(!team)return;
                     const teamId=team.team.id,logs=window.playerGameLogsCache[teamId];
                     if(!logs)return;
+
+                    const playerData=[];
                     logs.forEach((gameEntries,playerName)=>{
                         if(gameEntries.length<MIN_GAMES)return;
+
                         const sorted=[...gameEntries].sort((a,b)=>a.date-b.date);
-                        const lastGame=sorted[sorted.length-1],prevGames=sorted.slice(0,-1);
-                        if(prevGames.length<2)return;
+                        const lastGame=sorted[sorted.length-1];
 
-                        const allFga=sorted.map(g=>g.fga||0);
-                        const avgFga=allFga.reduce((a,b)=>a+b,0)/allFga.length;
-                        if(avgFga<MIN_FGA)return;
+                        const ptsVals=sorted.map(g=>g.pts);
+                        const rebVals=sorted.map(g=>g.reb);
+                        const astVals=sorted.map(g=>g.ast);
+                        const tpmVals=sorted.map(g=>g.tpm);
 
-                        const statKeys=['pts','reb','ast','tpm'];
-                        let best=null;
-                        statKeys.forEach(sk=>{
-                            const vals=sorted.map(g=>g[sk]),lastVal=vals[vals.length-1],prevVals=vals.slice(0,-1);
-                            if(prevVals.length<2)return;
-                            const wAvg=calcWeightedAvg(prevVals.slice().reverse());
-                            if(wAvg<1)return;
-                            if(wAvg<MIN_STATS[sk])return;
+                        const avgPts=ptsVals.reduce((a,b)=>a+b,0)/ptsVals.length;
+                        const avgReb=rebVals.reduce((a,b)=>a+b,0)/rebVals.length;
+                        const avgAst=astVals.reduce((a,b)=>a+b,0)/astVals.length;
+                        const avgTpm=tpmVals.reduce((a,b)=>a+b,0)/tpmVals.length;
 
-                            const sd=calculateStdDev(prevVals),cov=wAvg>0?sd/wAvg:0;
-                            const lav=leagueAvg[sk]||5,n=prevVals.length,shrink=n/(n+15);
-                            const trueTalent=wAvg*shrink+lav*(1-shrink);
-                            const oppDefRtg=(lastGame.opponentId&&window.teamAnalyticsStore[lastGame.opponentId])?window.teamAnalyticsStore[lastGame.opponentId].defRtg:leagueDefRtg;
-                            const oppAdj=leagueDefRtg/oppDefRtg,adjLast=lastVal*oppAdj;
-                            const lastFga=lastGame.fga||0;
-                            const avgFgaPlayer=allFga.reduce((a,b)=>a+b,0)/allFga.length;
-                            const usageFactor=(avgFgaPlayer>0&&lastFga<avgFgaPlayer*0.6)?1.2:1.0;
-                            const covFactor=cov>0.5?1.2:(cov<0.2?0.8:1.0);
-                            const teamLost=!lastGame.teamWin,zigZag=teamLost?1.15:1.0;
-                            let fatigue=1.0;
-                            if(sorted.length>=2){const pd=sorted[sorted.length-2].date;const dd=(lastGame.date-pd)/(1000*60*60*24);if(dd<=1)fatigue=1.2;else if(dd>=3)fatigue=0.9;}
-                            let bc=0,tbg=0;
-                            for(let i=1;i<sorted.length;i++){const p5=sorted.slice(Math.max(0,i-5),i);if(p5.length<2)continue;const a5=p5.reduce((s,g)=>s+g[sk],0)/p5.length;if(sorted[i-1][sk]<a5*0.7){tbg++;if(sorted[i][sk]>=a5)bc++;}}
-                            const hbr=tbg>0?bc/tbg:0.5;
-                            let score=0;const thresh=wAvg*0.7;
-                            if(lastVal<thresh){
-                                const deficit=(thresh-lastVal)/thresh;score+=deficit*0.30;
-                                const rv=Math.min(1,(trueTalent-lastVal)/(wAvg+1));score+=rv*0.20;
-                                const ob=Math.min(0.5,(adjLast-lastVal)/(lastVal+1));score+=ob*0.10;
-                                score+=(usageFactor-1)*0.10;score+=(covFactor-1)*0.05;score+=(zigZag-1)*0.10;score+=(fatigue-1)*0.10;score+=(hbr-0.5)*0.15;
-                            }else return;
-                            let conf=Math.min(100,Math.max(5,score*100));
-                            if(hbr>0.6)conf=Math.min(100,conf*1.1);
-                            if(teamLost)conf=Math.min(100,conf*1.05);
-                            const last5=sorted.slice(-5).map(g=>g[sk]);
-                            const arrows=last5.map(v=>v>=wAvg?'↑':'↓').join('');
-                            const why=`Last game: ${lastVal.toFixed(1)} (${((lastVal/wAvg-1)*100).toFixed(0)}% vs avg). Weighted avg: ${wAvg.toFixed(1)}. ${teamLost?'Team lost → bounce motivation. ':''}${fatigue>1.1?'Back-to-back fatigue. ':''}Historical bounce: ${Math.round(hbr*100)}%. Usage: ${usageFactor>1?'Low FGA → due for more shots. ':'Normal usage. '}Opponent D adj: ${lastVal.toFixed(1)} → ${adjLast.toFixed(1)}.`;
-                            if(!best||conf>best.confidence){
-                                best={player:playerName,teamId,teamAbbrev:team.team.abbreviation,statKey:sk,statLabel:STAT_CONFIG[sk]?.label||sk.toUpperCase(),avg:wAvg,last:lastVal,confidence:Math.round(conf),historicalBounceRate:Math.round(hbr*100),arrows,why,teamLost,opponent:lastGame.opponent};
-                            }
+                        // Consistency check (Coefficient of Variation - lower is more consistent)
+                        const cvPts=avgPts>0?calculateStdDev(ptsVals)/avgPts:999;
+                        const cvReb=avgReb>0?calculateStdDev(rebVals)/avgReb:999;
+                        const cvAst=avgAst>0?calculateStdDev(astVals)/avgAst:999;
+                        const cvTpm=avgTpm>0?calculateStdDev(tpmVals)/avgTpm:999;
+
+                        playerData.push({
+                            name:playerName,teamId,teamAbbrev:team.team.abbreviation,
+                            opponent:comp.competitors.find(c=>c.team.id!==teamId)?.team.abbreviation||'?',
+                            avgPts,avgReb,avgAst,avgTpm,
+                            lastPts:lastGame.pts,lastReb:lastGame.reb,lastAst:lastGame.ast,lastTpm:lastGame.tpm,
+                            cvPts,cvReb,cvAst,cvTpm
                         });
-                        if(best)signals.push(best);
+                    });
+
+                    // Top rankings
+                    const sortedPts=[...playerData].sort((a,b)=>b.avgPts-a.avgPts);
+                    const sortedReb=[...playerData].sort((a,b)=>b.avgReb-a.avgReb);
+                    const sortedAst=[...playerData].sort((a,b)=>b.avgAst-a.avgAst);
+                    const sortedTpm=[...playerData].sort((a,b)=>b.avgTpm-a.avgTpm);
+
+                    const topPts=sortedPts.slice(0,3);
+                    const topReb=sortedReb.slice(0,2);
+                    const topAst=sortedAst.slice(0,1);
+                    const topTpm=sortedTpm.slice(0,1);
+
+                    const candidates=[];
+
+                    // Points: top 3, avg >= MIN_STATS, last < 70% of avg, consistent (cv < 0.7)
+                    topPts.forEach(p=>{
+                        if(p.avgPts>=MIN_STATS.pts && p.lastPts>0 && p.lastPts<p.avgPts*0.7 && p.cvPts<0.7){
+                            candidates.push({...p,stat:'Points',avg:p.avgPts,last:p.lastPts,bounce:p.avgPts-p.lastPts});
+                        }
+                    });
+
+                    // Rebounds: top 2
+                    topReb.forEach(p=>{
+                        if(p.avgReb>=MIN_STATS.reb && p.lastReb>0 && p.lastReb<p.avgReb*0.7 && p.cvReb<0.7){
+                            candidates.push({...p,stat:'Rebounds',avg:p.avgReb,last:p.lastReb,bounce:p.avgReb-p.lastReb});
+                        }
+                    });
+
+                    // Assists: top 1
+                    topAst.forEach(p=>{
+                        if(p.avgAst>=MIN_STATS.ast && p.lastAst>0 && p.lastAst<p.avgAst*0.7 && p.cvAst<0.7){
+                            candidates.push({...p,stat:'Assists',avg:p.avgAst,last:p.lastAst,bounce:p.avgAst-p.lastAst});
+                        }
+                    });
+
+                    // 3PM: top 1
+                    topTpm.forEach(p=>{
+                        if(p.avgTpm>=MIN_STATS.tpm && p.lastTpm>0 && p.lastTpm<p.avgTpm*0.7 && p.cvTpm<0.7){
+                            candidates.push({...p,stat:'3PM',avg:p.avgTpm,last:p.lastTpm,bounce:p.avgTpm-p.lastTpm});
+                        }
+                    });
+
+                    // Filter duplicates (same player+stat combo)
+                    const seen=new Set();
+                    candidates.forEach(c=>{
+                        const key=c.name+c.stat;
+                        if(!seen.has(key)){seen.add(key);signals.push(c);}
                     });
                 });
             });
-            signals.sort((a,b)=>b.confidence-a.confidence);
-            return signals;
+
+            // Sort by bounce potential, take top 10
+            signals.sort((a,b)=>b.bounce-a.bounce);
+            return signals.slice(0,10);
         }
 
         function renderBounceBackSignals(signals){
             const c=document.getElementById('bounce-back-container'),lb=document.getElementById('bounce-leaderboard'),l=document.getElementById('bounce-back-list');
             if(!c||!lb||!l)return;
-            if(!signals.length){c.style.display='none';return;}
+            if(!signals||!signals.length){c.style.display='none';return;}
             c.style.display='block';
             const top5=signals.slice(0,5),rest=signals.slice(5);
             let lbHtml='';
             top5.forEach((s,idx)=>{
-                const bc=s.confidence>=75?'hot':(s.confidence>=55?'mod':'cold'),bt=s.confidence>=75?'🔥 Hot':(s.confidence>=55?'⚡ Moderate':'❄️ Cold');
-                const mc=s.confidence>=75?'high':(s.confidence>=55?'med':'low'),sn=s.player.replace(/'/g,"\\'");
-                lbHtml+=`<div class="bounce-card" style="border-left-color:${s.confidence>=75?'#28a745':s.confidence>=55?'#ffc107':'#dc3545'};">
-                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${sn}')" tabindex="0">#${idx+1} ${s.player}</div>
-                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
-                    <div class="b-confidence"><div class="meter"><div class="fill ${mc}" style="width:${s.confidence}%;"></div></div><span class="pct">${s.confidence}%</span></div>
+                const conf=Math.min(85,35+s.bounce*8);
+                const bc=conf>=70?'hot':(conf>=50?'mod':'cold'),bt=conf>=70?'🔥 Hot':(conf>=50?'⚡ Moderate':'❄️ Cold');
+                const mc=conf>=70?'high':(conf>=50?'med':'low');
+                const sn=s.name.replace(/'/g,"\\'");
+                const arrows=s.last<s.avg*0.7?'↓':(s.last>s.avg?'↑':'→');
+                lbHtml+=`<div class="bounce-card" style="border-left-color:${conf>=70?'#28a745':conf>=50?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${sn}')" tabindex="0">#${idx+1} ${s.name}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.stat} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence"><div class="meter"><div class="fill ${mc}" style="width:${conf}%;"></div></div><span class="pct">${Math.round(conf)}%</span></div>
                     <div class="b-badge ${bc}">${bt}</div>
-                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
-                    <div class="b-arrows">${s.arrows}</div>
+                    <div class="b-history">Last: ${s.last.toFixed(1)} ${arrows}</div>
+                    <div class="b-arrows">+${s.bounce.toFixed(1)}</div>
                     <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
-                    <div class="bounce-why">${s.why}</div>
+                    <div class="bounce-why">Last game: ${s.last.toFixed(1)} (${((s.last/s.avg-1)*100).toFixed(0)}% below avg). Avg: ${s.avg.toFixed(1)}. Bounce potential: +${s.bounce.toFixed(1)}.</div>
                 </div>`;
             });
             lb.innerHTML=lbHtml;
             let restHtml='';
             rest.forEach(s=>{
-                const bc=s.confidence>=75?'hot':(s.confidence>=55?'mod':'cold'),bt=s.confidence>=75?'🔥 Hot':(s.confidence>=55?'⚡ Moderate':'❄️ Cold');
-                const mc=s.confidence>=75?'high':(s.confidence>=55?'med':'low'),sn=s.player.replace(/'/g,"\\'");
-                restHtml+=`<div class="bounce-card" style="border-left-color:${s.confidence>=75?'#28a745':s.confidence>=55?'#ffc107':'#dc3545'};">
-                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${sn}')" tabindex="0">${s.player}</div>
-                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
-                    <div class="b-confidence"><div class="meter"><div class="fill ${mc}" style="width:${s.confidence}%;"></div></div><span class="pct">${s.confidence}%</span></div>
+                const conf=Math.min(85,35+s.bounce*8);
+                const bc=conf>=70?'hot':(conf>=50?'mod':'cold'),bt=conf>=70?'🔥 Hot':(conf>=50?'⚡ Moderate':'❄️ Cold');
+                const mc=conf>=70?'high':(conf>=50?'med':'low');
+                const sn=s.name.replace(/'/g,"\\'");
+                const arrows=s.last<s.avg*0.7?'↓':(s.last>s.avg?'↑':'→');
+                restHtml+=`<div class="bounce-card" style="border-left-color:${conf>=70?'#28a745':conf>=50?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${sn}')" tabindex="0">${s.name}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.stat} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence"><div class="meter"><div class="fill ${mc}" style="width:${conf}%;"></div></div><span class="pct">${Math.round(conf)}%</span></div>
                     <div class="b-badge ${bc}">${bt}</div>
-                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
-                    <div class="b-arrows">${s.arrows}</div>
+                    <div class="b-history">Last: ${s.last.toFixed(1)} ${arrows}</div>
+                    <div class="b-arrows">+${s.bounce.toFixed(1)}</div>
                     <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
-                    <div class="bounce-why">${s.why}</div>
+                    <div class="bounce-why">Last game: ${s.last.toFixed(1)} (${((s.last/s.avg-1)*100).toFixed(0)}% below avg). Avg: ${s.avg.toFixed(1)}. Bounce potential: +${s.bounce.toFixed(1)}.</div>
                 </div>`;
             });
             l.innerHTML=restHtml;
         }
 
-        // ===== FIXED SLATE LOADER =====
+        // ===== LOAD DAILY SLATE =====
         async function loadDailySlate(offset=0){
             currentSlateDate.setDate(currentSlateDate.getDate()+offset);
             const container=document.getElementById('slate-data-container');
@@ -748,7 +790,7 @@
                 }
                 const teamIds=new Set();
                 data.events.forEach(evt=>{evt.competitions[0].competitors.forEach(c=>teamIds.add(c.team.id));});
-                await Promise.all([...teamIds].map(id=>fetchPlayerGameLogs(id,10).catch(()=>null)));
+                await Promise.all([...teamIds].map(id=>fetchPlayerGameLogs(id,10).catch(()=>new Map())));
                 const bounceSignals=computeBounceBackSignals(data.events);
                 renderBounceBackSignals(bounceSignals);
                 let html='';
@@ -951,7 +993,7 @@
             }
         }
 
-        // ===== REST OF FUNCTIONS (unchanged, kept for completeness) =====
+        // ===== REST OF FUNCTIONS (unchanged) =====
         async function fetchAggregatedSummary(ref,days,containerId,title){
             const container=document.getElementById(containerId);
             container.innerHTML='<div class="loading">Loading summary...</div>';
@@ -1054,8 +1096,8 @@
             try{
                 const sr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${espnId}/schedule`);
                 const sd=await sr.json();
-                const completed=sd.events.filter(e=>e.competitions[0].status.type.completed===true);
-                const upcoming=sd.events.filter(e=>e.competitions[0].status.type.completed===false);
+                const completed=sd.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===true);
+                const upcoming=sd.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===false);
                 const last5=completed.slice(-5),last3=completed.slice(-3).reverse();
                 const next=upcoming.length?upcoming[0]:null;
                 let winCount=0,totalPts=0,valid=0,myData=[],myWL=[],perfLabels=[];
@@ -1064,14 +1106,14 @@
                 completed.slice(-10).forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===String(espnId));const opp=comp.competitors.find(c=>String(c.team.id)!==String(espnId));if(me&&opp&&me.score&&opp.score){const diff=parseInt(me.score.value)-parseInt(opp.score.value);myNet.push(parseFloat((diff/(myPace/100)).toFixed(1)));}});
                 let oppId=null,oppAbbr="Opponent",oppData=[],oppWL=[],oppWin=0,oppTotal=0,oppValid=0,oppCompleted=[],oppNet=[];
                 if(next){const comp=next.competitions[0];const ot=comp.competitors.find(c=>String(c.team.id)!==String(espnId));if(ot){oppId=ot.team.id;oppAbbr=ot.team.abbreviation||"OPP";}}
-                if(oppId){const oppNews=document.getElementById('opponent-news-column');if(oppNews)oppNews.style.display='block';fetchNewsForTeam(oppId,'opponent-news-container');updateAdvancedPropsSection(espnId,oppId,teamAbbrev,oppAbbrev);try{const or=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${oppId}/schedule`);const od=await or.json();oppCompleted=od.events.filter(e=>e.competitions[0].status.type.completed===true);oppCompleted.slice(-5).forEach(g=>{const tg=g.competitions[0].competitors.find(c=>String(c.team.id)===String(oppId));if(tg&&tg.score){const pts=parseInt(tg.score.value);oppData.push(pts);oppWL.push(tg.winner?'W':'L');oppTotal+=pts;oppValid++;if(tg.winner)oppWin++;}});const oppPace=window.teamAnalyticsStore[oppId]?.estPace||100;oppCompleted.slice(-10).forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===String(oppId));const opp=comp.competitors.find(c=>String(c.team.id)!==String(oppId));if(me&&opp&&me.score&&opp.score){const diff=parseInt(me.score.value)-parseInt(opp.score.value);oppNet.push(parseFloat((diff/(oppPace/100)).toFixed(1)));}});}catch(e){}}
+                if(oppId){const oppNews=document.getElementById('opponent-news-column');if(oppNews)oppNews.style.display='block';fetchNewsForTeam(oppId,'opponent-news-container');updateAdvancedPropsSection(espnId,oppId,teamAbbrev,oppAbbrev);try{const or=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${oppId}/schedule`);const od=await or.json();oppCompleted=od.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===true);oppCompleted.slice(-5).forEach(g=>{const tg=g.competitions[0].competitors.find(c=>String(c.team.id)===String(oppId));if(tg&&tg.score){const pts=parseInt(tg.score.value);oppData.push(pts);oppWL.push(tg.winner?'W':'L');oppTotal+=pts;oppValid++;if(tg.winner)oppWin++;}});const oppPace=window.teamAnalyticsStore[oppId]?.estPace||100;oppCompleted.slice(-10).forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===String(oppId));const opp=comp.competitors.find(c=>String(c.team.id)!==String(oppId));if(me&&opp&&me.score&&opp.score){const diff=parseInt(me.score.value)-parseInt(opp.score.value);oppNet.push(parseFloat((diff/(oppPace/100)).toFixed(1)));}});}catch(e){}}
                 drawChart('perfChart',perfLabels,teamAbbrev,myData,myWL,oppAbbr,oppData,oppWL);
                 const maxG=Math.max(myNet.length,oppNet.length);const netLabels=Array.from({length:maxG},(_,i)=>`G${i+1}`);
                 drawNetRtgChart('netRtgChart',netLabels,teamAbbrev,myNet,oppAbbr,oppNet);
                 const myShot=getProxyShotProfile(espnId,false);const oppDef=oppId?getProxyShotProfile(oppId,true):[20,20,20,20,20];
                 drawShotProfileChart('shotProfileChart',teamAbbrev+' (Off)',myShot,oppAbbr+' (Def)',oppDef);
                 let h2hGames=[],lastH2HId=null;
-                if(oppId){let curH2H=completed.filter(e=>e.competitions[0].competitors.some(c=>String(c.team.id)===String(oppId)));if(curH2H.length<5){try{const pr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${espnId}/schedule?season=2023`);const pd=await pr.json();const pc=pd.events.filter(e=>e.competitions[0].status.type.completed===true);const ph=pc.filter(e=>e.competitions[0].competitors.some(c=>String(c.team.id)===String(oppId)));h2hGames=[...ph,...curH2H].slice(-5);}catch(e){h2hGames=curH2H;}}else h2hGames=curH2H.slice(-5);}
+                if(oppId){let curH2H=completed.filter(e=>e.competitions[0].competitors.some(c=>String(c.team.id)===String(oppId)));if(curH2H.length<5){try{const pr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${espnId}/schedule?season=2023`);const pd=await pr.json();const pc=pd.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===true);const ph=pc.filter(e=>e.competitions[0].competitors.some(c=>String(c.team.id)===String(oppId)));h2hGames=[...ph,...curH2H].slice(-5);}catch(e){h2hGames=curH2H;}}else h2hGames=curH2H.slice(-5);}
                 if(h2hGames.length){lastH2HId=h2hGames[h2hGames.length-1].id;let hLabels=[],hMy=[],hMyW=[],hOpp=[],hOppW=[];h2hGames.forEach(g=>{const comp=g.competitions[0];hLabels.push(new Date(comp.date).toLocaleDateString('en-NZ',{timeZone:'Pacific/Auckland',month:'numeric',day:'numeric'}));const me=comp.competitors.find(c=>String(c.team.id)===String(espnId));const opp=comp.competitors.find(c=>String(c.team.id)===String(oppId));if(me&&opp&&me.score&&opp.score){hMy.push(parseInt(me.score.value));hMyW.push(me.winner?'W':'L');hOpp.push(parseInt(opp.score.value));hOppW.push(opp.winner?'W':'L');}});h2hC.innerHTML='<canvas id="h2hChart"></canvas>';drawChart('h2hChart',hLabels,teamAbbrev,hMy,hMyW,oppAbbr,hOpp,hOppW);}else h2hC.innerHTML='<p style="text-align:center;color:#777;font-size:13px;margin-top:50px;">No recent Head-to-Head data available.</p>';
                 const myTrend=getTrendStatus(winCount,valid),oppTrend=getTrendStatus(oppWin,oppValid);
                 hotC.innerHTML=`<div class="panel-box" style="padding:15px;justify-content:space-evenly;"><div style="font-size:13px;font-weight:bold;text-align:center;color:#555;margin-bottom:15px;border-bottom:2px solid #eee;padding-bottom:5px;">RECENT FORM (L5 MATCHES)</div><div style="display:flex;justify-content:space-between;align-items:center;"><div style="flex:1;text-align:center;border-right:1px dashed #ccc;padding:0 5px;"><div style="font-size:14px;font-weight:bold;color:#1d428a;margin-bottom:8px;">${teamAbbrev}</div><div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${myTrend.color};margin-bottom:8px;">${myTrend.icon} ${myTrend.text}</div><div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${winCount}W - ${valid-winCount}L</b></div><div style="font-size:11px;color:#777;">Avg Pts: ${valid>0?Math.round(totalPts/valid):'--'}</div></div><div style="font-size:14px;font-weight:bold;color:#ccc;padding:0 10px;">VS</div><div style="flex:1;text-align:center;padding:0 5px;"><div style="font-size:14px;font-weight:bold;color:#555;margin-bottom:8px;">${oppAbbr}</div><div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${oppTrend.color};margin-bottom:8px;">${oppTrend.icon} ${oppTrend.text}</div><div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${oppWin}W - ${oppValid-oppWin}L</b></div><div style="font-size:11px;color:#777;">Avg Pts: ${oppValid>0?Math.round(oppTotal/oppValid):'--'}</div></div></div></div>`;
@@ -1082,7 +1124,7 @@
                 if(tStats){const net=tStats.offRtg-tStats.defRtg,ts=getProxyTS(espnId),oreb=getProxyOREB(espnId);advC.innerHTML=`<div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${net>0?'+':''}${net.toFixed(1)} ${getNetRatingBadge(net)}</div><div class="metric-desc">${net>=0?'Average or better':'Below average'}</div></div><div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${ts.toFixed(1)}% ${getTSBadge(ts)}</div><div class="metric-desc">League avg ~57-58%</div></div><div class="metric-card"><div class="metric-label">Offensive Rebound %</div><div class="metric-value">${oreb.toFixed(1)}% ${getOREBBadge(oreb)}</div><div class="metric-desc">League avg ~27%</div></div><div class="metric-card"><div class="metric-label">Pace</div><div class="metric-value">${tStats.estPace.toFixed(1)}</div><div class="metric-desc">Possessions per 48 min</div></div>`;}else advC.innerHTML='<div class="loading">Loading advanced metrics...</div>';
                 if(oppId&&window.teamAnalyticsStore[oppId]){const os=window.teamAnalyticsStore[oppId],onet=os.offRtg-os.defRtg,ots=getProxyTS(oppId),ooreb=getProxyOREB(oppId);oppAdvC.innerHTML=`<div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${onet>0?'+':''}${onet.toFixed(1)} ${getNetRatingBadge(onet)}</div><div class="metric-desc">${onet>=0?'Average or better':'Below average'}</div></div><div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${ots.toFixed(1)}% ${getTSBadge(ots)}</div><div class="metric-desc">League avg ~57-58%</div></div><div class="metric-card"><div class="metric-label">Offensive Rebound %</div><div class="metric-value">${ooreb.toFixed(1)}% ${getOREBBadge(ooreb)}</div><div class="metric-desc">League avg ~27%</div></div><div class="metric-card"><div class="metric-label">Pace</div><div class="metric-value">${os.estPace.toFixed(1)}</div><div class="metric-desc">Possessions per 48 min</div></div>`;oppPaceC.innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Est. Pace</span> <span style="font-weight:bold;color:#1d428a;">${os.estPace.toFixed(1)}</span></div><div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Offensive Rtg</span> <span style="font-weight:bold;color:#1d428a;">${os.offRtg.toFixed(1)}</span></div><div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Defensive Rtg</span> <span style="font-weight:bold;color:#c8102e;">${os.defRtg.toFixed(1)}</span></div>`;oppRow.style.display='flex';document.getElementById('opp-dashboard-title').innerHTML=`📊 Opponent (${oppAbbr}): Sharp Bettor's Dashboard`;document.getElementById('opp-pace-title').innerHTML=`Opponent (${oppAbbr}): Pace & Efficiency`;}else oppRow.style.display='none';
                 window.currentTeamId=espnId;window.currentOppId=oppId;highlightTeamAndOpponent(window.currentTeamId,window.currentOppId);
-            }catch(e){nc.innerHTML='<p style="color:red;">Error loading games.</p>';pc.innerHTML='';}
+            }catch(e){nc.innerHTML='<p style="color:red;">Error loading games. Please try again.</p>';pc.innerHTML='';}
         }
 
         function showPlayerGameLog(teamId,playerName){const modal=document.getElementById('game-log-modal');const nameEl=document.getElementById('modal-player-name');const content=document.getElementById('modal-game-log-content');nameEl.textContent=`${playerName} - Last 10 Games`;content.innerHTML='<div class="loading">Loading game log...</div>';modal.style.display='flex';const cache=window.playerGameLogsCache[teamId];if(!cache||!cache.has(playerName)){content.innerHTML='<p style="color:red;">Game log data not available for this player.</p>';return;}const games=cache.get(playerName).slice(-10).reverse();if(!games.length){content.innerHTML='<p>No recent game data.</p>';return;}let html='<table class="game-log-table"><thead><tr><th>Date</th><th>Opp</th><th>Loc</th><th>PTS</th><th>REB</th><th>AST</th><th>BLK</th><th>STL</th><th>3PM</th></tr></thead><tbody>';games.forEach(g=>{const ds=g.date.toLocaleDateString('en-US',{month:'short',day:'numeric'});const loc=g.isHome?'Home':'Away';html+=`<tr><td>${ds}</td><td class="opponent-cell">${g.opponent}</td><td class="location-cell">${loc}</td><td>${g.pts}</td><td>${g.reb}</td><td>${g.ast}</td><td>${g.blk}</td><td>${g.stl}</td><td>${g.tpm}</td></tr>`;});html+='</tbody></table>';content.innerHTML=html;}
@@ -1095,7 +1137,7 @@
 
         async function fetchStandings(){try{const r=await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');const data=await r.json();if(data&&data.children){const east=data.children.find(c=>c.name.includes('Eastern'));const west=data.children.find(c=>c.name.includes('Western'));let totalPF=0,totalPA=0,tc=0;const all=[...east.standings.entries,...west.standings.entries];all.forEach(t=>{const w=t.stats.find(s=>s.name==='wins')?.value||0;const l=t.stats.find(s=>s.name==='losses')?.value||0;const gp=(w+l)||1;totalPF+=parseFloat(t.stats.find(s=>s.name==='pointsFor')?.value||110)/gp;totalPA+=parseFloat(t.stats.find(s=>s.name==='pointsAgainst')?.value||110)/gp;tc++;});const avgPF=totalPF/tc,avgPA=totalPA/tc;let html='<div class="standings-wrapper">';const build=(conf)=>{if(!conf)return '';let th=`<div class="conf-box"><div class="conf-title">${conf.name.replace('Conference','').trim()}</div><table class="standings-table"><tr><th>#</th><th>TM</th><th>W-L</th><th>GB</th><th>L10</th></tr>`;const sorted=conf.standings.entries.sort((a,b)=>parseInt(a.stats.find(s=>s.name==='playoffSeed')?.value||99)-parseInt(b.stats.find(s=>s.name==='playoffSeed')?.value||99));sorted.forEach(team=>{const seed=team.stats.find(s=>s.name==='playoffSeed')?.value||'-';const wins=team.stats.find(s=>s.name==='wins')?.value||0;const losses=team.stats.find(s=>s.name==='losses')?.value||0;const gp=(wins+losses)||1;const gb=team.stats.find(s=>s.name==='gamesBehind')?.displayValue||'-';const l10=team.stats.find(s=>s.abbreviation==='L10'||s.name==='last10Games')?.displayValue||'-';const abbrev=team.team.abbreviation||team.team.shortDisplayName.substring(0,3).toUpperCase();const ppg=(team.stats.find(s=>s.name==='pointsFor')?.value||110)/gp;const oppg=(team.stats.find(s=>s.name==='pointsAgainst')?.value||110)/gp;const l10w=l10!=='-'?parseInt(l10.split('-')[0]):5;const estPace=100*((ppg+oppg)/(avgPF+avgPA));window.teamAnalyticsStore[team.team.id]={winPct:wins/gp||0.5,estPace,offRtg:(ppg/estPace)*100,defRtg:(oppg/estPace)*100,formWeight:l10w/10,ppg,oppg,abbrev,teamId:team.team.id};th+=`<tr data-team-id="${team.team.id}"><td><b>${seed}</b></td><td><b>${abbrev}</b></td><td>${wins}-${losses}</td><td>${gb}</td><td>${l10}</td></tr>`;});return th+'</table></div>';};html+=build(west)+build(east)+'</div>';document.getElementById('standings-container').innerHTML=html;await fetchLast20ForAllTeams();loadDailySlate(0);}}catch(e){document.getElementById('standings-container').innerHTML='<p style="color:red">Failed to load standings.</p>';}}
 
-        async function fetchLast20ForAllTeams(){const rc=document.getElementById('rankings-container');rc.innerHTML='<div class="loading">Fetching last 20 games for all teams...</div>';const ids=Object.keys(window.teamAnalyticsStore);if(!ids.length){rc.innerHTML='<div class="loading">No team data available.</div>';return;}await Promise.all(ids.map(async tid=>{try{const sr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${tid}/schedule`);const sd=await sr.json();const cg=sd.events.filter(e=>e.competitions[0].status.type.completed===true);const season=window.teamAnalyticsStore[tid];const last10=cg.slice(-10);let cPts=0,cOpp=0;last10.forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===tid);const opp=comp.competitors.find(c=>String(c.team.id)!==tid);if(me&&me.score&&opp&&opp.score){cPts+=parseInt(me.score.value);cOpp+=parseInt(opp.score.value);}});const cG=last10.length,cAvgPts=cG?cPts/cG:0,cAvgOpp=cG?cOpp/cG:0;const cPace=100*((cAvgPts+cAvgOpp)/230),cOff=(cAvgPts/cPace)*100,cDef=(cAvgOpp/cPace)*100;let pPts=null,pOpp=null,pPace=null,pOff=null,pDef=null;if(cg.length>=20){const prev10=cg.slice(-20,-10);let pPtsSum=0,pOppSum=0;prev10.forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===tid);const opp=comp.competitors.find(c=>String(c.team.id)!==tid);if(me&&me.score&&opp&&opp.score){pPtsSum+=parseInt(me.score.value);pOppSum+=parseInt(opp.score.value);}});const pG=prev10.length;if(pG>0){const pAvgPts=pPtsSum/pG,pAvgOpp=pOppSum/pG;pPace=100*((pAvgPts+pAvgOpp)/230);pOff=(pAvgPts/pPace)*100;pDef=(pAvgOpp/pPace)*100;}}window.teamLast10Store[tid]={abbrev:season.abbrev,curPace:cPace,curOffRtg:cOff,curDefRtg:cDef,prevPace:pPace,prevOffRtg:pOff,prevDefRtg:pDef};}catch(e){const s=window.teamAnalyticsStore[tid];window.teamLast10Store[tid]={abbrev:s.abbrev,curPace:s.estPace,curOffRtg:s.offRtg,curDefRtg:s.defRtg,prevPace:null,prevOffRtg:null,prevDefRtg:null};}}));updateLast10Rankings();}
+        async function fetchLast20ForAllTeams(){const rc=document.getElementById('rankings-container');rc.innerHTML='<div class="loading">Fetching last 20 games for all teams...</div>';const ids=Object.keys(window.teamAnalyticsStore);if(!ids.length){rc.innerHTML='<div class="loading">No team data available.</div>';return;}await Promise.all(ids.map(async tid=>{try{const sr=await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${tid}/schedule`);const sd=await sr.json();const cg=sd.events.filter(e=>e.competitions[0]&&e.competitions[0].status&&e.competitions[0].status.type&&e.competitions[0].status.type.completed===true);const season=window.teamAnalyticsStore[tid];const last10=cg.slice(-10);let cPts=0,cOpp=0;last10.forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===tid);const opp=comp.competitors.find(c=>String(c.team.id)!==tid);if(me&&me.score&&opp&&opp.score){cPts+=parseInt(me.score.value);cOpp+=parseInt(opp.score.value);}});const cG=last10.length,cAvgPts=cG?cPts/cG:0,cAvgOpp=cG?cOpp/cG:0;const cPace=100*((cAvgPts+cAvgOpp)/230),cOff=(cAvgPts/cPace)*100,cDef=(cAvgOpp/cPace)*100;let pPts=null,pOpp=null,pPace=null,pOff=null,pDef=null;if(cg.length>=20){const prev10=cg.slice(-20,-10);let pPtsSum=0,pOppSum=0;prev10.forEach(g=>{const comp=g.competitions[0];const me=comp.competitors.find(c=>String(c.team.id)===tid);const opp=comp.competitors.find(c=>String(c.team.id)!==tid);if(me&&me.score&&opp&&opp.score){pPtsSum+=parseInt(me.score.value);pOppSum+=parseInt(opp.score.value);}});const pG=prev10.length;if(pG>0){const pAvgPts=pPtsSum/pG,pAvgOpp=pOppSum/pG;pPace=100*((pAvgPts+pAvgOpp)/230);pOff=(pAvgPts/pPace)*100;pDef=(pAvgOpp/pPace)*100;}}window.teamLast10Store[tid]={abbrev:season.abbrev,curPace:cPace,curOffRtg:cOff,curDefRtg:cDef,prevPace:pPace,prevOffRtg:pOff,prevDefRtg:pDef};}catch(e){const s=window.teamAnalyticsStore[tid];window.teamLast10Store[tid]={abbrev:s.abbrev,curPace:s.estPace,curOffRtg:s.offRtg,curDefRtg:s.defRtg,prevPace:null,prevOffRtg:null,prevDefRtg:null};}}));updateLast10Rankings();}
 
         function updateLast10Rankings(){const teams=Object.values(window.teamLast10Store);if(!teams.length){document.getElementById('rankings-container').innerHTML='<div class="loading">No data</div>';return;}const paceSorted=[...teams].sort((a,b)=>b.curPace-a.curPace);const offSorted=[...teams].sort((a,b)=>b.curOffRtg-a.curOffRtg);const defSorted=[...teams].sort((a,b)=>a.curDefRtg-b.curDefRtg);const paceList=paceSorted.map(t=>{const id=Object.keys(window.teamLast10Store).find(i=>window.teamLast10Store[i].abbrev===t.abbrev);return `<li data-team-id="${id}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curPace.toFixed(1)}</span></li>`;}).join('');const offList=offSorted.map(t=>{const id=Object.keys(window.teamLast10Store).find(i=>window.teamLast10Store[i].abbrev===t.abbrev);return `<li data-team-id="${id}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curOffRtg.toFixed(1)}</span></li>`;}).join('');const defList=defSorted.map(t=>{const id=Object.keys(window.teamLast10Store).find(i=>window.teamLast10Store[i].abbrev===t.abbrev);return `<li data-team-id="${id}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curDefRtg.toFixed(1)}</span></li>`;}).join('');document.getElementById('rankings-container').innerHTML=`<div class="rankings-grid"><div class="rank-category"><h3>Pace (Fastest)</h3><ul class="rank-list">${paceList}</ul></div><div class="rank-category"><h3>Offensive Rating</h3><ul class="rank-list">${offList}</ul></div><div class="rank-category"><h3>Defensive Rating</h3><ul class="rank-list">${defList}</ul></div></div><p style="font-size:9px;text-align:center;margin:5px 0 0;color:#888;">Based on last 10 games · Trend vs previous 10</p>`;if(window.currentTeamId)highlightTeamAndOpponent(window.currentTeamId,window.currentOppId);}
 
