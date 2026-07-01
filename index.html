@@ -175,6 +175,13 @@
         .rank-abbr { font-weight: bold; color: #333; } .rank-value { color: #c8102e; font-weight: bold; margin-right: 4px; }
         .trend-up { color: #28a745; font-size: 9px; margin-left: 2px; } .trend-down { color: #c8102e; font-size: 9px; margin-left: 2px; } .trend-flat { color: #888; font-size: 9px; margin-left: 2px; } .trend-num { font-size: 8px; margin-left: 1px; }
         .highlighted-team .rank-abbr { font-weight: bold; background-color: #e6f3ff; }
+
+        /* Bounce-back container */
+        #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 20px; }
+        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; }
+        .bounce-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; align-items: center; }
+        .bounce-item:last-child { border-bottom: none; }
+        .bounce-stat { font-weight: bold; color: #28a745; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -200,6 +207,11 @@
                 </div>
                 <div class="slate-content" id="slate-data-container"><div class="loading">Waiting for system init...</div></div>
                 <div id="ten-day-summary-container"></div>
+                <!-- NEW: Bounce-Back Bets Container -->
+                <div id="bounce-back-container" style="display:none;">
+                    <h3>🔄 Bounce-Back Bet Signals</h3>
+                    <div id="bounce-back-list"></div>
+                </div>
             </div>
         </div>
 
@@ -1172,6 +1184,144 @@
 
         function changeSlateDate(offset) { loadDailySlate(offset); }
 
+        // ----- NEW: Bounce-Back Bet Computation -----
+        function computeBounceBackBetsForSlate(events) {
+            const bets = [];
+            events.forEach(evt => {
+                const comp = evt.competitions[0];
+                const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
+                const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
+                [homeTeam, awayTeam].forEach(team => {
+                    const teamId = team.team.id;
+                    const logs = window.playerGameLogsCache[teamId];
+                    if (!logs) return;
+                    const playerData = [];
+                    logs.forEach((gameEntries, playerName) => {
+                        if (gameEntries.length < 3) return; // need at least 3 games
+                        const totalGames = gameEntries.length;
+                        const sumPts = gameEntries.reduce((s,g) => s+g.pts, 0);
+                        const sumReb = gameEntries.reduce((s,g) => s+g.reb, 0);
+                        const sumAst = gameEntries.reduce((s,g) => s+g.ast, 0);
+                        const sumTpm = gameEntries.reduce((s,g) => s+g.tpm, 0);
+                        const avgPts = sumPts/totalGames;
+                        const avgReb = sumReb/totalGames;
+                        const avgAst = sumAst/totalGames;
+                        const avgTpm = sumTpm/totalGames;
+                        const lastGame = gameEntries[gameEntries.length-1];
+                        const lastPts = lastGame.pts;
+                        const lastReb = lastGame.reb;
+                        const lastAst = lastGame.ast;
+                        const lastTpm = lastGame.tpm;
+                        playerData.push({
+                            name: playerName,
+                            teamId: teamId,
+                            teamAbbrev: team.team.abbreviation,
+                            avgPts, avgReb, avgAst, avgTpm,
+                            lastPts, lastReb, lastAst, lastTpm,
+                            games: totalGames,
+                            opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
+                        });
+                    });
+                    // Rank for each stat
+                    const sortedPts = [...playerData].sort((a,b) => b.avgPts - a.avgPts);
+                    const topPts = sortedPts.slice(0,3);
+                    const sortedReb = [...playerData].sort((a,b) => b.avgReb - a.avgReb);
+                    const topReb = sortedReb.slice(0,2);
+                    const sortedAst = [...playerData].sort((a,b) => b.avgAst - a.avgAst);
+                    const topAst = sortedAst.slice(0,1);
+                    const sortedTpm = [...playerData].sort((a,b) => b.avgTpm - a.avgTpm);
+                    const topTpm = sortedTpm.slice(0,1);
+
+                    const candidates = [];
+                    // Points: top 3
+                    topPts.forEach(p => {
+                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
+                            candidates.push({
+                                ...p,
+                                stat: 'Points',
+                                avg: p.avgPts,
+                                last: p.lastPts,
+                                threshold: p.avgPts * 0.7,
+                                bounce: p.avgPts - p.lastPts
+                            });
+                        }
+                    });
+                    // Rebounds: top 2
+                    topReb.forEach(p => {
+                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
+                            candidates.push({
+                                ...p,
+                                stat: 'Rebounds',
+                                avg: p.avgReb,
+                                last: p.lastReb,
+                                threshold: p.avgReb * 0.7,
+                                bounce: p.avgReb - p.lastReb
+                            });
+                        }
+                    });
+                    // Assists: top 1
+                    topAst.forEach(p => {
+                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
+                            candidates.push({
+                                ...p,
+                                stat: 'Assists',
+                                avg: p.avgAst,
+                                last: p.lastAst,
+                                threshold: p.avgAst * 0.7,
+                                bounce: p.avgAst - p.lastAst
+                            });
+                        }
+                    });
+                    // 3PM: top 1
+                    topTpm.forEach(p => {
+                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
+                            candidates.push({
+                                ...p,
+                                stat: '3PM',
+                                avg: p.avgTpm,
+                                last: p.lastTpm,
+                                threshold: p.avgTpm * 0.7,
+                                bounce: p.avgTpm - p.lastTpm
+                            });
+                        }
+                    });
+                    // Add to bets
+                    candidates.forEach(c => {
+                        bets.push({
+                            player: c.name,
+                            team: c.teamAbbrev,
+                            stat: c.stat,
+                            avg: c.avg,
+                            last: c.last,
+                            bounce: c.bounce,
+                            opponent: c.opponent
+                        });
+                    });
+                });
+            });
+            return bets;
+        }
+
+        function renderBounceBackBets(bets) {
+            const container = document.getElementById('bounce-back-container');
+            const list = document.getElementById('bounce-back-list');
+            if (!container || !list) return;
+            if (bets.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            let html = '';
+            bets.forEach(b => {
+                html += `<div class="bounce-item">
+                    <span><b>${b.player}</b> (${b.team}) - ${b.stat}: avg ${b.avg.toFixed(1)}, last ${b.last.toFixed(1)}</span>
+                    <span class="bounce-stat">+${b.bounce.toFixed(1)} bounce potential</span>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        // ----- Modified loadDailySlate to include bounce-back bets -----
         async function loadDailySlate(offset = 0) {
             currentSlateDate.setDate(currentSlateDate.getDate() + offset);
             const container = document.getElementById('slate-data-container');
@@ -1198,8 +1348,23 @@
                 if (!data.events || data.events.length === 0) {
                     container.innerHTML = '<p style="text-align:center;color:#666;font-size:12px;margin-top:20px;">No games scheduled for this date.</p>';
                     fetchAggregatedSummary(currentSlateDate,10,'ten-day-summary-container','📊 Last 10 Game Days');
+                    // No games, hide bounce-back
+                    document.getElementById('bounce-back-container').style.display = 'none';
                     return;
                 }
+
+                // ----- NEW: Fetch player logs for all teams in slate -----
+                const teamIds = new Set();
+                data.events.forEach(evt => {
+                    evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
+                });
+                await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
+
+                // Compute bounce-back bets
+                const bounceBackBets = computeBounceBackBetsForSlate(data.events);
+                renderBounceBackBets(bounceBackBets);
+
+                // Continue with slate rendering
                 let html = '';
                 let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0;
                 let spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
@@ -1406,6 +1571,7 @@
             } catch (e) {
                 container.innerHTML = '<p style="color:#c8102e;font-size:12px;">Error connecting to slate data.</p>';
                 fetchAggregatedSummary(currentSlateDate,10,'ten-day-summary-container','📊 Last 10 Game Days');
+                document.getElementById('bounce-back-container').style.display = 'none';
             }
         }
 
@@ -1923,4 +2089,3 @@
     </script>
 </body>
 </html>
-        
