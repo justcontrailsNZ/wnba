@@ -102,28 +102,23 @@
         .game-log-table tr:hover { background-color: #f8f9fa; }
         .opponent-cell { font-weight: bold; color: #1d428a; } .location-cell { font-size: 10px; }
 
-        /* SLATE */
+        /* SLATE - FIXED FOR FULL HEIGHT */
         .syndicate-box { 
-    background: #f8f9fa; 
-    border-radius: 8px; 
-    padding: 15px; 
-    text-align: left; 
-    border: 1px solid #d1d9e6; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-    display: flex; 
-    flex-direction: column; 
-    max-height: 92vh;          /* increased to give more room */
-    overflow: hidden;          /* prevents the box itself from scrolling */
-}
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            padding: 15px; 
+            text-align: left; 
+            border: 1px solid #d1d9e6; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            display: flex; 
+            flex-direction: column; 
+            max-height: 92vh; 
+            overflow: hidden; 
+        }
         .slate-header { display: flex; justify-content: space-between; align-items: center; background: #1d428a; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: #fff; font-weight: bold; font-size: 13px; }
         .slate-header button { background: #fff; color: #1d428a; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .slate-header button:hover { background: #eef2f5; }
-        .slate-content { 
-    overflow-y: auto; 
-    flex: 1; 
-    padding-right: 5px; 
-    min-height: 0;             /* ensures flex child can shrink properly */
-}
+        .slate-content { overflow-y: auto; flex: 1; padding-right: 5px; min-height: 0; }
         .slate-content::-webkit-scrollbar { width: 6px; } .slate-content::-webkit-scrollbar-track { background: #f0f2f5; } .slate-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         .daily-slate-item { border-bottom: 1px dashed #ccc; padding: 12px 0; } .daily-slate-item:last-child { border-bottom: none; } .daily-slate-item:first-child { padding-top: 0; }
         .metric-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: #555; align-items: center; } .metric-row:last-child { margin-bottom: 0; }
@@ -171,15 +166,36 @@
         .trend-up { color: #28a745; font-size: 9px; margin-left: 2px; } .trend-down { color: #c8102e; font-size: 9px; margin-left: 2px; } .trend-flat { color: #888; font-size: 9px; margin-left: 2px; }
         .highlighted-team .rank-abbr { font-weight: bold; background-color: #e6f3ff; }
 
-        /* BOUNCE-BACK (original) */
+        /* ENHANCED BOUNCE-BACK STYLES */
         #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 20px; }
-        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; }
-        .bounce-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; align-items: center; cursor: pointer; }
-        .bounce-item:hover { background-color: #f0f4f8; }
-        .bounce-item:last-child { border-bottom: none; }
-        .bounce-stat { font-weight: bold; color: #28a745; }
-        .bounce-item .player-link { color: #1d428a; font-weight: bold; }
-        .bounce-item .player-link:hover { text-decoration: underline; }
+        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; }
+        #bounce-back-container h3 small { font-weight: normal; font-size: 11px; color: #888; }
+        .bounce-leaderboard { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; }
+        .bounce-card { background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border-left: 4px solid var(--green); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; transition: 0.2s; cursor: default; }
+        .bounce-card:hover { background: #f0f4f8; }
+        .bounce-card .b-player { flex: 2; min-width: 120px; font-weight: bold; color: #1d428a; cursor: pointer; }
+        .bounce-card .b-player:hover { text-decoration: underline; }
+        .bounce-card .b-stat { font-size: 12px; color: #555; min-width: 100px; }
+        .bounce-card .b-confidence { flex: 2; min-width: 120px; display: flex; align-items: center; gap: 8px; }
+        .bounce-card .b-confidence .meter { height: 8px; border-radius: 4px; background: #e9ecef; flex: 1; overflow: hidden; }
+        .bounce-card .b-confidence .meter .fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+        .bounce-card .b-confidence .meter .fill.high { background: #28a745; }
+        .bounce-card .b-confidence .meter .fill.med { background: #ffc107; }
+        .bounce-card .b-confidence .meter .fill.low { background: #dc3545; }
+        .bounce-card .b-confidence .pct { font-weight: bold; font-size: 14px; min-width: 45px; text-align: right; }
+        .bounce-card .b-badge { font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; background: #e9ecef; white-space: nowrap; }
+        .bounce-card .b-badge.hot { background: #28a745; color: #fff; }
+        .bounce-card .b-badge.mod { background: #ffc107; color: #333; }
+        .bounce-card .b-badge.cold { background: #dc3545; color: #fff; }
+        .bounce-card .b-history { font-size: 10px; color: #888; }
+        .bounce-arrows { font-size: 11px; letter-spacing: 1px; font-weight: bold; color: #333; }
+        .bounce-arrows .arrow-up { color: #28a745; }
+        .bounce-arrows .arrow-down { color: #dc3545; }
+        .bounce-why { font-size: 10px; color: #555; background: #fff; padding: 6px 8px; border-radius: 4px; border: 1px dashed #ccc; margin-top: 5px; display: none; width: 100%; }
+        .bounce-card .b-why-toggle { font-size: 10px; color: #1d428a; cursor: pointer; background: none; border: none; padding: 2px 6px; border-radius: 4px; }
+        .bounce-card .b-why-toggle:hover { background: #e9ecef; }
+        .bounce-card .b-why-toggle:focus+.bounce-why { display: block; }
+        .bounce-sub { font-size: 10px; color: #999; margin-left: 5px; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -202,8 +218,10 @@
                 </div>
                 <div class="slate-content" id="slate-data-container"><div class="loading">Waiting for system init...</div></div>
                 <div id="ten-day-summary-container"></div>
+                <!-- ENHANCED BOUNCE-BACK -->
                 <div id="bounce-back-container" style="display:none;">
-                    <h3>🔄 Bounce-Back Bet Signals</h3>
+                    <h3>🔄 Bounce-Back Signals <small>Multi‑Factor Confidence</small></h3>
+                    <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                     <div id="bounce-back-list"></div>
                 </div>
             </div>
@@ -348,7 +366,7 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         function getStatLabelsFromESPN(labels) {
-            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1 };
+            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, fga: -1 };
             for (let i = 0; i < labels.length; i++) {
                 const l = labels[i].toUpperCase();
                 if (l === 'PTS' || l === 'POINTS') r.pts = i;
@@ -357,6 +375,7 @@
                 if (l === 'BLK' || l === 'BLOCKS') r.blk = i;
                 if (l === 'STL' || l === 'STEALS') r.stl = i;
                 if (l === '3PM' || l === '3PT' || l === '3P' || l.includes('3PT')) r.tpm = i;
+                if (l === 'FGA' || l === 'FGM' || l === 'FIELD GOALS ATTEMPTED') r.fga = i;
             }
             return r;
         }
@@ -387,51 +406,59 @@
         // ============================================================
         async function fetchPlayerGameLogs(teamId, numGames = 10) {
             if (window.playerGameLogsCache[teamId]) return window.playerGameLogsCache[teamId];
-            const sr = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
-            const sd = await sr.json();
-            const completed = sd.events.filter(e => e.competitions[0].status.type.completed === true);
-            const games = completed.slice(-numGames);
-            const ps = new Map();
-            for (const game of games) {
-                const gid = game.id;
-                const comp = game.competitions[0];
-                const tig = comp.competitors.find(c => String(c.team.id) === String(teamId));
-                const isHome = tig ? tig.homeAway === 'home' : false;
-                const gd = new Date(comp.date);
-                const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(teamId));
-                const oppAbbr = oppTeam ? (oppTeam.team.abbreviation || oppTeam.team.shortDisplayName) : '???';
-                const oppId = oppTeam ? String(oppTeam.team.id) : null;
-                try {
-                    const summaryRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
-                    const summaryData = await summaryRes.json();
-                    if (!summaryData.boxscore || !summaryData.boxscore.players) continue;
-                    const teamStats = summaryData.boxscore.players.find(p => String(p.team.id) === String(teamId));
-                    if (!teamStats || !teamStats.statistics || !teamStats.statistics[0]) continue;
-                    const statsArray = teamStats.statistics[0];
-                    if (!statsArray.athletes) continue;
-                    const idx = getStatLabelsFromESPN(statsArray.labels || []);
-                    for (const athlete of statsArray.athletes) {
-                        if (athlete.didNotPlay) continue;
-                        const name = athlete.athlete.shortName || athlete.athlete.displayName;
-                        if (!name) continue;
-                        if (!ps.has(name)) ps.set(name, []);
-                        ps.get(name).push({
-                            date: gd,
-                            isHome,
-                            opponent: oppAbbr,
-                            opponentId: oppId,
-                            pts: idx.pts >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.pts]) || 0 : 0,
-                            reb: idx.reb >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.reb]) || 0 : 0,
-                            ast: idx.ast >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.ast]) || 0 : 0,
-                            blk: idx.blk >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.blk]) || 0 : 0,
-                            stl: idx.stl >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.stl]) || 0 : 0,
-                            tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0
-                        });
-                    }
-                } catch (e) { /* skip */ }
-            }
-            window.playerGameLogsCache[teamId] = ps;
-            return ps;
+            try {
+                const sr = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
+                if (!sr.ok) return new Map();
+                const sd = await sr.json();
+                if (!sd.events) return new Map();
+                const completed = sd.events.filter(e => e.competitions && e.competitions[0] && e.competitions[0].status && e.competitions[0].status.type && e.competitions[0].status.type.completed === true);
+                const games = completed.slice(-numGames);
+                const ps = new Map();
+                for (const game of games) {
+                    const gid = game.id;
+                    const comp = game.competitions[0];
+                    const tig = comp.competitors.find(c => String(c.team.id) === String(teamId));
+                    const isHome = tig ? tig.homeAway === 'home' : false;
+                    const gd = new Date(comp.date);
+                    const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(teamId));
+                    const oppAbbr = oppTeam ? (oppTeam.team.abbreviation || oppTeam.team.shortDisplayName) : '???';
+                    const oppId = oppTeam ? String(oppTeam.team.id) : null;
+                    const teamWin = tig ? !!tig.winner : false;
+                    try {
+                        const summaryRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
+                        if (!summaryRes.ok) continue;
+                        const summaryData = await summaryRes.json();
+                        if (!summaryData.boxscore || !summaryData.boxscore.players) continue;
+                        const teamStats = summaryData.boxscore.players.find(p => String(p.team.id) === String(teamId));
+                        if (!teamStats || !teamStats.statistics || !teamStats.statistics[0]) continue;
+                        const statsArray = teamStats.statistics[0];
+                        if (!statsArray.athletes) continue;
+                        const idx = getStatLabelsFromESPN(statsArray.labels || []);
+                        for (const athlete of statsArray.athletes) {
+                            if (athlete.didNotPlay) continue;
+                            const name = athlete.athlete.shortName || athlete.athlete.displayName;
+                            if (!name) continue;
+                            if (!ps.has(name)) ps.set(name, []);
+                            ps.get(name).push({
+                                date: gd,
+                                isHome,
+                                opponent: oppAbbr,
+                                opponentId: oppId,
+                                teamWin,
+                                pts: idx.pts >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.pts]) || 0 : 0,
+                                reb: idx.reb >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.reb]) || 0 : 0,
+                                ast: idx.ast >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.ast]) || 0 : 0,
+                                blk: idx.blk >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.blk]) || 0 : 0,
+                                stl: idx.stl >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.stl]) || 0 : 0,
+                                tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0,
+                                fga: idx.fga >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.fga]) || 0 : 0
+                            });
+                        }
+                    } catch (e) { continue; }
+                }
+                window.playerGameLogsCache[teamId] = ps;
+                return ps;
+            } catch (e) { return new Map(); }
         }
 
         function getOpponentDefensiveRanks(oppId) {
@@ -747,120 +774,240 @@
             teamBCol.style.display = 'block';
             listA.innerHTML = '<div class="loading">Running Unified Prop Alpha...</div>';
             listB.innerHTML = '<div class="loading">Running Unified Prop Alpha...</div>';
-            const [logsA, logsB] = await Promise.all([fetchPlayerGameLogs(teamId, 10), fetchPlayerGameLogs(oppId, 10)]);
-            let propsA = generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, true, logsA);
-            let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, false, logsB);
-            listA.innerHTML = renderUnifiedProps(propsA, teamId);
-            listB.innerHTML = renderUnifiedProps(propsB, oppId);
+            try {
+                const [logsA, logsB] = await Promise.all([
+                    fetchPlayerGameLogs(teamId, 10).catch(() => new Map()),
+                    fetchPlayerGameLogs(oppId, 10).catch(() => new Map())
+                ]);
+                let propsA = generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, true, logsA);
+                let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, false, logsB);
+                listA.innerHTML = renderUnifiedProps(propsA, teamId);
+                listB.innerHTML = renderUnifiedProps(propsB, oppId);
+            } catch (e) {
+                console.error('Props error:', e);
+                listA.innerHTML = '<p class="loading">Error loading props.</p>';
+                listB.innerHTML = '<p class="loading">Error loading props.</p>';
+            }
         }
 
         // ============================================================
-        //  BOUNCE-BACK
+        //  ENHANCED BOUNCE-BACK ALGORITHM (Multi‑Factor Fusion)
         // ============================================================
         function computeBounceBackBetsForSlate(events) {
-            const bets = [];
+            const signals = [];
+            const leagueAvg = { pts: 22, reb: 7, ast: 5, tpm: 2.5 };
+            const leagueDefRtg = 108;
+            const MIN_GAMES = 5;
+            const MIN_STATS = { pts: 6.0, reb: 2.5, ast: 1.5, tpm: 0.8 };
+
             events.forEach(evt => {
                 const comp = evt.competitions[0];
+                if (!comp) return;
                 const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
                 const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
+
                 [homeTeam, awayTeam].forEach(team => {
+                    if (!team) return;
                     const teamId = team.team.id;
                     const logs = window.playerGameLogsCache[teamId];
                     if (!logs) return;
-                    const playerData = [];
+
                     logs.forEach((gameEntries, playerName) => {
-                        if (gameEntries.length < 3) return;
-                        const totalGames = gameEntries.length;
-                        const sumPts = gameEntries.reduce((s, g) => s + g.pts, 0);
-                        const sumReb = gameEntries.reduce((s, g) => s + g.reb, 0);
-                        const sumAst = gameEntries.reduce((s, g) => s + g.ast, 0);
-                        const sumTpm = gameEntries.reduce((s, g) => s + g.tpm, 0);
-                        const avgPts = sumPts / totalGames;
-                        const avgReb = sumReb / totalGames;
-                        const avgAst = sumAst / totalGames;
-                        const avgTpm = sumTpm / totalGames;
-                        const lastGame = gameEntries[gameEntries.length - 1];
-                        const lastPts = lastGame.pts;
-                        const lastReb = lastGame.reb;
-                        const lastAst = lastGame.ast;
-                        const lastTpm = lastGame.tpm;
-                        playerData.push({
-                            name: playerName,
-                            teamId,
-                            teamAbbrev: team.team.abbreviation,
-                            avgPts,
-                            avgReb,
-                            avgAst,
-                            avgTpm,
-                            lastPts,
-                            lastReb,
-                            lastAst,
-                            lastTpm,
-                            games: totalGames,
-                            opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
+                        if (gameEntries.length < MIN_GAMES) return;
+
+                        const sorted = [...gameEntries].sort((a, b) => a.date - b.date);
+                        const lastGame = sorted[sorted.length - 1];
+                        const prevGames = sorted.slice(0, -1);
+                        if (prevGames.length < 2) return;
+
+                        const statKeys = ['pts', 'reb', 'ast', 'tpm'];
+                        let bestCandidate = null;
+
+                        statKeys.forEach(sk => {
+                            const vals = sorted.map(g => g[sk]);
+                            const lastVal = vals[vals.length - 1];
+                            const prevValsStat = vals.slice(0, -1);
+                            if (prevValsStat.length < 2) return;
+                            const wAvg = calcWeightedAvg(prevValsStat.slice().reverse());
+                            if (wAvg < MIN_STATS[sk]) return;
+                            if (lastVal === 0 && sk === 'tpm') return;
+
+                            const stdDev = calculateStdDev(prevValsStat);
+                            const cov = wAvg > 0 ? stdDev / wAvg : 999;
+                            if (cov > 0.7) return;
+
+                            // Mean Reversion
+                            const n = prevValsStat.length;
+                            const shrinkage = n / (n + 15);
+                            const trueTalent = wAvg * shrinkage + leagueAvg[sk] * (1 - shrinkage);
+
+                            // Opponent Adjustment
+                            const oppDefRtg = (lastGame.opponentId && window.teamAnalyticsStore[lastGame.opponentId])
+                                ? window.teamAnalyticsStore[lastGame.opponentId].defRtg
+                                : leagueDefRtg;
+                            const oppAdj = leagueDefRtg / oppDefRtg;
+                            const adjustedLast = lastVal * oppAdj;
+
+                            // Usage (FGA)
+                            const lastFga = lastGame.fga || 0;
+                            const avgFga = sorted.map(g => g.fga || 0).reduce((a, b) => a + b, 0) / sorted.length;
+                            const usageFactor = (avgFga > 0 && lastFga < avgFga * 0.6) ? 1.2 : 1.0;
+
+                            // Zig-Zag
+                            const teamLost = !lastGame.teamWin;
+                            const zigZagFactor = teamLost ? 1.15 : 1.0;
+
+                            // Fatigue
+                            let fatigueFactor = 1.0;
+                            if (sorted.length >= 2) {
+                                const prevDate = sorted[sorted.length - 2].date;
+                                const daysDiff = (lastGame.date - prevDate) / (1000 * 60 * 60 * 24);
+                                if (daysDiff <= 1) fatigueFactor = 1.2;
+                                else if (daysDiff >= 3) fatigueFactor = 0.9;
+                            }
+
+                            // Historical Bounce Rate
+                            let bounceCount = 0,
+                                totalBadGames = 0;
+                            for (let i = 1; i < sorted.length; i++) {
+                                const prev5 = sorted.slice(Math.max(0, i - 5), i);
+                                if (prev5.length < 2) continue;
+                                const avg5 = prev5.reduce((s, g) => s + g[sk], 0) / prev5.length;
+                                if (sorted[i - 1][sk] < avg5 * 0.7) {
+                                    totalBadGames++;
+                                    if (sorted[i][sk] >= avg5) bounceCount++;
+                                }
+                            }
+                            const historicalBounceRate = totalBadGames > 0 ? bounceCount / totalBadGames : 0.5;
+
+                            // Combined Score
+                            let score = 0;
+                            const threshold = wAvg * 0.7;
+                            if (lastVal < threshold) {
+                                const deficit = (threshold - lastVal) / threshold;
+                                score += deficit * 0.30;
+                                const reversionBoost = Math.min(1, (trueTalent - lastVal) / (wAvg + 1));
+                                score += reversionBoost * 0.20;
+                                const oppBoost = Math.min(0.5, (adjustedLast - lastVal) / (lastVal + 1));
+                                score += oppBoost * 0.10;
+                                score += (usageFactor - 1) * 0.10;
+                                score += (zigZagFactor - 1) * 0.10;
+                                score += (fatigueFactor - 1) * 0.10;
+                                score += (historicalBounceRate - 0.5) * 0.15;
+                            } else {
+                                return;
+                            }
+
+                            let confidence = Math.min(100, Math.max(5, score * 100));
+                            if (historicalBounceRate > 0.6) confidence = Math.min(100, confidence * 1.1);
+                            if (teamLost) confidence = Math.min(100, confidence * 1.05);
+                            confidence = Math.round(confidence);
+
+                            const last5 = sorted.slice(-5).map(g => g[sk]);
+                            const arrows = last5.map(v => v >= wAvg ? '↑' : '↓').join('');
+
+                            const why = `Last game: ${lastVal.toFixed(1)} (${((lastVal/wAvg-1)*100).toFixed(0)}% vs avg). ` +
+                                `Weighted avg: ${wAvg.toFixed(1)}. ` +
+                                (teamLost ? 'Team lost → bounce motivation. ' : '') +
+                                (fatigueFactor > 1.1 ? 'Back-to-back fatigue. ' : '') +
+                                `Historical bounce: ${Math.round(historicalBounceRate*100)}%. ` +
+                                `Usage: ${usageFactor>1?'Low FGA → due for more shots. ':'Normal usage. '}` +
+                                `Opponent D adj: ${lastVal.toFixed(1)} → ${adjustedLast.toFixed(1)}.`;
+
+                            if (!bestCandidate || confidence > bestCandidate.confidence) {
+                                bestCandidate = {
+                                    player: playerName,
+                                    teamId: teamId,
+                                    teamAbbrev: team.team.abbreviation,
+                                    statKey: sk,
+                                    statLabel: STAT_CONFIG[sk]?.label || sk.toUpperCase(),
+                                    avg: wAvg,
+                                    last: lastVal,
+                                    confidence: confidence,
+                                    historicalBounceRate: Math.round(historicalBounceRate * 100),
+                                    arrows: arrows,
+                                    why: why,
+                                    teamLost: teamLost,
+                                    opponent: lastGame.opponent,
+                                    bounce: wAvg - lastVal
+                                };
+                            }
                         });
-                    });
-                    const sortedPts = [...playerData].sort((a, b) => b.avgPts - a.avgPts);
-                    const topPts = sortedPts.slice(0, 3);
-                    const sortedReb = [...playerData].sort((a, b) => b.avgReb - a.avgReb);
-                    const topReb = sortedReb.slice(0, 2);
-                    const sortedAst = [...playerData].sort((a, b) => b.avgAst - a.avgAst);
-                    const topAst = sortedAst.slice(0, 1);
-                    const sortedTpm = [...playerData].sort((a, b) => b.avgTpm - a.avgTpm);
-                    const topTpm = sortedTpm.slice(0, 1);
-                    const candidates = [];
-                    topPts.forEach(p => {
-                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
-                            candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts });
-                        }
-                    });
-                    topReb.forEach(p => {
-                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
-                            candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb });
-                        }
-                    });
-                    topAst.forEach(p => {
-                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
-                            candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst });
-                        }
-                    });
-                    topTpm.forEach(p => {
-                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
-                            candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm });
-                        }
-                    });
-                    candidates.forEach(c => {
-                        bets.push({
-                            player: c.name,
-                            team: c.teamAbbrev,
-                            teamId: c.teamId,
-                            stat: c.stat,
-                            avg: c.avg,
-                            last: c.last,
-                            bounce: c.bounce,
-                            opponent: c.opponent
-                        });
+
+                        if (bestCandidate) signals.push(bestCandidate);
                     });
                 });
             });
-            return bets;
+
+            signals.sort((a, b) => b.confidence - a.confidence);
+            return signals.slice(0, 15);
         }
 
-        function renderBounceBackBets(bets) {
+        // ============================================================
+        //  RENDER ENHANCED BOUNCE-BACK UI
+        // ============================================================
+        function renderBounceBackBets(signals) {
             const container = document.getElementById('bounce-back-container');
+            const leaderboard = document.getElementById('bounce-leaderboard');
             const list = document.getElementById('bounce-back-list');
-            if (!container || !list) return;
-            if (bets.length === 0) { container.style.display = 'none'; return; }
+            if (!container || !leaderboard || !list) return;
+
+            if (!signals || signals.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
             container.style.display = 'block';
-            let html = '';
-            bets.forEach(b => {
-                const playerSafe = b.player.replace(/'/g, "\\'");
-                html += `<div class="bounce-item" onclick="showPlayerGameLog('${b.teamId}','${playerSafe}')">
-                    <span><b class="player-link">${b.player}</b> (${b.team}) - ${b.stat}: avg ${b.avg.toFixed(1)}, last ${b.last.toFixed(1)}</span>
-                    <span class="bounce-stat">+${b.bounce.toFixed(1)} bounce potential</span>
+
+            const top5 = signals.slice(0, 5);
+            const rest = signals.slice(5);
+
+            let lbHtml = '';
+            top5.forEach((s, idx) => {
+                const conf = s.confidence;
+                const badgeClass = conf >= 75 ? 'hot' : (conf >= 55 ? 'mod' : 'cold');
+                const badgeText = conf >= 75 ? '🔥 Hot' : (conf >= 55 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = conf >= 75 ? 'high' : (conf >= 55 ? 'med' : 'low');
+                const safeName = s.player.replace(/'/g, "\\'");
+                const arrows = s.arrows || '';
+                lbHtml += `<div class="bounce-card" style="border-left-color:${conf>=75?'#28a745':conf>=55?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${safeName}')" tabindex="0">#${idx+1} ${s.player}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence">
+                        <div class="meter"><div class="fill ${meterClass}" style="width:${conf}%;"></div></div>
+                        <span class="pct">${conf}%</span>
+                    </div>
+                    <div class="b-badge ${badgeClass}">${badgeText}</div>
+                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-arrows">${arrows}</div>
+                    <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
+                    <div class="bounce-why">${s.why}</div>
                 </div>`;
             });
-            list.innerHTML = html;
+            leaderboard.innerHTML = lbHtml;
+
+            let restHtml = '';
+            rest.forEach(s => {
+                const conf = s.confidence;
+                const badgeClass = conf >= 75 ? 'hot' : (conf >= 55 ? 'mod' : 'cold');
+                const badgeText = conf >= 75 ? '🔥 Hot' : (conf >= 55 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = conf >= 75 ? 'high' : (conf >= 55 ? 'med' : 'low');
+                const safeName = s.player.replace(/'/g, "\\'");
+                const arrows = s.arrows || '';
+                restHtml += `<div class="bounce-card" style="border-left-color:${conf>=75?'#28a745':conf>=55?'#ffc107':'#dc3545'};">
+                    <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${safeName}')" tabindex="0">${s.player}</div>
+                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-confidence">
+                        <div class="meter"><div class="fill ${meterClass}" style="width:${conf}%;"></div></div>
+                        <span class="pct">${conf}%</span>
+                    </div>
+                    <div class="b-badge ${badgeClass}">${badgeText}</div>
+                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-arrows">${arrows}</div>
+                    <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
+                    <div class="bounce-why">${s.why}</div>
+                </div>`;
+            });
+            list.innerHTML = restHtml;
         }
 
         // ============================================================
@@ -914,8 +1061,11 @@
                     evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
                 });
                 await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
-                const bounceBackBets = computeBounceBackBetsForSlate(data.events);
-                renderBounceBackBets(bounceBackBets);
+
+                const bounceSignals = computeBounceBackBetsForSlate(data.events);
+                renderBounceBackBets(bounceSignals);
+
+                // Rest of slate rendering (unchanged)
                 let html = '';
                 let totalHits = 0,
                     totalMisses = 0,
