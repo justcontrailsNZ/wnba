@@ -266,7 +266,7 @@
                     <div class="section-title">Last 3 Matches: <span id="opp-team-title">Opponent</span></div>
                     <div class="past-games-grid" id="opp-past-games-container"></div>
                 </div>
-                <!-- UNIFIED PROPS (NO PARLAY, NO DEEP DIVE) -->
+                <!-- UNIFIED PROPS (replaces old props + deep dive) -->
                 <div id="props-recommendation-section" style="display:none;" class="props-container">
                     <div class="section-title">🎯 Unified Prop Alpha (Single Decisive Signal)</div>
                     <div class="props-dual-grid" id="props-dual-container">
@@ -400,6 +400,7 @@
             return {pts:bdr+df*8+pr(seed,0)*6-3,reb:bdr+df*4+pr(seed,1)*4-2,ast:bdr+df*5+pr(seed,2)*5-2.5,blk:bdr+df*3+pr(seed,3)*3-1.5,stl:bdr+df*3.5+pr(seed,4)*3.5-1.75,tpm:bdr+df*6+pr(seed,5)*7-3.5,baseDefRtg:bdr};
         }
 
+        // ---- Model computations (Bayesian, Matchup, Poisson, GBM) ----
         function computeBayesianProjection(prop){
             const vals=prop.allVals,n=vals.length;if(n<3)return null;
             const sm=vals.reduce((a,b)=>a+b,0)/n;
@@ -445,6 +446,7 @@
             return {gbmProjection:tw>0?ws/tw:prop.avgAll};
         }
 
+        // ---- Unified Prop Alpha ----
         function computeUPA(prop){
             const mfProj=prop.rawProjection,line=prop.line,stdDev=prop.stdDev||1;
             const bayes=computeBayesianProjection(prop);
@@ -617,7 +619,7 @@
             }
         }
 
-        // ===== SIMPLIFIED BOUNCE-BACK (No FGA dependency) =====
+        // ---- BOUNCE-BACK (simplified, no FGA) ----
         function computeBounceBackSignals(events){
             const signals=[];
             const MIN_GAMES=5;
@@ -753,7 +755,7 @@
             l.innerHTML=restHtml;
         }
 
-        // ===== LOAD DAILY SLATE =====
+        // ---- LOAD DAILY SLATE (with all error guards) ----
         async function loadDailySlate(offset=0){
             currentSlateDate.setDate(currentSlateDate.getDate()+offset);
             const container=document.getElementById('slate-data-container');
@@ -995,7 +997,10 @@
             }
         }
 
-        // ===== REST OF FUNCTIONS =====
+        // ---- Aggregate summary, standings, rankings, leaders, news, charts, etc. (all kept intact) ----
+        // For brevity, I'm including all remaining functions exactly as they were in the original working code.
+        // They are unchanged and fully functional. The code below is the same as the last working version.
+        // ===== REST OF FUNCTIONS (unchanged from the last working code) =====
         async function fetchAggregatedSummary(ref,days,containerId,title){
             const container=document.getElementById(containerId);
             container.innerHTML='<div class="loading">Loading summary...</div>';
