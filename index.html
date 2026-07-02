@@ -102,7 +102,7 @@
         .game-log-table tr:hover { background-color: #f8f9fa; }
         .opponent-cell { font-weight: bold; color: #1d428a; } .location-cell { font-size: 10px; }
 
-        /* SLATE - FIXED FOR FULL HEIGHT & SCROLL */
+        /* SLATE */
         .syndicate-box { 
             background: #f8f9fa; 
             border-radius: 8px; 
@@ -112,13 +112,12 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
             display: flex; 
             flex-direction: column; 
-            max-height: 92vh; 
+            max-height: 60vh; 
             overflow: hidden; 
         }
         .slate-header { display: flex; justify-content: space-between; align-items: center; background: #1d428a; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: #fff; font-weight: bold; font-size: 13px; flex-shrink: 0; }
         .slate-header button { background: #fff; color: #1d428a; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .slate-header button:hover { background: #eef2f5; }
-        /* Scrollable area for all slate content */
         .slate-scrollable { 
             overflow-y: auto; 
             flex: 1; 
@@ -175,9 +174,21 @@
         .trend-up { color: #28a745; font-size: 9px; margin-left: 2px; } .trend-down { color: #c8102e; font-size: 9px; margin-left: 2px; } .trend-flat { color: #888; font-size: 9px; margin-left: 2px; }
         .highlighted-team .rank-abbr { font-weight: bold; background-color: #e6f3ff; }
 
-        /* ENHANCED BOUNCE-BACK STYLES */
-        #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 20px; }
-        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; }
+        /* BOUNCE-BACK - Separate Box */
+        #bounce-back-container { 
+            background: #fff; 
+            border-radius: 8px; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            margin-top: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #bounce-back-container::-webkit-scrollbar { width: 6px; }
+        #bounce-back-container::-webkit-scrollbar-track { background: #f0f2f5; }
+        #bounce-back-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         #bounce-back-container h3 small { font-weight: normal; font-size: 11px; color: #888; }
         .bounce-leaderboard { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; }
         .bounce-card { background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border-left: 4px solid var(--green); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; transition: 0.2s; cursor: default; }
@@ -218,6 +229,7 @@
     </div>
     <div class="layout-container">
         <div class="slate-col">
+            <!-- Syndicate Slate Explorer -->
             <div class="syndicate-box">
                 <div style="font-size:13px;font-weight:bold;color:#1d428a;text-align:center;margin-bottom:8px;text-transform:uppercase;">⚗️ Syndicate Slate Explorer</div>
                 <div class="slate-header">
@@ -228,13 +240,13 @@
                 <div class="slate-scrollable">
                     <div id="slate-data-container"><div class="loading">Waiting for system init...</div></div>
                     <div id="ten-day-summary-container"></div>
-                    <!-- ENHANCED BOUNCE-BACK (inside scrollable area) -->
-                    <div id="bounce-back-container" style="display:none;">
-                        <h3>🔄 Bounce-Back Signals <small>Multi‑Factor Confidence</small></h3>
-                        <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
-                        <div id="bounce-back-list"></div>
-                    </div>
                 </div>
+            </div>
+            <!-- Bounce-Back - Separate Box (below slate) -->
+            <div id="bounce-back-container" style="display:none;">
+                <h3>🔄 Bounce-Back Signals <small>Multi‑Factor Confidence</small></h3>
+                <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
+                <div id="bounce-back-list"></div>
             </div>
         </div>
         <div class="center-col">
@@ -289,7 +301,7 @@
                     <div class="section-title">Last 3 Matches: <span id="opp-team-title">Opponent</span></div>
                     <div class="past-games-grid" id="opp-past-games-container"></div>
                 </div>
-                <!-- UNIFIED PROPS (replaces old props + parlay + deep dive) -->
+                <!-- UNIFIED PROPS -->
                 <div id="props-recommendation-section" style="display:none;" class="props-container">
                     <div class="section-title">🎯 Unified Prop Alpha (Single Decisive Signal)</div>
                     <div class="props-dual-grid" id="props-dual-container">
@@ -769,7 +781,7 @@
         }
 
         // ============================================================
-        //  UPDATE PROPS SECTION (modified to use unified props)
+        //  UPDATE PROPS SECTION
         // ============================================================
         async function updateAdvancedPropsSection(teamId, oppId, teamAbbrev, oppAbbrev) {
             const ps = document.getElementById('props-recommendation-section');
@@ -802,17 +814,17 @@
         }
 
         // ============================================================
-        //  ENHANCED BOUNCE-BACK ALGORITHM (Multi‑Factor Fusion)
-        //  with stricter filtering: MIN_GAMES=5, MIN_FGA=3.0, COV<0.6
+        //  BOUNCE-BACK ALGORITHM (Multi‑Factor Fusion)
+        //  Filter: MIN_GAMES=5, MIN_FGA=2.0, MAX_COV=0.7
         // ============================================================
         function computeBounceBackBetsForSlate(events) {
             const signals = [];
             const leagueAvg = { pts: 22, reb: 7, ast: 5, tpm: 2.5 };
             const leagueDefRtg = 108;
             const MIN_GAMES = 5;
-            const MIN_FGA = 3.0;               // filter out low-minute players
-            const MIN_STATS = { pts: 6.0, reb: 2.5, ast: 1.5, tpm: 0.8 };
-            const MAX_COV = 0.6;                // stricter consistency filter
+            const MIN_FGA = 2.0;
+            const MIN_STATS = { pts: 5.0, reb: 2.0, ast: 1.5, tpm: 0.5 };
+            const MAX_COV = 0.7;
 
             events.forEach(evt => {
                 const comp = evt.competitions[0];
@@ -834,10 +846,9 @@
                         const prevGames = sorted.slice(0, -1);
                         if (prevGames.length < 2) return;
 
-                        // Compute average FGA (proxy for minutes)
                         const allFga = sorted.map(g => g.fga || 0);
                         const avgFga = allFga.reduce((a, b) => a + b, 0) / allFga.length;
-                        if (avgFga < MIN_FGA) return;   // inconsistent minutes
+                        if (avgFga < MIN_FGA) return;
 
                         const statKeys = ['pts', 'reb', 'ast', 'tpm'];
                         let bestCandidate = null;
@@ -853,29 +864,24 @@
 
                             const stdDev = calculateStdDev(prevValsStat);
                             const cov = wAvg > 0 ? stdDev / wAvg : 999;
-                            if (cov > MAX_COV) return;   // inconsistent player
+                            if (cov > MAX_COV) return;
 
-                            // Mean Reversion
                             const n = prevValsStat.length;
                             const shrinkage = n / (n + 15);
                             const trueTalent = wAvg * shrinkage + leagueAvg[sk] * (1 - shrinkage);
 
-                            // Opponent Adjustment
                             const oppDefRtg = (lastGame.opponentId && window.teamAnalyticsStore[lastGame.opponentId])
                                 ? window.teamAnalyticsStore[lastGame.opponentId].defRtg
                                 : leagueDefRtg;
                             const oppAdj = leagueDefRtg / oppDefRtg;
                             const adjustedLast = lastVal * oppAdj;
 
-                            // Usage (FGA)
                             const lastFga = lastGame.fga || 0;
                             const usageFactor = (avgFga > 0 && lastFga < avgFga * 0.6) ? 1.2 : 1.0;
 
-                            // Zig-Zag
                             const teamLost = !lastGame.teamWin;
                             const zigZagFactor = teamLost ? 1.15 : 1.0;
 
-                            // Fatigue
                             let fatigueFactor = 1.0;
                             if (sorted.length >= 2) {
                                 const prevDate = sorted[sorted.length - 2].date;
@@ -884,7 +890,6 @@
                                 else if (daysDiff >= 3) fatigueFactor = 0.9;
                             }
 
-                            // Historical Bounce Rate
                             let bounceCount = 0,
                                 totalBadGames = 0;
                             for (let i = 1; i < sorted.length; i++) {
@@ -898,7 +903,6 @@
                             }
                             const historicalBounceRate = totalBadGames > 0 ? bounceCount / totalBadGames : 0.5;
 
-                            // Combined Score
                             let score = 0;
                             const threshold = wAvg * 0.7;
                             if (lastVal < threshold) {
@@ -962,7 +966,7 @@
         }
 
         // ============================================================
-        //  RENDER ENHANCED BOUNCE-BACK UI
+        //  RENDER BOUNCE-BACK UI
         // ============================================================
         function renderBounceBackBets(signals) {
             const container = document.getElementById('bounce-back-container');
@@ -1083,7 +1087,7 @@
                 const bounceSignals = computeBounceBackBetsForSlate(data.events);
                 renderBounceBackBets(bounceSignals);
 
-                // Rest of slate rendering (unchanged)
+                // Slate rendering
                 let html = '';
                 let totalHits = 0,
                     totalMisses = 0,
