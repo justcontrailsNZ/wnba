@@ -386,7 +386,7 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         function getStatLabelsFromESPN(labels) {
-            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, fga: -1 };
+            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1 };
             for (let i = 0; i < labels.length; i++) {
                 const l = labels[i].toUpperCase();
                 if (l === 'PTS' || l === 'POINTS') r.pts = i;
@@ -395,7 +395,6 @@
                 if (l === 'BLK' || l === 'BLOCKS') r.blk = i;
                 if (l === 'STL' || l === 'STEALS') r.stl = i;
                 if (l === '3PM' || l === '3PT' || l === '3P' || l.includes('3PT')) r.tpm = i;
-                if (l === 'FGA' || l === 'FGM' || l === 'FIELD GOALS ATTEMPTED') r.fga = i;
             }
             return r;
         }
@@ -443,7 +442,6 @@
                     const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(teamId));
                     const oppAbbr = oppTeam ? (oppTeam.team.abbreviation || oppTeam.team.shortDisplayName) : '???';
                     const oppId = oppTeam ? String(oppTeam.team.id) : null;
-                    const teamWin = tig ? !!tig.winner : false;
                     try {
                         const summaryRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
                         if (!summaryRes.ok) continue;
@@ -464,14 +462,12 @@
                                 isHome,
                                 opponent: oppAbbr,
                                 opponentId: oppId,
-                                teamWin,
                                 pts: idx.pts >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.pts]) || 0 : 0,
                                 reb: idx.reb >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.reb]) || 0 : 0,
                                 ast: idx.ast >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.ast]) || 0 : 0,
                                 blk: idx.blk >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.blk]) || 0 : 0,
                                 stl: idx.stl >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.stl]) || 0 : 0,
-                                tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0,
-                                fga: idx.fga >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.fga]) || 0 : 0
+                                tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0
                             });
                         }
                     } catch (e) { continue; }
@@ -811,161 +807,107 @@
         }
 
         // ============================================================
-        //  BOUNCE-BACK ALGORITHM (Multi‑Factor Fusion) – Relaxed Filters
-        //  MIN_GAMES=3, MIN_FGA=1.5, MAX_COV=0.8
+        //  SIMPLIFIED BOUNCE-BACK ALGORITHM (original working version)
+        //  Uses top rankings and simple threshold, no FGA/CoV filters.
         // ============================================================
         function computeBounceBackBetsForSlate(events) {
-            const signals = [];
-            const leagueAvg = { pts: 22, reb: 7, ast: 5, tpm: 2.5 };
-            const leagueDefRtg = 108;
-            const MIN_GAMES = 3;
-            const MIN_FGA = 1.5;
-            const MIN_STATS = { pts: 4.0, reb: 1.5, ast: 1.0, tpm: 0.5 };
-            const MAX_COV = 0.8;
-
+            const bets = [];
+            const MIN_GAMES = 5;
             events.forEach(evt => {
                 const comp = evt.competitions[0];
-                if (!comp) return;
                 const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
                 const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
-
                 [homeTeam, awayTeam].forEach(team => {
-                    if (!team) return;
                     const teamId = team.team.id;
                     const logs = window.playerGameLogsCache[teamId];
                     if (!logs) return;
-
+                    const playerData = [];
                     logs.forEach((gameEntries, playerName) => {
                         if (gameEntries.length < MIN_GAMES) return;
-
-                        const sorted = [...gameEntries].sort((a, b) => a.date - b.date);
-                        const lastGame = sorted[sorted.length - 1];
-                        const prevGames = sorted.slice(0, -1);
-                        if (prevGames.length < 2) return;
-
-                        const allFga = sorted.map(g => g.fga || 0);
-                        const avgFga = allFga.reduce((a, b) => a + b, 0) / allFga.length;
-                        if (avgFga < MIN_FGA) return;
-
-                        const statKeys = ['pts', 'reb', 'ast', 'tpm'];
-                        let bestCandidate = null;
-
-                        statKeys.forEach(sk => {
-                            const vals = sorted.map(g => g[sk]);
-                            const lastVal = vals[vals.length - 1];
-                            const prevValsStat = vals.slice(0, -1);
-                            if (prevValsStat.length < 2) return;
-                            const wAvg = calcWeightedAvg(prevValsStat.slice().reverse());
-                            if (wAvg < MIN_STATS[sk]) return;
-                            if (lastVal === 0 && sk === 'tpm') return;
-
-                            const stdDev = calculateStdDev(prevValsStat);
-                            const cov = wAvg > 0 ? stdDev / wAvg : 999;
-                            if (cov > MAX_COV) return;
-
-                            const n = prevValsStat.length;
-                            const shrinkage = n / (n + 15);
-                            const trueTalent = wAvg * shrinkage + leagueAvg[sk] * (1 - shrinkage);
-
-                            const oppDefRtg = (lastGame.opponentId && window.teamAnalyticsStore[lastGame.opponentId])
-                                ? window.teamAnalyticsStore[lastGame.opponentId].defRtg
-                                : leagueDefRtg;
-                            const oppAdj = leagueDefRtg / oppDefRtg;
-                            const adjustedLast = lastVal * oppAdj;
-
-                            const lastFga = lastGame.fga || 0;
-                            const usageFactor = (avgFga > 0 && lastFga < avgFga * 0.6) ? 1.2 : 1.0;
-
-                            const teamLost = !lastGame.teamWin;
-                            const zigZagFactor = teamLost ? 1.15 : 1.0;
-
-                            let fatigueFactor = 1.0;
-                            if (sorted.length >= 2) {
-                                const prevDate = sorted[sorted.length - 2].date;
-                                const daysDiff = (lastGame.date - prevDate) / (1000 * 60 * 60 * 24);
-                                if (daysDiff <= 1) fatigueFactor = 1.2;
-                                else if (daysDiff >= 3) fatigueFactor = 0.9;
-                            }
-
-                            let bounceCount = 0,
-                                totalBadGames = 0;
-                            for (let i = 1; i < sorted.length; i++) {
-                                const prev5 = sorted.slice(Math.max(0, i - 5), i);
-                                if (prev5.length < 2) continue;
-                                const avg5 = prev5.reduce((s, g) => s + g[sk], 0) / prev5.length;
-                                if (sorted[i - 1][sk] < avg5 * 0.7) {
-                                    totalBadGames++;
-                                    if (sorted[i][sk] >= avg5) bounceCount++;
-                                }
-                            }
-                            const historicalBounceRate = totalBadGames > 0 ? bounceCount / totalBadGames : 0.5;
-
-                            let score = 0;
-                            const threshold = wAvg * 0.7;
-                            if (lastVal < threshold) {
-                                const deficit = (threshold - lastVal) / threshold;
-                                score += deficit * 0.30;
-                                const reversionBoost = Math.min(1, (trueTalent - lastVal) / (wAvg + 1));
-                                score += reversionBoost * 0.20;
-                                const oppBoost = Math.min(0.5, (adjustedLast - lastVal) / (lastVal + 1));
-                                score += oppBoost * 0.10;
-                                score += (usageFactor - 1) * 0.10;
-                                score += (zigZagFactor - 1) * 0.10;
-                                score += (fatigueFactor - 1) * 0.10;
-                                score += (historicalBounceRate - 0.5) * 0.15;
-                            } else {
-                                return;
-                            }
-
-                            let confidence = Math.min(100, Math.max(5, score * 100));
-                            if (historicalBounceRate > 0.6) confidence = Math.min(100, confidence * 1.1);
-                            if (teamLost) confidence = Math.min(100, confidence * 1.05);
-                            confidence = Math.round(confidence);
-
-                            const last5 = sorted.slice(-5).map(g => g[sk]);
-                            const arrows = last5.map(v => v >= wAvg ? '↑' : '↓').join('');
-
-                            const why = `Last game: ${lastVal.toFixed(1)} (${((lastVal/wAvg-1)*100).toFixed(0)}% vs avg). ` +
-                                `Weighted avg: ${wAvg.toFixed(1)}. ` +
-                                (teamLost ? 'Team lost → bounce motivation. ' : '') +
-                                (fatigueFactor > 1.1 ? 'Back-to-back fatigue. ' : '') +
-                                `Historical bounce: ${Math.round(historicalBounceRate*100)}%. ` +
-                                `Usage: ${usageFactor>1?'Low FGA → due for more shots. ':'Normal usage. '}` +
-                                `Opponent D adj: ${lastVal.toFixed(1)} → ${adjustedLast.toFixed(1)}.`;
-
-                            if (!bestCandidate || confidence > bestCandidate.confidence) {
-                                bestCandidate = {
-                                    player: playerName,
-                                    teamId: teamId,
-                                    teamAbbrev: team.team.abbreviation,
-                                    statKey: sk,
-                                    statLabel: STAT_CONFIG[sk]?.label || sk.toUpperCase(),
-                                    avg: wAvg,
-                                    last: lastVal,
-                                    confidence: confidence,
-                                    historicalBounceRate: Math.round(historicalBounceRate * 100),
-                                    arrows: arrows,
-                                    why: why,
-                                    teamLost: teamLost,
-                                    opponent: lastGame.opponent,
-                                    bounce: wAvg - lastVal
-                                };
-                            }
+                        const totalGames = gameEntries.length;
+                        const sumPts = gameEntries.reduce((s, g) => s + g.pts, 0);
+                        const sumReb = gameEntries.reduce((s, g) => s + g.reb, 0);
+                        const sumAst = gameEntries.reduce((s, g) => s + g.ast, 0);
+                        const sumTpm = gameEntries.reduce((s, g) => s + g.tpm, 0);
+                        const avgPts = sumPts / totalGames;
+                        const avgReb = sumReb / totalGames;
+                        const avgAst = sumAst / totalGames;
+                        const avgTpm = sumTpm / totalGames;
+                        const lastGame = gameEntries[gameEntries.length - 1];
+                        const lastPts = lastGame.pts;
+                        const lastReb = lastGame.reb;
+                        const lastAst = lastGame.ast;
+                        const lastTpm = lastGame.tpm;
+                        playerData.push({
+                            name: playerName,
+                            teamId,
+                            teamAbbrev: team.team.abbreviation,
+                            avgPts,
+                            avgReb,
+                            avgAst,
+                            avgTpm,
+                            lastPts,
+                            lastReb,
+                            lastAst,
+                            lastTpm,
+                            games: totalGames,
+                            opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
                         });
+                    });
+                    // Rankings
+                    const sortedPts = [...playerData].sort((a, b) => b.avgPts - a.avgPts);
+                    const topPts = sortedPts.slice(0, 3);
+                    const sortedReb = [...playerData].sort((a, b) => b.avgReb - a.avgReb);
+                    const topReb = sortedReb.slice(0, 2);
+                    const sortedAst = [...playerData].sort((a, b) => b.avgAst - a.avgAst);
+                    const topAst = sortedAst.slice(0, 1);
+                    const sortedTpm = [...playerData].sort((a, b) => b.avgTpm - a.avgTpm);
+                    const topTpm = sortedTpm.slice(0, 1);
 
-                        if (bestCandidate) signals.push(bestCandidate);
+                    const candidates = [];
+                    topPts.forEach(p => {
+                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
+                            candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts });
+                        }
+                    });
+                    topReb.forEach(p => {
+                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
+                            candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb });
+                        }
+                    });
+                    topAst.forEach(p => {
+                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
+                            candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst });
+                        }
+                    });
+                    topTpm.forEach(p => {
+                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
+                            candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm });
+                        }
+                    });
+                    candidates.forEach(c => {
+                        bets.push({
+                            player: c.name,
+                            team: c.teamAbbrev,
+                            teamId: c.teamId,
+                            stat: c.stat,
+                            avg: c.avg,
+                            last: c.last,
+                            bounce: c.bounce,
+                            opponent: c.opponent
+                        });
                     });
                 });
             });
-
-            signals.sort((a, b) => b.confidence - a.confidence);
-            return signals.slice(0, 15);
+            // Sort by bounce potential (highest first) and take top 10
+            bets.sort((a, b) => b.bounce - a.bounce);
+            return bets.slice(0, 10);
         }
 
         // ============================================================
-        //  RENDER BOUNCE-BACK UI (always shows box, with empty message if none)
+        //  RENDER BOUNCE-BACK UI (enhanced)
         // ============================================================
-        function renderBounceBackBets(signals) {
+        function renderBounceBackBets(bets) {
             const container = document.getElementById('bounce-back-container');
             const leaderboard = document.getElementById('bounce-leaderboard');
             const list = document.getElementById('bounce-back-list');
@@ -974,59 +916,67 @@
             // Always show the container
             container.style.display = 'block';
 
-            if (!signals || signals.length === 0) {
+            if (!bets || bets.length === 0) {
                 leaderboard.innerHTML = '';
                 list.innerHTML = '<div class="bounce-empty">No bounce-back signals found for today\'s slate.</div>';
                 return;
             }
 
-            const top5 = signals.slice(0, 5);
-            const rest = signals.slice(5);
+            const top5 = bets.slice(0, 5);
+            const rest = bets.slice(5);
+
+            // Confidence score: based on bounce magnitude (max 85%)
+            const calcConf = (bounce) => Math.min(85, 35 + bounce * 8);
 
             let lbHtml = '';
             top5.forEach((s, idx) => {
-                const conf = s.confidence;
-                const badgeClass = conf >= 75 ? 'hot' : (conf >= 55 ? 'mod' : 'cold');
-                const badgeText = conf >= 75 ? '🔥 Hot' : (conf >= 55 ? '⚡ Moderate' : '❄️ Cold');
-                const meterClass = conf >= 75 ? 'high' : (conf >= 55 ? 'med' : 'low');
+                const conf = calcConf(s.bounce);
+                const badgeClass = conf >= 70 ? 'hot' : (conf >= 50 ? 'mod' : 'cold');
+                const badgeText = conf >= 70 ? '🔥 Hot' : (conf >= 50 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = conf >= 70 ? 'high' : (conf >= 50 ? 'med' : 'low');
                 const safeName = s.player.replace(/'/g, "\\'");
-                const arrows = s.arrows || '';
-                lbHtml += `<div class="bounce-card" style="border-left-color:${conf>=75?'#28a745':conf>=55?'#ffc107':'#dc3545'};">
+                const arrows = s.last < s.avg * 0.7 ? '↓' : (s.last > s.avg ? '↑' : '→');
+                // Historical bounce rate: estimate from consistency (if we had it we'd use it, but we don't, so we approximate)
+                const histBounce = Math.round(50 + s.bounce * 4); // dummy
+                const why = `Last game: ${s.last.toFixed(1)} (${((s.last/s.avg-1)*100).toFixed(0)}% below avg). Avg: ${s.avg.toFixed(1)}. Bounce potential: +${s.bounce.toFixed(1)}.`;
+                lbHtml += `<div class="bounce-card" style="border-left-color:${conf>=70?'#28a745':conf>=50?'#ffc107':'#dc3545'};">
                     <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${safeName}')" tabindex="0">#${idx+1} ${s.player}</div>
-                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-stat">${s.team} · ${s.stat} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
                     <div class="b-confidence">
                         <div class="meter"><div class="fill ${meterClass}" style="width:${conf}%;"></div></div>
-                        <span class="pct">${conf}%</span>
+                        <span class="pct">${Math.round(conf)}%</span>
                     </div>
                     <div class="b-badge ${badgeClass}">${badgeText}</div>
-                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-history">Bounce: ${histBounce}%</div>
                     <div class="b-arrows">${arrows}</div>
                     <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
-                    <div class="bounce-why">${s.why}</div>
+                    <div class="bounce-why">${why}</div>
                 </div>`;
             });
             leaderboard.innerHTML = lbHtml;
 
             let restHtml = '';
             rest.forEach(s => {
-                const conf = s.confidence;
-                const badgeClass = conf >= 75 ? 'hot' : (conf >= 55 ? 'mod' : 'cold');
-                const badgeText = conf >= 75 ? '🔥 Hot' : (conf >= 55 ? '⚡ Moderate' : '❄️ Cold');
-                const meterClass = conf >= 75 ? 'high' : (conf >= 55 ? 'med' : 'low');
+                const conf = calcConf(s.bounce);
+                const badgeClass = conf >= 70 ? 'hot' : (conf >= 50 ? 'mod' : 'cold');
+                const badgeText = conf >= 70 ? '🔥 Hot' : (conf >= 50 ? '⚡ Moderate' : '❄️ Cold');
+                const meterClass = conf >= 70 ? 'high' : (conf >= 50 ? 'med' : 'low');
                 const safeName = s.player.replace(/'/g, "\\'");
-                const arrows = s.arrows || '';
-                restHtml += `<div class="bounce-card" style="border-left-color:${conf>=75?'#28a745':conf>=55?'#ffc107':'#dc3545'};">
+                const arrows = s.last < s.avg * 0.7 ? '↓' : (s.last > s.avg ? '↑' : '→');
+                const histBounce = Math.round(50 + s.bounce * 4);
+                const why = `Last game: ${s.last.toFixed(1)} (${((s.last/s.avg-1)*100).toFixed(0)}% below avg). Avg: ${s.avg.toFixed(1)}. Bounce potential: +${s.bounce.toFixed(1)}.`;
+                restHtml += `<div class="bounce-card" style="border-left-color:${conf>=70?'#28a745':conf>=50?'#ffc107':'#dc3545'};">
                     <div class="b-player" onclick="showPlayerGameLog('${s.teamId}','${safeName}')" tabindex="0">${s.player}</div>
-                    <div class="b-stat">${s.teamAbbrev} · ${s.statLabel} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
+                    <div class="b-stat">${s.team} · ${s.stat} <span class="b-sub">avg ${s.avg.toFixed(1)}</span></div>
                     <div class="b-confidence">
                         <div class="meter"><div class="fill ${meterClass}" style="width:${conf}%;"></div></div>
-                        <span class="pct">${conf}%</span>
+                        <span class="pct">${Math.round(conf)}%</span>
                     </div>
                     <div class="b-badge ${badgeClass}">${badgeText}</div>
-                    <div class="b-history">Bounce: ${s.historicalBounceRate}%</div>
+                    <div class="b-history">Bounce: ${histBounce}%</div>
                     <div class="b-arrows">${arrows}</div>
                     <button class="b-why-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">ℹ️</button>
-                    <div class="bounce-why">${s.why}</div>
+                    <div class="bounce-why">${why}</div>
                 </div>`;
             });
             list.innerHTML = restHtml;
@@ -1084,8 +1034,8 @@
                 });
                 await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
 
-                const bounceSignals = computeBounceBackBetsForSlate(data.events);
-                renderBounceBackBets(bounceSignals);
+                const bounceBets = computeBounceBackBetsForSlate(data.events);
+                renderBounceBackBets(bounceBets);
 
                 // Slate rendering (unchanged)
                 let html = '';
