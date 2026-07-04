@@ -177,6 +177,12 @@
         .starter-mini-table td { text-align: center; padding: 2px 4px; border: 1px solid #eee; }
         .toggle-table-btn { font-size: 11px; color: #1d428a; background: none; border: 1px solid #1d428a; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; }
         .toggle-table-btn:hover { background: #eef2f5; }
+
+        /* TEAM & OPPONENT AVERAGES TABLE */
+        .avg-stats-table { width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 10px; }
+        .avg-stats-table th, .avg-stats-table td { padding: 4px 6px; border-bottom: 1px solid #eee; text-align: center; }
+        .avg-stats-table th { background: #f1f3f5; font-weight: bold; }
+        .avg-stats-table .stat-label { text-align: left; font-weight: bold; color: #333; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -207,7 +213,6 @@
                 <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                 <div id="bounce-back-list"></div>
             </div>
-            <!-- MOVED: Net Rating Trend and Shot Profile charts from center to left column -->
             <div class="flex-row">
                 <div class="flex-item panel-box">
                     <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Net Rating Trend: Pace-Adjusted (Last 10)</div>
@@ -225,6 +230,7 @@
                     <div class="flex-item panel-box">
                         <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Offensive Output: Overall Last 5</div>
                         <div class="chart-container"><canvas id="perfChart"></canvas></div>
+                        <div id="hot-indicator-container" style="margin-top:10px;"></div>
                     </div>
                 </div>
                 <div class="flex-row">
@@ -234,9 +240,16 @@
                         <div class="chart-container" id="h2h-container"><canvas id="h2hChart"></canvas></div>
                     </div>
                 </div>
-                <!-- MOVED: RECENT FORM (L5 MATCHES) under H2H -->
-                <div class="flex-row" id="hot-indicator-row" style="display:none;">
-                    <div class="flex-item" id="hot-indicator-container"></div>
+                <!-- NEW: TEAM & OPPONENT AVERAGES (Last 5 Games) -->
+                <div class="flex-row" id="team-opp-averages-row" style="display:none;">
+                    <div class="flex-item panel-box" id="team-avg-box">
+                        <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:10px;text-align:center;" id="team-avg-title">Team Averages (L5)</div>
+                        <div id="team-avg-stats-container"></div>
+                    </div>
+                    <div class="flex-item panel-box" id="opp-avg-box">
+                        <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:10px;text-align:center;" id="opp-avg-title">Opponent Averages (L5)</div>
+                        <div id="opp-avg-stats-container"></div>
+                    </div>
                 </div>
                 <!-- PROJECTED STARTERS ROW -->
                 <div class="flex-row" id="starters-row" style="display:none;">
@@ -247,7 +260,6 @@
                         <div id="starters-opp-content" class="starters-container"></div>
                     </div>
                 </div>
-                <!-- The old flex-row for Net Rating and Shot Profile was here – now removed -->
                 <div class="section-title">Last 3 Matches: <span id="main-team-title">Team</span></div>
                 <div class="past-games-grid" id="past-games-container"></div>
                 <div id="opp-past-matches-section" style="display:none;">
@@ -301,16 +313,15 @@
         // ============================================================
         //  CONFIG & GLOBALS
         // ============================================================
-        let perfChartInstance = null,
-            h2hChartInstance = null,
-            netRtgChartInstance = null,
-            shotProfileChartInstance = null;
+        const NEWS_API_KEY = 'pub_dce2909d7f99428199a11eb8be5c290e'; // kept for potential future use
+        let perfChartInstance = null, h2hChartInstance = null, netRtgChartInstance = null, shotProfileChartInstance = null;
         window.teamAnalyticsStore = {};
         window.teamLast10Store = {};
         window.currentTeamId = null;
         window.currentOppId = null;
         window.teamNameMap = {};
         window.playerGameLogsCache = {};
+        window.teamGameStatsCache = {}; // cache for team averages (last 5)
         let currentSlateDate = new Date();
         currentSlateDate.setHours(currentSlateDate.getHours() - 5);
 
@@ -330,38 +341,42 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         function getStatLabelsFromESPN(labels) {
-            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1 };
-            for (let i = 0; i < labels.length; i++) {
+            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
+            for (let i=0; i<labels.length; i++) {
                 const l = labels[i].toUpperCase();
-                if (l === 'PTS' || l === 'POINTS') r.pts = i;
-                if (l === 'REB' || l === 'REBOUNDS') r.reb = i;
-                if (l === 'AST' || l === 'ASSISTS') r.ast = i;
-                if (l === 'BLK' || l === 'BLOCKS') r.blk = i;
-                if (l === 'STL' || l === 'STEALS') r.stl = i;
-                if (l === '3PM' || l === '3PT' || l === '3P' || l.includes('3PT')) r.tpm = i;
-                if (l === 'MIN' || l === 'MINUTES') r.min = i;
+                if (l==='PTS'||l==='POINTS') r.pts=i;
+                if (l==='REB'||l==='REBOUNDS') r.reb=i;
+                if (l==='AST'||l==='ASSISTS') r.ast=i;
+                if (l==='BLK'||l==='BLOCKS') r.blk=i;
+                if (l==='STL'||l==='STEALS') r.stl=i;
+                if (l==='3PM'||l==='3PT'||l.includes('3PT')) r.tpm=i;
+                if (l==='MIN'||l==='MINUTES') r.min=i;
+                if (l==='FGM'||l==='FIELD GOALS MADE') r.fgm=i;
+                if (l==='FGA'||l==='FIELD GOALS ATTEMPTED') r.fga=i;
+                if (l==='3PA'||l==='THREE POINT ATTEMPTS') r.tpa=i;
+                if (l==='TO'||l==='TURNOVERS') r.to=i;
             }
             return r;
         }
 
         function calculateStdDev(v) {
-            if (v.length < 2) return 0;
-            const m = v.reduce((a,b) => a+b, 0)/v.length;
-            return Math.sqrt(v.reduce((a,b) => a+(b-m)**2, 0)/(v.length-1));
+            if (v.length<2) return 0;
+            const m=v.reduce((a,b)=>a+b,0)/v.length;
+            return Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/(v.length-1));
         }
 
         function calcWeightedAvg(v) {
             if (!v.length) return 0;
-            const w = v.map((_, i) => 0.25*Math.pow(0.85,i));
-            const tw = w.reduce((a,b)=>a+b,0);
-            return v.reduce((a,val,i) => a+val*w[i],0)/tw;
+            const w=v.map((_,i)=>0.25*Math.pow(0.85,i));
+            const tw=w.reduce((a,b)=>a+b,0);
+            return v.reduce((a,val,i)=>a+val*w[i],0)/tw;
         }
 
         function calibrateLine(rp) {
-            if (rp <= 0.3) return 0.5;
-            const rd = Math.round(rp*2)/2;
-            if (rd < 0.5) return 0.5;
-            if (Math.abs(rd - rp) < 0.15) return rd;
+            if (rp<=0.3) return 0.5;
+            const rd=Math.round(rp*2)/2;
+            if (rd<0.5) return 0.5;
+            if (Math.abs(rd-rp)<0.15) return rd;
             return Math.round(rp*2)/2;
         }
 
@@ -1222,7 +1237,91 @@
         }
 
         // ============================================================
-        //  FETCH GAMES AND DRAW CHARTS (updated to show hot indicator under H2H)
+        //  FETCH TEAM GAME STATS (for averages) NEW
+        // ============================================================
+        async function fetchTeamGameStats(teamId, numGames=5) {
+            const cacheKey = `${teamId}_${numGames}`;
+            if (window.teamGameStatsCache[cacheKey]) return window.teamGameStatsCache[cacheKey];
+            try {
+                const sr = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${teamId}/schedule`);
+                if (!sr.ok) return [];
+                const sd = await sr.json();
+                if (!sd.events) return [];
+                const completed = sd.events.filter(e => e.competitions && e.competitions[0] && e.competitions[0].status && e.competitions[0].status.type && e.competitions[0].status.type.completed===true);
+                const games = completed.slice(-numGames);
+                const statsArray = [];
+                for (const game of games) {
+                    const gid = game.id;
+                    const comp = game.competitions[0];
+                    const oppTeam = comp.competitors.find(c => String(c.team.id)!==String(teamId));
+                    const oppAbbr = oppTeam ? (oppTeam.team.abbreviation||oppTeam.team.shortDisplayName) : '???';
+                    try {
+                        const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${gid}`);
+                        if (!sumRes.ok) continue;
+                        const sumData = await sumRes.json();
+                        if (!sumData.boxscore || !sumData.boxscore.players) continue;
+                        const teamStatsEntry = sumData.boxscore.players.find(p => String(p.team.id)===String(teamId));
+                        if (!teamStatsEntry || !teamStatsEntry.statistics || !teamStatsEntry.statistics[0]) continue;
+                        const stats = teamStatsEntry.statistics[0];
+                        const labels = stats.labels||[];
+                        const idx = getStatLabelsFromESPN(labels);
+                        let pts=0, fgm=0, fga=0, tpm=0, tpa=0, reb=0, ast=0, stl=0, blk=0, to=0;
+                        if (stats.athletes) {
+                            for (const a of stats.athletes) {
+                                if (a.didNotPlay) continue;
+                                if (idx.pts>=0 && a.stats) pts += parseFloat(a.stats[idx.pts])||0;
+                                if (idx.fgm>=0 && a.stats) fgm += parseFloat(a.stats[idx.fgm])||0;
+                                if (idx.fga>=0 && a.stats) fga += parseFloat(a.stats[idx.fga])||0;
+                                if (idx.tpm>=0 && a.stats) tpm += parseFloat(a.stats[idx.tpm])||0;
+                                if (idx.tpa>=0 && a.stats) tpa += parseFloat(a.stats[idx.tpa])||0;
+                                if (idx.reb>=0 && a.stats) reb += parseFloat(a.stats[idx.reb])||0;
+                                if (idx.ast>=0 && a.stats) ast += parseFloat(a.stats[idx.ast])||0;
+                                if (idx.stl>=0 && a.stats) stl += parseFloat(a.stats[idx.stl])||0;
+                                if (idx.blk>=0 && a.stats) blk += parseFloat(a.stats[idx.blk])||0;
+                                if (idx.to>=0 && a.stats) to += parseFloat(a.stats[idx.to])||0;
+                            }
+                        }
+                        statsArray.push({ opponent: oppAbbr, pts, fgm, fga, tpm, tpa, reb, ast, stl, blk, to });
+                    } catch(e) { continue; }
+                }
+                window.teamGameStatsCache[cacheKey] = statsArray;
+                return statsArray;
+            } catch(e) { return []; }
+        }
+
+        function renderTeamOppAverages(teamAbbrev, oppAbbrev, teamStatsArray, oppStatsArray) {
+            const row = document.getElementById('team-opp-averages-row');
+            if (!row) return;
+            if (teamStatsArray.length === 0 && oppStatsArray.length === 0) {
+                row.style.display = 'none';
+                return;
+            }
+            row.style.display = 'flex';
+            document.getElementById('team-avg-title').textContent = `${teamAbbrev} Averages (L5)`;
+            document.getElementById('opp-avg-title').textContent = `${oppAbbrev} Averages (L5)`;
+            const calcAvg = (arr, key) => {
+                if (!arr.length) return '--';
+                const sum = arr.reduce((s,g) => s + (g[key]||0), 0);
+                return (sum / arr.length).toFixed(1);
+            };
+            const buildTable = (stats) => {
+                return `<table class="avg-stats-table">
+                    <tr><td class="stat-label">Points</td><td>${calcAvg(stats,'pts')}</td></tr>
+                    <tr><td class="stat-label">Rebounds</td><td>${calcAvg(stats,'reb')}</td></tr>
+                    <tr><td class="stat-label">Assists</td><td>${calcAvg(stats,'ast')}</td></tr>
+                    <tr><td class="stat-label">Steals</td><td>${calcAvg(stats,'stl')}</td></tr>
+                    <tr><td class="stat-label">Blocks</td><td>${calcAvg(stats,'blk')}</td></tr>
+                    <tr><td class="stat-label">FGM - FGA</td><td>${calcAvg(stats,'fgm')} - ${calcAvg(stats,'fga')}</td></tr>
+                    <tr><td class="stat-label">3PM - 3PA</td><td>${calcAvg(stats,'tpm')} - ${calcAvg(stats,'tpa')}</td></tr>
+                    <tr><td class="stat-label">Turnovers</td><td>${calcAvg(stats,'to')}</td></tr>
+                </table>`;
+            };
+            document.getElementById('team-avg-stats-container').innerHTML = buildTable(teamStatsArray);
+            document.getElementById('opp-avg-stats-container').innerHTML = buildTable(oppStatsArray);
+        }
+
+        // ============================================================
+        //  FETCH GAMES AND DRAW CHARTS (merged recent form, added averages)
         // ============================================================
         async function fetchGamesAndDrawCharts(espnId, teamAbbrev) {
             const nextContainer = document.getElementById('next-game-container');
@@ -1231,13 +1330,13 @@
             const oppPastContainer = document.getElementById('opp-past-games-container');
             const hotContainer = document.getElementById('hot-indicator-container');
             const h2hContainer = document.getElementById('h2h-container');
-            const hotIndicatorRow = document.getElementById('hot-indicator-row');
+            const averagesRow = document.getElementById('team-opp-averages-row');
             nextContainer.innerHTML = '<div class="loading">Finding next game...</div>';
             pastContainer.innerHTML = '<div class="loading">Loading match history...</div>';
-            hotContainer.innerHTML = '<div class="loading">Analyzing momentum...</div>';
+            hotContainer.innerHTML = '';
             h2hContainer.innerHTML = '<div class="loading">Loading H2H history...</div>';
             oppSection.style.display = 'none';
-            if (hotIndicatorRow) hotIndicatorRow.style.display = 'none';
+            if (averagesRow) averagesRow.style.display = 'none';
             const propsSection = document.getElementById('props-recommendation-section');
             if (propsSection) propsSection.style.display = 'none';
             const startersRow = document.getElementById('starters-row');
@@ -1348,24 +1447,18 @@
                     h2hContainer.innerHTML = '<canvas id="h2hChart"></canvas>';
                     drawChart('h2hChart', h2hLabels, teamAbbrev, h2hMyData, h2hMyWL, oppAbbrev, h2hOppData, h2hOppWL);
                 } else { h2hContainer.innerHTML = '<p style="text-align:center;color:#777;font-size:13px;margin-top:50px;">No recent Head-to-Head data available.</p>'; }
+                // Show recent form inside the Offensive Output box
                 let myTrend = getTrendStatus(winCount, validGames);
-                let oppTrend = getTrendStatus(oppWinCount, oppValidGames);
-                hotContainer.innerHTML = `
-                    <div class="panel-box" style="padding:15px;justify-content:space-evenly;">
-                        <div style="font-size:13px;font-weight:bold;text-align:center;color:#555;margin-bottom:15px;border-bottom:2px solid #eee;padding-bottom:5px;">RECENT FORM (L5 MATCHES)</div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div style="flex:1;text-align:center;border-right:1px dashed #ccc;padding:0 5px;">
-                                <div style="font-size:14px;font-weight:bold;color:#1d428a;margin-bottom:8px;">${teamAbbrev}</div>
-                                <div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${myTrend.color};margin-bottom:8px;">${myTrend.icon} ${myTrend.text}</div>
-                                <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${winCount}W - ${validGames-winCount}L</b></div>
-                                <div style="font-size:11px;color:#777;">Avg Pts: ${validGames>0?Math.round(totalPts/validGames):'--'}</div></div>
-                            <div style="font-size:14px;font-weight:bold;color:#ccc;padding:0 10px;">VS</div>
-                            <div style="flex:1;text-align:center;padding:0 5px;">
-                                <div style="font-size:14px;font-weight:bold;color:#555;margin-bottom:8px;">${oppAbbrev}</div>
-                                <div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${oppTrend.color};margin-bottom:8px;">${oppTrend.icon} ${oppTrend.text}</div>
-                                <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${oppWinCount}W - ${oppValidGames-oppWinCount}L</b></div>
-                                <div style="font-size:11px;color:#777;">Avg Pts: ${oppValidGames>0?Math.round(oppTotalPts/oppValidGames):'--'}</div></div></div></div>`;
-                if (hotIndicatorRow) hotIndicatorRow.style.display = 'flex';
+                hotContainer.innerHTML = `<div style="font-size:12px;font-weight:bold;color:#555;text-align:center;margin-top:5px;">${teamAbbrev}: ${winCount}W-${validGames-winCount}L · Avg ${validGames>0?Math.round(totalPts/validGames):'--'} PTS</div>`;
+
+                // NEW: Fetch last 5 team and opponent averages and render
+                if (oppId) {
+                    const [teamStats, oppStats] = await Promise.all([
+                        fetchTeamGameStats(espnId, 5),
+                        fetchTeamGameStats(oppId, 5)
+                    ]);
+                    renderTeamOppAverages(teamAbbrev, oppAbbrev, teamStats, oppStats);
+                }
 
                 let lastH2HHtml = '';
                 if (nextGame && h2hGames.length > 0) { lastH2HHtml = await buildLastH2HCard(h2hGames[h2hGames.length-1].id); }
