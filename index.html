@@ -371,6 +371,9 @@
         </div>
     </div>
     <script>
+        // ============================================================
+        //  CONFIG & GLOBALS
+        // ============================================================
         const NEWS_API_KEY = 'pub_dce2909d7f99428199a11eb8be5c290e';
         let perfChartInstance = null,
             h2hChartInstance = null,
@@ -385,6 +388,9 @@
         let currentSlateDate = new Date();
         currentSlateDate.setHours(currentSlateDate.getHours() - 5);
 
+        // ============================================================
+        //  STAT CONFIG
+        // ============================================================
         const STAT_CONFIG = {
             pts: { label: 'Points', icon: '🏀', minQualify: 8, defRtgWeight: 1.5, paceWeight: 1.0, homeBoost: 1.5, restPenalty: -1.5, isDiscrete: false },
             reb: { label: 'Rebounds', icon: '🔄', minQualify: 3, defRtgWeight: 1.0, paceWeight: 0.6, homeBoost: 0.5, restPenalty: -0.8, isDiscrete: false },
@@ -394,6 +400,9 @@
             tpm: { label: '3PT Made', icon: '🎯', minQualify: 1.5, defRtgWeight: 1.3, paceWeight: 0.9, homeBoost: 0.6, restPenalty: -0.7, isDiscrete: true }
         };
 
+        // ============================================================
+        //  UTILITY FUNCTIONS
+        // ============================================================
         function getStatLabelsFromESPN(labels) {
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1 };
             for (let i = 0; i < labels.length; i++) {
@@ -430,6 +439,9 @@
             return Math.round(rp * 2) / 2;
         }
 
+        // ============================================================
+        //  FETCH PLAYER LOGS
+        // ============================================================
         async function fetchPlayerGameLogs(teamId, numGames = 10) {
             if (window.playerGameLogsCache[teamId]) return window.playerGameLogsCache[teamId];
             try {
@@ -504,6 +516,9 @@
             };
         }
 
+        // ============================================================
+        //  MODELS (Bayesian, Matchup, Poisson, GBM)
+        // ============================================================
         function computeBayesianProjection(prop) {
             const vals = prop.allVals,
                 n = vals.length;
@@ -589,6 +604,9 @@
             return { gbmProjection: tw > 0 ? ws / tw : prop.avgAll };
         }
 
+        // ============================================================
+        //  UNIFIED PROP ALPHA (UPA)
+        // ============================================================
         function computeUPA(prop) {
             const mfProj = prop.rawProjection,
                 line = prop.line,
@@ -701,6 +719,9 @@
             return html;
         }
 
+        // ============================================================
+        //  GENERATE PROPS
+        // ============================================================
         function generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, playerGameLogs) {
             const oppDefRanks = oppId ? getOpponentDefensiveRanks(oppId) : null;
             const oppStats = oppId ? window.teamAnalyticsStore[oppId] : null;
@@ -774,6 +795,9 @@
             return allProps.slice(0, 10);
         }
 
+        // ============================================================
+        //  UPDATE PROPS SECTION + PROJECTED STARTERS
+        // ============================================================
         async function updateAdvancedPropsSection(teamId, oppId, teamAbbrev, oppAbbrev) {
             const ps = document.getElementById('props-recommendation-section');
             const listA = document.getElementById('props-list-team-a'),
@@ -797,7 +821,7 @@
                 let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, false, logsB);
                 listA.innerHTML = renderUnifiedProps(propsA, teamId);
                 listB.innerHTML = renderUnifiedProps(propsB, oppId);
-                // After logs are ready, also render projected starters
+                // After logs are ready, render projected starters
                 await renderProjectedStarters(teamId, oppId, teamAbbrev, oppAbbrev);
             } catch (e) {
                 console.error('Props error:', e);
@@ -807,7 +831,7 @@
         }
 
         // ============================================================
-        //  PROJECTED STARTERS
+        //  RENDER PROJECTED STARTERS (NEW FEATURE)
         // ============================================================
         async function renderProjectedStarters(teamId, oppId, teamAbbrev, oppAbbrev) {
             const row = document.getElementById('starters-row');
@@ -834,7 +858,6 @@
                     });
                     const avgMin = count > 0 ? totalMin / count : 0;
                     const avgPts = count > 0 ? totalPts / count : 0;
-                    // Use last game's playerId for photo (most recent)
                     const playerId = games[games.length-1]?.playerId;
                     players.push({ name, avgMin, avgPts, playerId });
                 });
@@ -873,12 +896,8 @@
         }
 
         // ============================================================
-        //  BOUNCE-BACK & SLATE (unchanged, kept for completeness)
+        //  BOUNCE-BACK ALGORITHM (original working version)
         // ============================================================
-        // ... (remaining code from original, including bounce-back, standings, etc.)
-        // I am including the entire remaining script below to ensure the file is complete
-        // and exceeds the line requirement. The original code is integrated seamlessly.
-
         function computeBounceBackBetsForSlate(events) {
             const bets = [];
             const MIN_GAMES = 5;
@@ -911,12 +930,19 @@
                             name: playerName,
                             teamId,
                             teamAbbrev: team.team.abbreviation,
-                            avgPts, avgReb, avgAst, avgTpm,
-                            lastPts, lastReb, lastAst, lastTpm,
+                            avgPts,
+                            avgReb,
+                            avgAst,
+                            avgTpm,
+                            lastPts,
+                            lastReb,
+                            lastAst,
+                            lastTpm,
                             games: totalGames,
                             opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
                         });
                     });
+                    // Rankings
                     const sortedPts = [...playerData].sort((a, b) => b.avgPts - a.avgPts);
                     const topPts = sortedPts.slice(0, 3);
                     const sortedReb = [...playerData].sort((a, b) => b.avgReb - a.avgReb);
@@ -928,16 +954,24 @@
 
                     const candidates = [];
                     topPts.forEach(p => {
-                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts });
+                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
+                            candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts });
+                        }
                     });
                     topReb.forEach(p => {
-                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb });
+                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
+                            candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb });
+                        }
                     });
                     topAst.forEach(p => {
-                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst });
+                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
+                            candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst });
+                        }
                     });
                     topTpm.forEach(p => {
-                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm });
+                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
+                            candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm });
+                        }
                     });
                     candidates.forEach(c => {
                         bets.push({
@@ -953,6 +987,7 @@
                     });
                 });
             });
+            // Sort by bounce potential (highest first) and take top 10
             bets.sort((a, b) => b.bounce - a.bounce);
             return bets.slice(0, 10);
         }
@@ -962,15 +997,21 @@
             const leaderboard = document.getElementById('bounce-leaderboard');
             const list = document.getElementById('bounce-back-list');
             if (!container || !leaderboard || !list) return;
+
             container.style.display = 'block';
+
             if (!bets || bets.length === 0) {
                 leaderboard.innerHTML = '';
                 list.innerHTML = '<div class="bounce-empty">No bounce-back signals found for today\'s slate.</div>';
                 return;
             }
+
             const top5 = bets.slice(0, 5);
             const rest = bets.slice(5);
+
+            // Confidence score: based on bounce magnitude (max 85%)
             const calcConf = (bounce) => Math.min(85, 35 + bounce * 8);
+
             let lbHtml = '';
             top5.forEach((s, idx) => {
                 const conf = calcConf(s.bounce);
@@ -996,6 +1037,7 @@
                 </div>`;
             });
             leaderboard.innerHTML = lbHtml;
+
             let restHtml = '';
             rest.forEach(s => {
                 const conf = calcConf(s.bounce);
@@ -1023,6 +1065,9 @@
             list.innerHTML = restHtml;
         }
 
+        // ============================================================
+        //  LOAD DAILY SLATE
+        // ============================================================
         async function loadDailySlate(offset = 0) {
             currentSlateDate.setDate(currentSlateDate.getDate() + offset);
             const container = document.getElementById('slate-data-container');
@@ -1071,15 +1116,29 @@
                     evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
                 });
                 await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
+
                 const bounceBets = computeBounceBackBetsForSlate(data.events);
                 renderBounceBackBets(bounceBets);
-                // slate rendering (unchanged)
+
+                // Slate rendering (unchanged)
                 let html = '';
-                let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0,
-                    spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
-                let closeSpreadHits = 0, closeSpreadMisses = 0, closeSpreadPushes = 0,
-                    closeTotalHits = 0, closeTotalMisses = 0, closeTotalPushes = 0;
-                let signalHits = 0, signalMisses = 0, signalPushes = 0,
+                let totalHits = 0,
+                    totalMisses = 0,
+                    totalPushes = 0,
+                    totalPasses = 0,
+                    spreadHits = 0,
+                    spreadMisses = 0,
+                    spreadPushes = 0,
+                    spreadPasses = 0;
+                let closeSpreadHits = 0,
+                    closeSpreadMisses = 0,
+                    closeSpreadPushes = 0,
+                    closeTotalHits = 0,
+                    closeTotalMisses = 0,
+                    closeTotalPushes = 0;
+                let signalHits = 0,
+                    signalMisses = 0,
+                    signalPushes = 0,
                     anyFinal = false;
                 for (const evt of data.events) {
                     const comp = evt.competitions[0];
@@ -1087,7 +1146,8 @@
                     const a = comp.competitors.find(x => x.homeAway === 'away');
                     const isFinal = comp.status.type.completed;
                     if (isFinal) anyFinal = true;
-                    const hScore = parseInt(h.score || 0), aScore = parseInt(a.score || 0);
+                    const hScore = parseInt(h.score || 0),
+                        aScore = parseInt(a.score || 0);
                     const actualTotal = hScore + aScore;
                     const actualHomeMargin = hScore - aScore;
                     const sH = window.teamLast10Store[h.team.id];
@@ -1114,7 +1174,8 @@
                         } catch (err) {}
                     }
                     let bookLineStr = bookLine > 0 ? bookLine : 'N/A';
-                    let evTotalHtml = "", evSpreadHtml = "";
+                    let evTotalHtml = "";
+                    let evSpreadHtml = "";
                     let pickSide = null;
                     if (bookLine > 0) {
                         let diff = Math.abs(tExp - bookLine);
@@ -1130,11 +1191,10 @@
                             else if (fav === a.team.abbreviation) bhm = -Math.abs(val);
                         }
                         const marginDiff = (hRaw - aRaw) - bhm;
-                        if (marginDiff > 2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${h.team.abbreviation}</span>`; pickSide = 'home'; }
-                        else if (marginDiff < -2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${a.team.abbreviation}</span>`; pickSide = 'away'; }
-                        else evSpreadHtml = `<span class="ev-badge neutral">PASS</span>`;
+                        if (marginDiff > 2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${h.team.abbreviation}</span>`; pickSide = 'home'; } else if (marginDiff < -2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${a.team.abbreviation}</span>`; pickSide = 'away'; } else evSpreadHtml = `<span class="ev-badge neutral">PASS</span>`;
                     }
-                    let spreadResultHtml = '', totalResultHtml = '';
+                    let spreadResultHtml = '',
+                        totalResultHtml = '';
                     if (isFinal) {
                         if (bookSpreadStr !== 'N/A' && pickSide) {
                             let bhl = 0;
@@ -1285,40 +1345,68 @@
             }
         }
 
+        // ============================================================
+        //  AGGREGATED SUMMARY, STANDINGS, RANKINGS, LEADERS, NEWS, CHARTS
+        //  (All from original working code – unchanged)
+        // ============================================================
         async function fetchAggregatedSummary(referenceDate, daysBack, containerId, title) {
             const container = document.getElementById(containerId);
             container.innerHTML = '<div class="loading">Loading summary...</div>';
-            let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0,
-                spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
-            let closeSpreadHits = 0, closeSpreadMisses = 0, closeSpreadPushes = 0,
-                closeTotalHits = 0, closeTotalMisses = 0, closeTotalPushes = 0;
-            let signalHits = 0, signalMisses = 0, signalPushes = 0, daysProcessed = 0;
+            let totalHits = 0,
+                totalMisses = 0,
+                totalPushes = 0,
+                totalPasses = 0,
+                spreadHits = 0,
+                spreadMisses = 0,
+                spreadPushes = 0,
+                spreadPasses = 0;
+            let closeSpreadHits = 0,
+                closeSpreadMisses = 0,
+                closeSpreadPushes = 0,
+                closeTotalHits = 0,
+                closeTotalMisses = 0,
+                closeTotalPushes = 0;
+            let signalHits = 0,
+                signalMisses = 0,
+                signalPushes = 0,
+                daysProcessed = 0;
             for (let i = 0; i < daysBack; i++) {
                 const date = new Date(referenceDate);
                 date.setDate(date.getDate() - i);
-                const yyyy = date.getFullYear(), mm = String(date.getMonth() + 1).padStart(2, '0'), dd = String(date.getDate()).padStart(2, '0');
+                const yyyy = date.getFullYear(),
+                    mm = String(date.getMonth() + 1).padStart(2, '0'),
+                    dd = String(date.getDate()).padStart(2, '0');
                 try {
                     const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=${yyyy}${mm}${dd}`);
                     const data = await res.json();
                     if (!data.events || data.events.length === 0) continue;
                     daysProcessed++;
                     for (const evt of data.events) {
-                        const comp = evt.competitions[0], h = comp.competitors.find(x => x.homeAway === 'home'), a = comp.competitors.find(x => x.homeAway === 'away');
+                        const comp = evt.competitions[0],
+                            h = comp.competitors.find(x => x.homeAway === 'home'),
+                            a = comp.competitors.find(x => x.homeAway === 'away');
                         if (!comp.status.type.completed) continue;
-                        const hScore = parseInt(h.score || 0), aScore = parseInt(a.score || 0), actualTotal = hScore + aScore, actualHomeMargin = hScore - aScore;
-                        const sH = window.teamLast10Store[h.team.id], sA = window.teamLast10Store[a.team.id];
+                        const hScore = parseInt(h.score || 0),
+                            aScore = parseInt(a.score || 0),
+                            actualTotal = hScore + aScore,
+                            actualHomeMargin = hScore - aScore;
+                        const sH = window.teamLast10Store[h.team.id],
+                            sA = window.teamLast10Store[a.team.id];
                         if (!sH || !sA) continue;
                         const ep = (sH.curPace + sA.curPace) / 2;
-                        let hRaw = ((sH.curOffRtg + sA.curDefRtg) / 2) * (ep / 100) + 3, aRaw = ((sA.curOffRtg + sH.curDefRtg) / 2) * (ep / 100);
+                        let hRaw = ((sH.curOffRtg + sA.curDefRtg) / 2) * (ep / 100) + 3,
+                            aRaw = ((sA.curOffRtg + sH.curDefRtg) / 2) * (ep / 100);
                         let tExp = hRaw + aRaw;
-                        let bookLine = comp.odds?.[0]?.overUnder || 0, bookSpreadStr = comp.odds?.[0]?.details || 'N/A';
+                        let bookLine = comp.odds?.[0]?.overUnder || 0,
+                            bookSpreadStr = comp.odds?.[0]?.details || 'N/A';
                         if ((!bookLine || bookSpreadStr === 'N/A')) {
                             try {
                                 const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${evt.id}`);
                                 const sumData = await sumRes.json();
                                 if (sumData.pickcenter && sumData.pickcenter.length > 0) {
                                     const od = sumData.pickcenter.find(p => p.provider && p.provider.name === 'consensus') || sumData.pickcenter[0];
-                                    if (od) { bookLine = od.overUnder || bookLine; bookSpreadStr = od.details || bookSpreadStr; }
+                                    if (od) { bookLine = od.overUnder || bookLine;
+                                        bookSpreadStr = od.details || bookSpreadStr; }
                                 }
                             } catch (err) {}
                         }
@@ -1348,20 +1436,29 @@
                             let pickSide = null;
                             if (marginDiff > 2.5) pickSide = 'home';
                             else if (marginDiff < -2.5) pickSide = 'away';
-                            else { spreadPasses++; spreadOutcome = 'pass'; }
+                            else { spreadPasses++;
+                                spreadOutcome = 'pass'; }
                             if (pickSide) {
-                                if (actualHomeMargin === bhm) { spreadPushes++; if (spreadWithin3) closeSpreadPushes++; if (signalBet) signalPushes++; spreadOutcome = 'push'; }
-                                else if ((pickSide === 'home' && actualHomeMargin > bhm) || (pickSide === 'away' && actualHomeMargin < bhm)) { spreadHits++; if (spreadWithin3) closeSpreadHits++; if (signalBet) signalHits++; spreadOutcome = 'hit'; }
-                                else { spreadMisses++; if (spreadWithin3) closeSpreadMisses++; if (signalBet) signalMisses++; spreadOutcome = 'miss'; }
+                                if (actualHomeMargin === bhm) { spreadPushes++;
+                                    if (spreadWithin3) closeSpreadPushes++;
+                                    if (signalBet) signalPushes++;
+                                    spreadOutcome = 'push'; } else if ((pickSide === 'home' && actualHomeMargin > bhm) || (pickSide === 'away' && actualHomeMargin < bhm)) { spreadHits++;
+                                    if (spreadWithin3) closeSpreadHits++;
+                                    if (signalBet) signalHits++;
+                                    spreadOutcome = 'hit'; } else { spreadMisses++;
+                                    if (spreadWithin3) closeSpreadMisses++;
+                                    if (signalBet) signalMisses++;
+                                    spreadOutcome = 'miss'; }
                             }
                         }
                         if (bookLine > 0) {
                             let diff = Math.abs(tExp - bookLine);
                             let isOverPick = tExp > bookLine;
                             if (diff > 4.0) {
-                                if (actualTotal === bookLine) { totalPushes++; if (totalWithin3) closeTotalPushes++; }
-                                else if ((isOverPick && actualTotal > bookLine) || (!isOverPick && actualTotal < bookLine)) { totalHits++; if (totalWithin3) closeTotalHits++; }
-                                else { totalMisses++; if (totalWithin3) closeTotalMisses++; }
+                                if (actualTotal === bookLine) { totalPushes++;
+                                    if (totalWithin3) closeTotalPushes++; } else if ((isOverPick && actualTotal > bookLine) || (!isOverPick && actualTotal < bookLine)) { totalHits++;
+                                    if (totalWithin3) closeTotalHits++; } else { totalMisses++;
+                                    if (totalWithin3) closeTotalMisses++; }
                             } else {
                                 totalPasses++;
                                 if (totalWithin3) {
@@ -1472,6 +1569,7 @@
 
         function getProxyTS(teamId) { let seed = parseInt(teamId); const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 53 + random() * 10; }
         function getProxyOREB(teamId) { let seed = parseInt(teamId) + 50; const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 22 + random() * 12; }
+
         function getNetRatingBadge(net) { if (net >= 8) return '<span class="metric-badge badge-elite">Elite</span>'; if (net >= 4) return '<span class="metric-badge badge-good">Good</span>'; if (net >= 0) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
         function getTSBadge(ts) { if (ts >= 60) return '<span class="metric-badge badge-elite">Elite</span>'; if (ts >= 57) return '<span class="metric-badge badge-good">Good</span>'; if (ts >= 54) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
         function getOREBBadge(oreb) { if (oreb >= 30) return '<span class="metric-badge badge-elite">Elite</span>'; if (oreb >= 27) return '<span class="metric-badge badge-good">Good</span>'; if (oreb >= 24) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
@@ -1492,6 +1590,258 @@
                 parseFloat(((c3 / total) * 100).toFixed(1)),
                 parseFloat(((ab3 / total) * 100).toFixed(1))
             ];
+        }
+
+        // ============================================================
+        //  FETCH GAMES AND DRAW CHARTS (full original implementation)
+        // ============================================================
+        async function fetchGamesAndDrawCharts(espnId, teamAbbrev) {
+            const nextContainer = document.getElementById('next-game-container');
+            const pastContainer = document.getElementById('past-games-container');
+            const oppSection = document.getElementById('opp-past-matches-section');
+            const oppPastContainer = document.getElementById('opp-past-games-container');
+            const hotContainer = document.getElementById('hot-indicator-container');
+            const h2hContainer = document.getElementById('h2h-container');
+            const advancedContainer = document.getElementById('advanced-metrics-container');
+            const oppAdvancedContainer = document.getElementById('opp-advanced-metrics-container');
+            const oppPaceContainer = document.getElementById('opp-pace-metrics-container');
+            const oppMetricsRow = document.getElementById('opp-advanced-metrics-row');
+            nextContainer.innerHTML = '<div class="loading">Finding next game...</div>';
+            pastContainer.innerHTML = '<div class="loading">Loading match history...</div>';
+            hotContainer.innerHTML = '<div class="loading">Analyzing momentum...</div>';
+            h2hContainer.innerHTML = '<div class="loading">Loading H2H history...</div>';
+            oppSection.style.display = 'none';
+            oppMetricsRow.style.display = 'none';
+            const opponentNewsCol = document.getElementById('opponent-news-column');
+            if (opponentNewsCol) opponentNewsCol.style.display = 'none';
+            const propsSection = document.getElementById('props-recommendation-section');
+            if (propsSection) propsSection.style.display = 'none';
+            const startersRow = document.getElementById('starters-row');
+            if (startersRow) startersRow.style.display = 'none';
+
+            const tStats = window.teamAnalyticsStore[espnId];
+            if (tStats) {
+                document.getElementById('pace-metrics-container').innerHTML = `
+                    <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Est. Pace (Poss/48)</span> <span style="font-weight:bold;color:#1d428a;">${tStats.estPace.toFixed(1)}</span></div>
+                    <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Offensive Rtg</span> <span style="font-weight:bold;color:#1d428a;">${tStats.offRtg.toFixed(1)}</span></div>
+                    <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Defensive Rtg</span> <span style="font-weight:bold;color:#c8102e;">${tStats.defRtg.toFixed(1)}</span></div>`;
+            }
+            try {
+                const scheduleRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${espnId}/schedule`);
+                const scheduleData = await scheduleRes.json();
+                const completedGames = scheduleData.events.filter(e => e.competitions[0].status.type.completed === true);
+                const upcomingGames = scheduleData.events.filter(e => e.competitions[0].status.type.completed === false);
+                const last5Games = completedGames.slice(-5);
+                const last3GamesForCards = completedGames.slice(-3).reverse();
+                const nextGame = upcomingGames.length > 0 ? upcomingGames[0] : null;
+                let winCount = 0,
+                    totalPts = 0,
+                    validGames = 0;
+                let myDataPts = [],
+                    myWL = [],
+                    perfLabels = [];
+                last5Games.forEach((game) => {
+                    const comp = game.competitions[0];
+                    const dateStr = new Date(comp.date).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland', month: 'numeric', day: 'numeric' });
+                    perfLabels.push(dateStr);
+                    const me = comp.competitors.find(c => String(c.team.id) === String(espnId));
+                    const opp = comp.competitors.find(c => String(c.team.id) !== String(espnId));
+                    if (me && me.score) {
+                        const pts = parseInt(me.score.value);
+                        if (me.winner) winCount++;
+                        totalPts += pts;
+                        validGames++;
+                        myDataPts.push(pts);
+                        myWL.push(me.winner ? 'W' : 'L');
+                    }
+                });
+                let myNetRtgData = [];
+                let myPace = tStats?.estPace || 100;
+                const myLast10 = completedGames.slice(-10);
+                myLast10.forEach(game => {
+                    const comp = game.competitions[0];
+                    const me = comp.competitors.find(c => String(c.team.id) === String(espnId));
+                    const opp = comp.competitors.find(c => String(c.team.id) !== String(espnId));
+                    if (me && opp && me.score && opp.score) {
+                        const diff = parseInt(me.score.value) - parseInt(opp.score.value);
+                        const net = diff / (myPace / 100);
+                        myNetRtgData.push(parseFloat(net.toFixed(1)));
+                    }
+                });
+                let oppId = null,
+                    oppAbbrev = "Opponent",
+                    oppDataPts = [],
+                    oppWL = [];
+                let oppWinCount = 0,
+                    oppTotalPts = 0,
+                    oppValidGames = 0;
+                let oppCompleted = [];
+                let oppNetRtgData = [];
+                if (nextGame) {
+                    const comp = nextGame.competitions[0];
+                    const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(espnId));
+                    if (oppTeam) { oppId = oppTeam.team.id;
+                        oppAbbrev = oppTeam.team.abbreviation || "OPP"; }
+                }
+                if (oppId) {
+                    const opponentNewsCol = document.getElementById('opponent-news-column');
+                    if (opponentNewsCol) opponentNewsCol.style.display = 'block';
+                    fetchNewsForTeam(oppId, 'opponent-news-container');
+                    updateAdvancedPropsSection(espnId, oppId, teamAbbrev, oppAbbrev);
+                    try {
+                        const oppRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${oppId}/schedule`);
+                        const oppData = await oppRes.json();
+                        oppCompleted = oppData.events.filter(e => e.competitions[0].status.type.completed === true);
+                        const oppLast5 = oppCompleted.slice(-5);
+                        oppLast5.forEach(game => {
+                            const targetOpp = game.competitions[0].competitors.find(c => String(c.team.id) === String(oppId));
+                            if (targetOpp && targetOpp.score) {
+                                const pts = parseInt(targetOpp.score.value);
+                                oppDataPts.push(pts);
+                                oppWL.push(targetOpp.winner ? 'W' : 'L');
+                                oppTotalPts += pts;
+                                oppValidGames++;
+                                if (targetOpp.winner) oppWinCount++;
+                            }
+                        });
+                        let oppPace = window.teamAnalyticsStore[oppId]?.estPace || 100;
+                        const oppLast10 = oppCompleted.slice(-10);
+                        oppLast10.forEach(game => {
+                            const comp = game.competitions[0];
+                            const me = comp.competitors.find(c => String(c.team.id) === String(oppId));
+                            const opponentOfOpp = comp.competitors.find(c => String(c.team.id) !== String(oppId));
+                            if (me && opponentOfOpp && me.score && opponentOfOpp.score) {
+                                const diff = parseInt(me.score.value) - parseInt(opponentOfOpp.score.value);
+                                const net = diff / (oppPace / 100);
+                                oppNetRtgData.push(parseFloat(net.toFixed(1)));
+                            }
+                        });
+                    } catch (e) {}
+                }
+                drawChart('perfChart', perfLabels, teamAbbrev, myDataPts, myWL, oppAbbrev, oppDataPts, oppWL);
+                let maxGames = Math.max(myNetRtgData.length, oppNetRtgData.length);
+                let netRtgLabels = Array.from({ length: maxGames }, (_, i) => `G${i+1}`);
+                drawNetRtgChart('netRtgChart', netRtgLabels, teamAbbrev, myNetRtgData, oppAbbrev, oppNetRtgData);
+                let myShotProfile = getProxyShotProfile(espnId, false);
+                let oppDefProfile = oppId ? getProxyShotProfile(oppId, true) : [20, 20, 20, 20, 20];
+                drawShotProfileChart('shotProfileChart', teamAbbrev + ' (Off)', myShotProfile, oppAbbrev + ' (Def)', oppDefProfile);
+                let h2hGames = [];
+                if (oppId) {
+                    let currentSeasonH2H = completedGames.filter(e => e.competitions[0].competitors.some(c => String(c.team.id) === String(oppId)));
+                    if (currentSeasonH2H.length < 5) {
+                        try {
+                            const prevRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${espnId}/schedule?season=2023`);
+                            const prevData = await prevRes.json();
+                            const prevCompleted = prevData.events.filter(e => e.competitions[0].status.type.completed === true);
+                            const prevH2H = prevCompleted.filter(e => e.competitions[0].competitors.some(c => String(c.team.id) === String(oppId)));
+                            h2hGames = [...prevH2H, ...currentSeasonH2H].slice(-5);
+                        } catch (e) { h2hGames = currentSeasonH2H; }
+                    } else { h2hGames = currentSeasonH2H.slice(-5); }
+                }
+                if (h2hGames.length > 0) {
+                    let h2hLabels = [],
+                        h2hMyData = [],
+                        h2hMyWL = [],
+                        h2hOppData = [],
+                        h2hOppWL = [];
+                    h2hGames.forEach(game => {
+                        const comp = game.competitions[0];
+                        h2hLabels.push(new Date(comp.date).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland', month: 'numeric', day: 'numeric' }));
+                        const me = comp.competitors.find(c => String(c.team.id) === String(espnId));
+                        const opp = comp.competitors.find(c => String(c.team.id) === String(oppId));
+                        if (me && opp && me.score && opp.score) {
+                            h2hMyData.push(parseInt(me.score.value));
+                            h2hMyWL.push(me.winner ? 'W' : 'L');
+                            h2hOppData.push(parseInt(opp.score.value));
+                            h2hOppWL.push(opp.winner ? 'W' : 'L');
+                        }
+                    });
+                    h2hContainer.innerHTML = '<canvas id="h2hChart"></canvas>';
+                    drawChart('h2hChart', h2hLabels, teamAbbrev, h2hMyData, h2hMyWL, oppAbbrev, h2hOppData, h2hOppWL);
+                } else {
+                    h2hContainer.innerHTML = '<p style="text-align:center;color:#777;font-size:13px;margin-top:50px;">No recent Head-to-Head data available.</p>';
+                }
+                let myTrend = getTrendStatus(winCount, validGames);
+                let oppTrend = getTrendStatus(oppWinCount, oppValidGames);
+                hotContainer.innerHTML = `
+                    <div class="panel-box" style="padding:15px;justify-content:space-evenly;">
+                        <div style="font-size:13px;font-weight:bold;text-align:center;color:#555;margin-bottom:15px;border-bottom:2px solid #eee;padding-bottom:5px;">RECENT FORM (L5 MATCHES)</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="flex:1;text-align:center;border-right:1px dashed #ccc;padding:0 5px;">
+                                <div style="font-size:14px;font-weight:bold;color:#1d428a;margin-bottom:8px;">${teamAbbrev}</div>
+                                <div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${myTrend.color};margin-bottom:8px;">${myTrend.icon} ${myTrend.text}</div>
+                                <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${winCount}W - ${validGames-winCount}L</b></div>
+                                <div style="font-size:11px;color:#777;">Avg Pts: ${validGames>0?Math.round(totalPts/validGames):'--'}</div></div>
+                            <div style="font-size:14px;font-weight:bold;color:#ccc;padding:0 10px;">VS</div>
+                            <div style="flex:1;text-align:center;padding:0 5px;">
+                                <div style="font-size:14px;font-weight:bold;color:#555;margin-bottom:8px;">${oppAbbrev}</div>
+                                <div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${oppTrend.color};margin-bottom:8px;">${oppTrend.icon} ${oppTrend.text}</div>
+                                <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${oppWinCount}W - ${oppValidGames-oppWinCount}L</b></div>
+                                <div style="font-size:11px;color:#777;">Avg Pts: ${oppValidGames>0?Math.round(oppTotalPts/oppValidGames):'--'}</div></div></div></div>`;
+                let lastH2HHtml = '';
+                if (nextGame && h2hGames.length > 0) {
+                    lastH2HHtml = await buildLastH2HCard(h2hGames[h2hGames.length - 1].id);
+                } else if (nextGame && h2hGames.length === 0) {
+                    lastH2HHtml = `<div style="margin-top:15px;border-top:2px dashed #ccc;padding-top:10px;text-align:center;font-size:11px;color:#777;">No recent H2H matchup found between these teams.</div>`;
+                }
+                if (nextGame) {
+                    nextContainer.innerHTML = await buildGameCard(nextGame.id, true, lastH2HHtml);
+                } else {
+                    nextContainer.innerHTML = '<div class="panel-box"><p style="text-align:center;color:#777;">No upcoming games scheduled.</p></div>';
+                }
+                if (last3GamesForCards.length === 0) {
+                    pastContainer.innerHTML = '<p>No completed games found.</p>';
+                } else {
+                    const pastHTMLs = await Promise.all(last3GamesForCards.map(g => buildGameCard(g.id, false)));
+                    pastContainer.innerHTML = pastHTMLs.join('');
+                }
+                if (oppId && oppCompleted.length > 0) {
+                    oppSection.style.display = 'block';
+                    document.getElementById('opp-team-title').innerText = oppAbbrev;
+                    const oppLast3 = oppCompleted.slice(-3).reverse();
+                    const oppPastHTMLs = await Promise.all(oppLast3.map(g => buildGameCard(g.id, false)));
+                    oppPastContainer.innerHTML = oppPastHTMLs.join('');
+                }
+                if (tStats) {
+                    const netRtg = tStats.offRtg - tStats.defRtg;
+                    const tsPct = getProxyTS(espnId);
+                    const orebPct = getProxyOREB(espnId);
+                    advancedContainer.innerHTML = `
+                        <div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${netRtg>0?'+':''}${netRtg.toFixed(1)} ${getNetRatingBadge(netRtg)}</div><div class="metric-desc">${netRtg>=0?'Average or better':'Below average'}</div></div>
+                        <div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${tsPct.toFixed(1)}% ${getTSBadge(tsPct)}</div><div class="metric-desc">League avg ~57-58%</div></div>
+                        <div class="metric-card"><div class="metric-label">Offensive Rebound %</div><div class="metric-value">${orebPct.toFixed(1)}% ${getOREBBadge(orebPct)}</div><div class="metric-desc">League avg ~27%</div></div>
+                        <div class="metric-card"><div class="metric-label">Pace</div><div class="metric-value">${tStats.estPace.toFixed(1)}</div><div class="metric-desc">Possessions per 48 min</div></div>`;
+                } else {
+                    advancedContainer.innerHTML = '<div class="loading">Loading advanced metrics...</div>';
+                }
+                if (oppId && window.teamAnalyticsStore[oppId]) {
+                    const oppStats = window.teamAnalyticsStore[oppId];
+                    const oppNetRtg = oppStats.offRtg - oppStats.defRtg;
+                    const oppTsPct = getProxyTS(oppId);
+                    const oppOrebPct = getProxyOREB(oppId);
+                    oppAdvancedContainer.innerHTML = `
+                        <div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${oppNetRtg>0?'+':''}${oppNetRtg.toFixed(1)} ${getNetRatingBadge(oppNetRtg)}</div><div class="metric-desc">${oppNetRtg>=0?'Average or better':'Below average'}</div></div>
+                        <div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${oppTsPct.toFixed(1)}% ${getTSBadge(oppTsPct)}</div><div class="metric-desc">League avg ~57-58%</div></div>
+                        <div class="metric-card"><div class="metric-label">Offensive Rebound %</div><div class="metric-value">${oppOrebPct.toFixed(1)}% ${getOREBBadge(oppOrebPct)}</div><div class="metric-desc">League avg ~27%</div></div>
+                        <div class="metric-card"><div class="metric-label">Pace</div><div class="metric-value">${oppStats.estPace.toFixed(1)}</div><div class="metric-desc">Possessions per 48 min</div></div>`;
+                    oppPaceContainer.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Est. Pace</span> <span style="font-weight:bold;color:#1d428a;">${oppStats.estPace.toFixed(1)}</span></div>
+                        <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Offensive Rtg</span> <span style="font-weight:bold;color:#1d428a;">${oppStats.offRtg.toFixed(1)}</span></div>
+                        <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #eee;padding-bottom:5px;"><span>Defensive Rtg</span> <span style="font-weight:bold;color:#c8102e;">${oppStats.defRtg.toFixed(1)}</span></div>`;
+                    oppMetricsRow.style.display = 'flex';
+                    document.getElementById('opp-dashboard-title').innerHTML = `📊 Opponent (${oppAbbrev}): Sharp Bettor's Dashboard`;
+                    document.getElementById('opp-pace-title').innerHTML = `Opponent (${oppAbbrev}): Pace & Efficiency`;
+                } else {
+                    oppMetricsRow.style.display = 'none';
+                }
+                window.currentTeamId = espnId;
+                window.currentOppId = oppId;
+                highlightTeamAndOpponent(window.currentTeamId, window.currentOppId);
+            } catch (error) {
+                console.error(error);
+                nextContainer.innerHTML = '<p style="color:red;">Error loading games.</p>';
+                pastContainer.innerHTML = '';
+            }
         }
 
         const winLossPlugin = {
