@@ -103,18 +103,7 @@
         .opponent-cell { font-weight: bold; color: #1d428a; } .location-cell { font-size: 10px; }
 
         /* SLATE */
-        .syndicate-box {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: left;
-            border: 1px solid #d1d9e6;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            max-height: 60vh;
-            overflow: hidden;
-        }
+        .syndicate-box { background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; border: 1px solid #d1d9e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; max-height: 60vh; overflow: hidden; }
         .slate-header { display: flex; justify-content: space-between; align-items: center; background: #1d428a; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: #fff; font-weight: bold; font-size: 13px; flex-shrink: 0; }
         .slate-header button { background: #fff; color: #1d428a; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .slate-header button:hover { background: #eef2f5; }
@@ -122,7 +111,6 @@
         .slate-scrollable::-webkit-scrollbar { width: 6px; }
         .slate-scrollable::-webkit-scrollbar-track { background: #f0f2f5; }
         .slate-scrollable::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-
         .daily-slate-item { border-bottom: 1px dashed #ccc; padding: 12px 0; } .daily-slate-item:last-child { border-bottom: none; } .daily-slate-item:first-child { padding-top: 0; }
         .metric-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: #555; align-items: center; } .metric-row:last-child { margin-bottom: 0; }
         .metric-val { font-weight: bold; color: #1d428a; }
@@ -170,60 +158,40 @@
         .highlighted-team .rank-abbr { font-weight: bold; background-color: #e6f3ff; }
 
         /* BOUNCE-BACK */
-        #bounce-back-container {
-            background: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-top: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            display: block;
-        }
-        #bounce-back-container::-webkit-scrollbar { width: 6px; }
-        #bounce-back-container::-webkit-scrollbar-track { background: #f0f2f5; }
-        #bounce-back-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-
-        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        #bounce-back-container h3 small { font-weight: normal; font-size: 11px; color: #888; }
+        #bounce-back-container { background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #ddd; margin-top: 0; max-height: 300px; overflow-y: auto; display: block; }
+        #bounce-back-container::-webkit-scrollbar { width: 6px; } #bounce-back-container::-webkit-scrollbar-track { background: #f0f2f5; } #bounce-back-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        #bounce-back-container h3 { margin: 0 0 10px 0; font-size: 14px; color: #1d428a; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; } #bounce-back-container h3 small { font-weight: normal; font-size: 11px; color: #888; }
         .bounce-leaderboard { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; }
         .bounce-card { background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border-left: 4px solid var(--green); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; transition: 0.2s; cursor: default; }
-        .bounce-card:hover { background: #f0f4f8; }
-        .bounce-card .b-player { flex: 2; min-width: 120px; font-weight: bold; color: #1d428a; cursor: pointer; }
-        .bounce-card .b-player:hover { text-decoration: underline; }
-        .bounce-card .b-stat { font-size: 12px; color: #555; min-width: 100px; }
-        .bounce-card .b-confidence { flex: 2; min-width: 120px; display: flex; align-items: center; gap: 8px; }
-        .bounce-card .b-confidence .meter { height: 8px; border-radius: 4px; background: #e9ecef; flex: 1; overflow: hidden; }
-        .bounce-card .b-confidence .meter .fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
-        .bounce-card .b-confidence .meter .fill.high { background: #28a745; }
-        .bounce-card .b-confidence .meter .fill.med { background: #ffc107; }
-        .bounce-card .b-confidence .meter .fill.low { background: #dc3545; }
-        .bounce-card .b-confidence .pct { font-weight: bold; font-size: 14px; min-width: 45px; text-align: right; }
-        .bounce-card .b-badge { font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; background: #e9ecef; white-space: nowrap; }
-        .bounce-card .b-badge.hot { background: #28a745; color: #fff; }
-        .bounce-card .b-badge.mod { background: #ffc107; color: #333; }
-        .bounce-card .b-badge.cold { background: #dc3545; color: #fff; }
-        .bounce-card .b-history { font-size: 10px; color: #888; }
-        .bounce-arrows { font-size: 11px; letter-spacing: 1px; font-weight: bold; color: #333; }
-        .bounce-arrows .arrow-up { color: #28a745; }
-        .bounce-arrows .arrow-down { color: #dc3545; }
+        .bounce-card:hover { background: #f0f4f8; } .bounce-card .b-player { flex: 2; min-width: 120px; font-weight: bold; color: #1d428a; cursor: pointer; } .bounce-card .b-player:hover { text-decoration: underline; }
+        .bounce-card .b-stat { font-size: 12px; color: #555; min-width: 100px; } .bounce-card .b-confidence { flex: 2; min-width: 120px; display: flex; align-items: center; gap: 8px; }
+        .bounce-card .b-confidence .meter { height: 8px; border-radius: 4px; background: #e9ecef; flex: 1; overflow: hidden; } .bounce-card .b-confidence .meter .fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+        .bounce-card .b-confidence .meter .fill.high { background: #28a745; } .bounce-card .b-confidence .meter .fill.med { background: #ffc107; } .bounce-card .b-confidence .meter .fill.low { background: #dc3545; }
+        .bounce-card .b-confidence .pct { font-weight: bold; font-size: 14px; min-width: 45px; text-align: right; } .bounce-card .b-badge { font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; background: #e9ecef; white-space: nowrap; }
+        .bounce-card .b-badge.hot { background: #28a745; color: #fff; } .bounce-card .b-badge.mod { background: #ffc107; color: #333; } .bounce-card .b-badge.cold { background: #dc3545; color: #fff; }
+        .bounce-card .b-history { font-size: 10px; color: #888; } .bounce-arrows { font-size: 11px; letter-spacing: 1px; font-weight: bold; color: #333; } .bounce-arrows .arrow-up { color: #28a745; } .bounce-arrows .arrow-down { color: #dc3545; }
         .bounce-why { font-size: 10px; color: #555; background: #fff; padding: 6px 8px; border-radius: 4px; border: 1px dashed #ccc; margin-top: 5px; display: none; width: 100%; }
-        .bounce-card .b-why-toggle { font-size: 10px; color: #1d428a; cursor: pointer; background: none; border: none; padding: 2px 6px; border-radius: 4px; }
-        .bounce-card .b-why-toggle:hover { background: #e9ecef; }
-        .bounce-card .b-why-toggle:focus+.bounce-why { display: block; }
-        .bounce-sub { font-size: 10px; color: #999; margin-left: 5px; }
-        .bounce-empty { padding: 10px; text-align: center; color: #888; font-style: italic; }
+        .bounce-card .b-why-toggle { font-size: 10px; color: #1d428a; cursor: pointer; background: none; border: none; padding: 2px 6px; border-radius: 4px; } .bounce-card .b-why-toggle:hover { background: #e9ecef; }
+        .bounce-card .b-why-toggle:focus+.bounce-why { display: block; } .bounce-sub { font-size: 10px; color: #999; margin-left: 5px; } .bounce-empty { padding: 10px; text-align: center; color: #888; font-style: italic; }
 
-        /* PROJECTED STARTERS */
+        /* PROJECTED STARTERS (ENHANCED) */
         .starters-container { display: flex; gap: 20px; margin-top: 15px; }
         .starter-column { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 12px; border: 1px solid #e1e4e8; }
         .starter-column h3 { font-size: 13px; font-weight: bold; color: #1d428a; margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
-        .starter-list { display: flex; flex-direction: column; gap: 8px; }
-        .starter-item { display: flex; align-items: center; gap: 10px; padding: 6px; background: #fff; border-radius: 6px; border: 1px solid #eee; }
-        .starter-item img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #ddd; }
-        .starter-item .starter-name { font-weight: bold; font-size: 13px; color: #333; }
-        .starter-item .starter-role { font-size: 10px; color: #777; }
-        .starter-item .starter-stats { font-size: 11px; color: #555; margin-left: auto; }
+        .starter-list { display: flex; flex-direction: column; gap: 10px; }
+        .starter-item { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 8px; background: #fff; border-radius: 8px; border: 1px solid #eee; }
+        .starter-item img { width: 57.6px; height: 57.6px; border-radius: 50%; object-fit: cover; background: #ddd; }
+        .starter-item .photo-fallback { width: 57.6px; height: 57.6px; border-radius: 50%; background: #1d428a; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .starter-item .starter-info { flex: 1; min-width: 120px; }
+        .starter-item .starter-name { font-weight: bold; font-size: 14px; color: #333; cursor: pointer; }
+        .starter-item .starter-name:hover { text-decoration: underline; color: #1d428a; }
+        .starter-item .starter-role { font-size: 11px; color: #777; }
+        .starter-item .starter-stats { font-size: 12px; color: #555; margin-left: auto; white-space: nowrap; }
+        .starter-mini-table { width: 100%; margin-top: 8px; font-size: 10px; border-collapse: collapse; display: none; }
+        .starter-mini-table th { background: #f1f3f5; padding: 3px 4px; border: 1px solid #ddd; font-weight: normal; }
+        .starter-mini-table td { text-align: center; padding: 2px 4px; border: 1px solid #eee; }
+        .toggle-table-btn { font-size: 11px; color: #1d428a; background: none; border: 1px solid #1d428a; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; }
+        .toggle-table-btn:hover { background: #eef2f5; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -271,7 +239,7 @@
                         <div class="chart-container" id="h2h-container"><canvas id="h2hChart"></canvas></div>
                     </div>
                 </div>
-                <!-- NEW: PROJECTED STARTERS ROW -->
+                <!-- PROJECTED STARTERS ROW -->
                 <div class="flex-row" id="starters-row" style="display:none;">
                     <div class="flex-item panel-box" id="starters-team-box">
                         <div id="starters-team-content" class="starters-container"></div>
@@ -316,7 +284,6 @@
                     <div class="section-title">Last 3 Matches: <span id="opp-team-title">Opponent</span></div>
                     <div class="past-games-grid" id="opp-past-games-container"></div>
                 </div>
-                <!-- UNIFIED PROPS -->
                 <div id="props-recommendation-section" style="display:none;" class="props-container">
                     <div class="section-title">🎯 Unified Prop Alpha (Single Decisive Signal)</div>
                     <div class="props-dual-grid" id="props-dual-container">
@@ -420,27 +387,27 @@
 
         function calculateStdDev(v) {
             if (v.length < 2) return 0;
-            const m = v.reduce((a, b) => a + b, 0) / v.length;
-            return Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (v.length - 1));
+            const m = v.reduce((a,b) => a+b, 0)/v.length;
+            return Math.sqrt(v.reduce((a,b) => a+(b-m)**2, 0)/(v.length-1));
         }
 
         function calcWeightedAvg(v) {
             if (!v.length) return 0;
-            const w = v.map((_, i) => 0.25 * Math.pow(0.85, i));
-            const tw = w.reduce((a, b) => a + b, 0);
-            return v.reduce((a, val, i) => a + val * w[i], 0) / tw;
+            const w = v.map((_, i) => 0.25*Math.pow(0.85,i));
+            const tw = w.reduce((a,b)=>a+b,0);
+            return v.reduce((a,val,i) => a+val*w[i],0)/tw;
         }
 
         function calibrateLine(rp) {
             if (rp <= 0.3) return 0.5;
-            const rd = Math.round(rp * 2) / 2;
+            const rd = Math.round(rp*2)/2;
             if (rd < 0.5) return 0.5;
             if (Math.abs(rd - rp) < 0.15) return rd;
-            return Math.round(rp * 2) / 2;
+            return Math.round(rp*2)/2;
         }
 
         // ============================================================
-        //  FETCH PLAYER LOGS
+        //  FETCH PLAYER LOGS (includes fullName)
         // ============================================================
         async function fetchPlayerGameLogs(teamId, numGames = 10) {
             if (window.playerGameLogsCache[teamId]) return window.playerGameLogsCache[teamId];
@@ -473,11 +440,12 @@
                         const idx = getStatLabelsFromESPN(statsArray.labels || []);
                         for (const athlete of statsArray.athletes) {
                             if (athlete.didNotPlay) continue;
-                            const name = athlete.athlete.shortName || athlete.athlete.displayName;
-                            if (!name) continue;
+                            const shortName = athlete.athlete.shortName || athlete.athlete.displayName;
+                            const fullName = athlete.athlete.displayName || shortName;
+                            if (!shortName) continue;
                             const playerId = athlete.athlete.id;
-                            if (!ps.has(name)) ps.set(name, []);
-                            ps.get(name).push({
+                            if (!ps.has(shortName)) ps.set(shortName, []);
+                            ps.get(shortName).push({
                                 date: gd,
                                 isHome,
                                 opponent: oppAbbr,
@@ -489,7 +457,8 @@
                                 stl: idx.stl >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.stl]) || 0 : 0,
                                 tpm: idx.tpm >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.tpm]) || 0 : 0,
                                 min: idx.min >= 0 && athlete.stats ? parseFloat(athlete.stats[idx.min]) || 0 : 0,
-                                playerId: playerId
+                                playerId: playerId,
+                                fullName: fullName
                             });
                         }
                     } catch (e) { continue; }
@@ -520,102 +489,66 @@
         //  MODELS (Bayesian, Matchup, Poisson, GBM)
         // ============================================================
         function computeBayesianProjection(prop) {
-            const vals = prop.allVals,
-                n = vals.length;
+            const vals = prop.allVals, n = vals.length;
             if (n < 3) return null;
-            const sm = vals.reduce((a, b) => a + b, 0) / n;
-            const sv = n >= 2 ? vals.reduce((a, b) => a + (b - sm) ** 2, 0) / (n - 1) : 1;
-            const pm = prop.avgAll,
-                pv = Math.max(sv * 0.8, 0.5),
-                lv = sv / Math.max(n, 1);
-            const pp = 1 / pv,
-                lp = 1 / Math.max(lv, 0.01),
-                tp = pp + lp,
-                tv = 1 / tp;
-            const postMean = (pm * pp + sm * lp) / tp,
-                postStd = Math.sqrt(tv);
-            return {
-                priorMean: pm,
-                posteriorMean: postMean,
-                posteriorStd: postStd,
-                ciLow: Math.max(0, postMean - 1.96 * postStd),
-                ciHigh: postMean + 1.96 * postStd,
-                shift: postMean - pm
-            };
+            const sm = vals.reduce((a,b)=>a+b,0)/n;
+            const sv = n>=2 ? vals.reduce((a,b)=>a+(b-sm)**2,0)/(n-1) : 1;
+            const pm = prop.avgAll, pv = Math.max(sv*0.8,0.5), lv = sv/Math.max(n,1);
+            const pp = 1/pv, lp = 1/Math.max(lv,0.01), tp = pp+lp, tv = 1/tp;
+            const postMean = (pm*pp + sm*lp)/tp, postStd = Math.sqrt(tv);
+            return { priorMean: pm, posteriorMean: postMean, posteriorStd: postStd, ciLow: Math.max(0,postMean-1.96*postStd), ciHigh: postMean+1.96*postStd, shift: postMean-pm };
         }
 
         function computeOpponentMatchup(prop) {
-            const games = prop.games,
-                oppId = prop.oppId;
+            const games = prop.games, oppId = prop.oppId;
             if (!oppId || games.length < 2) return null;
-            const mg = games.filter(g => g.opponentId === oppId),
-                nm = games.filter(g => g.opponentId !== oppId);
+            const mg = games.filter(g=>g.opponentId===oppId), nm = games.filter(g=>g.opponentId!==oppId);
             if (!mg.length) return { hasHistory: false };
-            const mv = mg.map(g => g[prop.statKey]),
-                nv = nm.map(g => g[prop.statKey]);
-            const ma = mv.reduce((a, b) => a + b, 0) / mv.length;
-            const na = nv.length ? nv.reduce((a, b) => a + b, 0) / nv.length : prop.avgAll;
-            return { hasHistory: true, diff: ma - na, matchupAvg: ma, nonMatchupAvg: na };
+            const mv = mg.map(g=>g[prop.statKey]), nv = nm.map(g=>g[prop.statKey]);
+            const ma = mv.reduce((a,b)=>a+b,0)/mv.length;
+            const na = nv.length ? nv.reduce((a,b)=>a+b,0)/nv.length : prop.avgAll;
+            return { hasHistory: true, diff: ma-na, matchupAvg: ma, nonMatchupAvg: na };
         }
 
         function computePoissonModel(prop) {
             if (!prop.isDiscrete) return null;
-            const vals = prop.allVals,
-                n = vals.length;
+            const vals = prop.allVals, n = vals.length;
             if (n < 3) return null;
-            const lam = vals.reduce((a, b) => a + b, 0) / n;
-            const lamAdj = lam * (1 + (prop.avgLast3 - prop.avgAll) / Math.max(prop.avgAll, 0.5) * 0.4);
+            const lam = vals.reduce((a,b)=>a+b,0)/n;
+            const lamAdj = lam * (1 + (prop.avgLast3 - prop.avgAll) / Math.max(prop.avgAll,0.5) * 0.4);
             const fl = Math.max(0.1, lamAdj);
-
-            function pmf(k, l) {
-                if (k < 0) return 0;
-                let lp = -l + k * Math.log(l);
-                for (let i = 2; i <= k; i++) lp -= Math.log(i);
-                return Math.exp(lp);
-            }
-            const maxK = Math.max(Math.ceil(fl * 3), Math.ceil(prop.line * 2), 10);
-            let po = 0,
-                pu = 0;
-            for (let k = 0; k <= maxK; k++) {
-                const pk = pmf(k, fl);
-                if (k > prop.line) po += pk;
-                if (k < prop.line) pu += pk;
-            }
-            const tp = po + pu;
-            return { lambda: fl, probOver: tp > 0 ? po / tp : 0.5, probUnder: tp > 0 ? pu / tp : 0.5 };
+            function pmf(k,l) { if(k<0) return 0; let lp = -l + k*Math.log(l); for(let i=2;i<=k;i++) lp -= Math.log(i); return Math.exp(lp); }
+            const maxK = Math.max(Math.ceil(fl*3), Math.ceil(prop.line*2), 10);
+            let po=0, pu=0;
+            for(let k=0;k<=maxK;k++) { const pk = pmf(k,fl); if(k>prop.line) po+=pk; if(k<prop.line) pu+=pk; }
+            const tp = po+pu;
+            return { lambda: fl, probOver: tp>0?po/tp:0.5, probUnder: tp>0?pu/tp:0.5 };
         }
 
         function computeGBMProjection(prop) {
-            const games = prop.games,
-                n = games.length;
+            const games = prop.games, n = games.length;
             if (n < 3) return null;
             const f = {};
             f['RecentForm(L3)'] = { value: prop.avgLast3, weight: 0.22 };
-            f['Home/Away'] = { value: prop.isHome ? prop.avgAll * 1.04 : prop.avgAll * 0.96, weight: 0.10 };
-            f['OppDefRtg'] = { value: prop.avgAll * (1 + (prop.rawProjection - prop.avgAll) / Math.max(prop.avgAll, 0.5) * 0.3), weight: 0.18 };
-            f['PaceFactor'] = { value: prop.avgAll * (prop.rawProjection / Math.max(prop.avgAll, 0.5) * 0.5 + 0.5), weight: 0.14 };
-            f['Consistency'] = { value: prop.consistencyPct > 55 ? prop.avgAll * 1.03 : prop.avgAll * 0.97, weight: 0.12 };
-            f['StdDevPenalty'] = { value: prop.stdDev < prop.avgAll * 0.3 ? prop.avgAll * 1.02 : prop.avgAll * 0.98, weight: 0.10 };
-            f['GamesPlayed'] = { value: n >= 8 ? prop.avgAll * 1.01 : prop.avgAll * 0.99, weight: 0.06 };
-            let ws = 0,
-                tw = 0;
-            for (const [k, v] of Object.entries(f)) { ws += v.value * v.weight;
-                tw += v.weight; }
-            return { gbmProjection: tw > 0 ? ws / tw : prop.avgAll };
+            f['Home/Away'] = { value: prop.isHome ? prop.avgAll*1.04 : prop.avgAll*0.96, weight: 0.10 };
+            f['OppDefRtg'] = { value: prop.avgAll*(1+(prop.rawProjection-prop.avgAll)/Math.max(prop.avgAll,0.5)*0.3), weight: 0.18 };
+            f['PaceFactor'] = { value: prop.avgAll*(prop.rawProjection/Math.max(prop.avgAll,0.5)*0.5+0.5), weight: 0.14 };
+            f['Consistency'] = { value: prop.consistencyPct>55?prop.avgAll*1.03:prop.avgAll*0.97, weight: 0.12 };
+            f['StdDevPenalty'] = { value: prop.stdDev<prop.avgAll*0.3?prop.avgAll*1.02:prop.avgAll*0.98, weight: 0.10 };
+            f['GamesPlayed'] = { value: n>=8?prop.avgAll*1.01:prop.avgAll*0.99, weight: 0.06 };
+            let ws=0, tw=0;
+            for (const [k,v] of Object.entries(f)) { ws += v.value*v.weight; tw += v.weight; }
+            return { gbmProjection: tw>0 ? ws/tw : prop.avgAll };
         }
 
         // ============================================================
         //  UNIFIED PROP ALPHA (UPA)
         // ============================================================
         function computeUPA(prop) {
-            const mfProj = prop.rawProjection,
-                line = prop.line,
-                stdDev = prop.stdDev || 1;
+            const mfProj = prop.rawProjection, line = prop.line, stdDev = prop.stdDev || 1;
             const bayes = computeBayesianProjection(prop);
-            let bayesProj = mfProj,
-                bayesStd = stdDev;
-            if (bayes) { bayesProj = bayes.posteriorMean;
-                bayesStd = bayes.posteriorStd || stdDev; }
+            let bayesProj = mfProj, bayesStd = stdDev;
+            if (bayes) { bayesProj = bayes.posteriorMean; bayesStd = bayes.posteriorStd || stdDev; }
             const gbmRes = computeGBMProjection(prop);
             let gbmProj = mfProj;
             if (gbmRes) gbmProj = gbmRes.gbmProjection;
@@ -642,30 +575,22 @@
             let gbmAgreement = gbmRes ? 1 - Math.min(1, Math.abs(gbmProj - mfProj) / Math.max(mfProj, 1)) : 0.5;
             let confScore = mfConf * 0.4 + bayesPrecision * 0.3 + gbmAgreement * 0.3;
             confScore = Math.min(1, Math.max(0.2, confScore));
-            let booster = 0,
-                drivers = [];
-            if (bayes && bayes.shift > 0.5) { booster += 0.12;
-                drivers.push('Bayesian uptick'); }
-            if (matchupEdge > 1.5) { booster += 0.10;
-                drivers.push('Opponent edge'); }
-            if (poisson && poissonOverProb > 0.65) { booster += 0.08;
-                drivers.push('Poisson edge'); }
-            if (prop.games.length > 0 && !prop.games[prop.games.length - 1].teamWin) { booster += 0.05;
-                drivers.push('Zig-Zag'); }
-            if (consensus >= 0.8) { booster += 0.10;
-                drivers.push('Strong consensus'); } else if (consensus <= 0.4) { booster -= 0.10;
-                drivers.push('Split consensus'); }
+            let booster = 0, drivers = [];
+            if (bayes && bayes.shift > 0.5) { booster += 0.12; drivers.push('Bayesian uptick'); }
+            if (matchupEdge > 1.5) { booster += 0.10; drivers.push('Opponent edge'); }
+            if (poisson && poissonOverProb > 0.65) { booster += 0.08; drivers.push('Poisson edge'); }
+            if (prop.games.length > 0 && !prop.games[prop.games.length - 1].teamWin) { booster += 0.05; drivers.push('Zig-Zag'); }
+            if (consensus >= 0.8) { booster += 0.10; drivers.push('Strong consensus'); } else if (consensus <= 0.4) { booster -= 0.10; drivers.push('Split consensus'); }
             let rawScore = avgZ * 100 * (0.6 + 0.4 * confScore) * (1 + booster);
             rawScore = Math.min(100, Math.max(-100, rawScore));
             let signal, signalClass;
-            if (rawScore > 70) { signal = 'STRONG OVER';
-                signalClass = 'strong-over'; } else if (rawScore > 30) { signal = 'OVER';
-                signalClass = 'over'; } else if (rawScore > 10) { signal = 'Lean OVER';
-                signalClass = 'lean-over'; } else if (rawScore >= -10) { signal = 'PASS';
-                signalClass = 'pass'; } else if (rawScore > -30) { signal = 'Lean UNDER';
-                signalClass = 'lean-under'; } else if (rawScore > -70) { signal = 'UNDER';
-                signalClass = 'under'; } else { signal = 'STRONG UNDER';
-                signalClass = 'strong-under'; }
+            if (rawScore > 70) { signal = 'STRONG OVER'; signalClass = 'strong-over'; }
+            else if (rawScore > 30) { signal = 'OVER'; signalClass = 'over'; }
+            else if (rawScore > 10) { signal = 'Lean OVER'; signalClass = 'lean-over'; }
+            else if (rawScore >= -10) { signal = 'PASS'; signalClass = 'pass'; }
+            else if (rawScore > -30) { signal = 'Lean UNDER'; signalClass = 'lean-under'; }
+            else if (rawScore > -70) { signal = 'UNDER'; signalClass = 'under'; }
+            else { signal = 'STRONG UNDER'; signalClass = 'strong-under'; }
             const unifiedConf = Math.min(95, Math.max(10, Math.round((Math.abs(rawScore) / 100) * 0.7 * confScore * 100 + 15)));
             const unifiedProj = mfProj * 0.3 + bayesProj * 0.35 + gbmProj * 0.35;
             const breakdown = {
@@ -687,9 +612,7 @@
             enriched.sort((a, b) => Math.abs(b.upa.rawScore) - Math.abs(a.upa.rawScore));
             let html = '';
             enriched.forEach(p => {
-                const u = p.upa,
-                    safeName = p.player.replace(/'/g, "\\'"),
-                    isHomeTag = p.isHome ? 'home-tag' : 'away-tag';
+                const u = p.upa, safeName = p.player.replace(/'/g, "\\'"), isHomeTag = p.isHome ? 'home-tag' : 'away-tag';
                 const homeLabel = p.isHome ? '🏠 Home' : '✈️ Away';
                 html += `<div class="unified-prop-card" style="border-left-color:${u.signalClass.includes('over')?'#28a745':u.signalClass.includes('under')?'#dc3545':'#888'};">
                     <div class="up-header">
@@ -719,9 +642,6 @@
             return html;
         }
 
-        // ============================================================
-        //  GENERATE PROPS
-        // ============================================================
         function generateAdvancedPropsForTeam(teamId, oppId, teamAbbrev, isHomeGame, playerGameLogs) {
             const oppDefRanks = oppId ? getOpponentDefensiveRanks(oppId) : null;
             const oppStats = oppId ? window.teamAnalyticsStore[oppId] : null;
@@ -731,29 +651,24 @@
             const allProps = [];
             for (const [playerName, games] of playerGameLogs.entries()) {
                 if (games.length < 3) continue;
-                const last3 = games.slice(-3),
-                    last10 = games.slice(-10);
-                const homeGames = games.filter(g => g.isHome),
-                    awayGames = games.filter(g => !g.isHome);
+                const last3 = games.slice(-3), last10 = games.slice(-10);
+                const homeGames = games.filter(g => g.isHome), awayGames = games.filter(g => !g.isHome);
                 for (const [statKey, config] of Object.entries(STAT_CONFIG)) {
                     const allVals = games.map(g => g[statKey]).filter(v => v > 0 || statKey === 'blk' || statKey === 'stl');
-                    const last3Vals = last3.map(g => g[statKey]),
-                        last10Vals = last10.map(g => g[statKey]);
-                    const homeVals = homeGames.map(g => g[statKey]),
-                        awayVals = awayGames.map(g => g[statKey]);
-                    const avgAll = allVals.length ? allVals.reduce((a, b) => a + b, 0) / allVals.length : 0;
-                    const avgLast3 = last3Vals.length ? last3Vals.reduce((a, b) => a + b, 0) / last3Vals.length : avgAll;
-                    const avgLast10 = last10Vals.length ? last10Vals.reduce((a, b) => a + b, 0) / last10Vals.length : avgAll;
-                    const avgHome = homeVals.length ? homeVals.reduce((a, b) => a + b, 0) / homeVals.length : avgAll;
-                    const avgAway = awayVals.length ? awayVals.reduce((a, b) => a + b, 0) / awayVals.length : avgAll;
+                    const last3Vals = last3.map(g => g[statKey]), last10Vals = last10.map(g => g[statKey]);
+                    const homeVals = homeGames.map(g => g[statKey]), awayVals = awayGames.map(g => g[statKey]);
+                    const avgAll = allVals.length ? allVals.reduce((a,b)=>a+b,0)/allVals.length : 0;
+                    const avgLast3 = last3Vals.length ? last3Vals.reduce((a,b)=>a+b,0)/last3Vals.length : avgAll;
+                    const avgLast10 = last10Vals.length ? last10Vals.reduce((a,b)=>a+b,0)/last10Vals.length : avgAll;
+                    const avgHome = homeVals.length ? homeVals.reduce((a,b)=>a+b,0)/homeVals.length : avgAll;
+                    const avgAway = awayVals.length ? awayVals.reduce((a,b)=>a+b,0)/awayVals.length : avgAll;
                     if (avgAll < config.minQualify && statKey !== 'blk' && statKey !== 'stl') continue;
                     if ((statKey === 'blk' || statKey === 'stl') && avgAll < config.minQualify && allVals.filter(v => v > 0).length < 2) continue;
                     const stdDev = calculateStdDev(allVals.length >= 3 ? allVals : [...allVals, avgAll]);
                     let rawProj = avgLast3 * 0.6 + avgLast10 * 0.4;
                     const haAdj = isHomeGame ? (avgHome - avgAll) * 0.5 : (avgAway - avgAll) * 0.5;
                     rawProj += haAdj;
-                    if (oppDefRanks) { const dr = (oppDefRanks[statKey] - 110) / 10;
-                        rawProj += dr * config.defRtgWeight; }
+                    if (oppDefRanks) { const dr = (oppDefRanks[statKey] - 110) / 10; rawProj += dr * config.defRtgWeight; }
                     rawProj += (paceFactor - 1) * config.paceWeight * avgAll;
                     if (isHomeGame) rawProj += config.homeBoost * 0.3;
                     rawProj = Math.max(0, rawProj);
@@ -768,42 +683,21 @@
                     if (Math.abs(rawProj - line) > 0.8) confScore += 0.05;
                     confScore = Math.max(0.25, Math.min(0.95, confScore));
                     allProps.push({
-                        player: playerName,
-                        statKey,
-                        statLabel: config.label,
-                        statIcon: config.icon,
-                        isDiscrete: config.isDiscrete,
-                        line,
-                        rawProjection: rawProj,
-                        confidence: Math.round(confScore * 100),
-                        consistencyPct: Math.round(consistencyPct * 100),
-                        stdDev,
-                        gamesCount: games.length,
-                        isHome: isHomeGame,
-                        avgAll,
-                        avgLast3,
-                        avgLast10,
-                        allVals,
-                        teamAbbrev,
-                        teamId,
-                        oppId,
-                        games
+                        player: playerName, statKey, statLabel: config.label, statIcon: config.icon, isDiscrete: config.isDiscrete,
+                        line, rawProjection: rawProj, confidence: Math.round(confScore * 100), consistencyPct: Math.round(consistencyPct * 100),
+                        stdDev, gamesCount: games.length, isHome: isHomeGame, avgAll, avgLast3, avgLast10, allVals,
+                        teamAbbrev, teamId, oppId, games
                     });
                 }
             }
-            allProps.sort((a, b) => b.confidence - a.confidence);
-            return allProps.slice(0, 10);
+            allProps.sort((a,b)=>b.confidence - a.confidence);
+            return allProps.slice(0,10);
         }
 
-        // ============================================================
-        //  UPDATE PROPS SECTION + PROJECTED STARTERS
-        // ============================================================
         async function updateAdvancedPropsSection(teamId, oppId, teamAbbrev, oppAbbrev) {
             const ps = document.getElementById('props-recommendation-section');
-            const listA = document.getElementById('props-list-team-a'),
-                listB = document.getElementById('props-list-team-b');
-            const titleA = document.getElementById('props-team-a-title'),
-                titleB = document.getElementById('props-team-b-title');
+            const listA = document.getElementById('props-list-team-a'), listB = document.getElementById('props-list-team-b');
+            const titleA = document.getElementById('props-team-a-title'), titleB = document.getElementById('props-team-b-title');
             const teamBCol = document.getElementById('props-team-b-column');
             if (!oppId) { ps.style.display = 'none'; return; }
             ps.style.display = 'block';
@@ -821,7 +715,6 @@
                 let propsB = generateAdvancedPropsForTeam(oppId, teamId, oppAbbrev, false, logsB);
                 listA.innerHTML = renderUnifiedProps(propsA, teamId);
                 listB.innerHTML = renderUnifiedProps(propsB, oppId);
-                // After logs are ready, render projected starters
                 await renderProjectedStarters(teamId, oppId, teamAbbrev, oppAbbrev);
             } catch (e) {
                 console.error('Props error:', e);
@@ -831,7 +724,7 @@
         }
 
         // ============================================================
-        //  RENDER PROJECTED STARTERS (NEW FEATURE)
+        //  ENHANCED PROJECTED STARTERS (full names, larger photos, mini-table)
         // ============================================================
         async function renderProjectedStarters(teamId, oppId, teamAbbrev, oppAbbrev) {
             const row = document.getElementById('starters-row');
@@ -839,64 +732,73 @@
             const oppContent = document.getElementById('starters-opp-content');
             if (!row || !teamContent || !oppContent) return;
 
-            // Ensure logs are cached
-            try {
-                await Promise.all([fetchPlayerGameLogs(teamId, 10), fetchPlayerGameLogs(oppId, 10)]);
-            } catch (e) {}
+            try { await Promise.all([fetchPlayerGameLogs(teamId,10), fetchPlayerGameLogs(oppId,10)]); } catch(e){}
 
-            const renderColumn = (teamId, abbrev) => {
+            const buildStarterColumn = (teamId, abbrev) => {
                 const logs = window.playerGameLogsCache[teamId];
                 if (!logs || logs.size === 0) return `<div class="starter-column"><h3>${abbrev} Projected Starters</h3><p class="loading">No player data available.</p></div>`;
+
                 const players = [];
-                logs.forEach((games, name) => {
+                logs.forEach((games, shortName) => {
                     const last3 = games.slice(-3);
                     let totalMin = 0, totalPts = 0, count = 0;
-                    last3.forEach(g => {
-                        totalMin += g.min || 0;
-                        totalPts += g.pts || 0;
-                        count++;
-                    });
+                    last3.forEach(g => { totalMin += g.min || 0; totalPts += g.pts || 0; count++; });
                     const avgMin = count > 0 ? totalMin / count : 0;
                     const avgPts = count > 0 ? totalPts / count : 0;
                     const playerId = games[games.length-1]?.playerId;
-                    players.push({ name, avgMin, avgPts, playerId });
+                    const fullName = games[0]?.fullName || shortName;
+                    players.push({ name: fullName, shortName, avgMin, avgPts, playerId, games });
                 });
-                // Sort by average minutes descending, fallback to points
-                players.sort((a, b) => (b.avgMin - a.avgMin) || (b.avgPts - a.avgPts));
-                const starters = players.slice(0, 5);
+                players.sort((a,b) => (b.avgMin - a.avgMin) || (b.avgPts - a.avgPts));
+                const starters = players.slice(0,5);
                 if (starters.length === 0) return `<div class="starter-column"><h3>${abbrev} Projected Starters</h3><p class="loading">Not enough data.</p></div>`;
+
                 let itemsHtml = '';
                 starters.forEach(p => {
-                    const imgSrc = p.playerId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/wnba/players/full/${p.playerId}.png&w=80&h=80` : '';
+                    const imgSrc = p.playerId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/wnba/players/full/${p.playerId}.png&w=120&h=120` : '';
                     const initials = p.name.split(' ').map(s=>s[0]).join('').substring(0,2).toUpperCase();
                     const imgTag = p.playerId
-                        ? `<img src="${imgSrc}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy"><span class="photo-fallback" style="display:none;width:48px;height:48px;border-radius:50%;background:#1d428a;color:white;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">${initials}</span>`
-                        : `<span class="photo-fallback" style="display:flex;width:48px;height:48px;border-radius:50%;background:#1d428a;color:white;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">${initials}</span>`;
+                        ? `<img src="${imgSrc}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy"><span class="photo-fallback" style="display:none;">${initials}</span>`
+                        : `<span class="photo-fallback" style="display:flex;">${initials}</span>`;
+
+                    let tableHtml = `<table class="starter-mini-table" id="table-${teamId}-${p.shortName.replace(/\s/g,'')}"><thead><tr><th>Date</th><th>PTS</th><th>REB</th><th>AST</th><th>3PM</th></tr></thead><tbody>`;
+                    const last10 = p.games.slice(-10).reverse();
+                    last10.forEach(g => {
+                        const dateStr = g.date.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+                        tableHtml += `<tr><td>${dateStr}</td><td>${g.pts}</td><td>${g.reb}</td><td>${g.ast}</td><td>${g.tpm}</td></tr>`;
+                    });
+                    tableHtml += `</tbody></table>`;
+
                     itemsHtml += `<div class="starter-item">
                         ${imgTag}
-                        <div>
-                            <div class="starter-name">${p.name}</div>
+                        <div class="starter-info">
+                            <div class="starter-name" onclick="toggleStarterTable('${teamId}','${p.shortName.replace(/\s/g,'')}')" title="Click to toggle game log">${p.name}</div>
                             <div class="starter-role">${p.avgMin > 0 ? p.avgMin.toFixed(1)+' MPG' : p.avgPts.toFixed(1)+' PPG'}</div>
                         </div>
                         <div class="starter-stats">${p.avgPts.toFixed(1)} PPG</div>
+                        <button class="toggle-table-btn" onclick="toggleStarterTable('${teamId}','${p.shortName.replace(/\s/g,'')}')">📊</button>
+                        ${tableHtml}
                     </div>`;
                 });
                 return `<div class="starter-column">
                     <h3>${abbrev} Projected Starters</h3>
                     <div class="starter-list">${itemsHtml}</div>
-                    <div style="font-size:9px;color:#888;text-align:center;margin-top:8px;">Based on last 3 games</div>
+                    <div style="font-size:9px;color:#888;text-align:center;margin-top:8px;">Based on last 3 games · Click name or 📊 for game log</div>
                 </div>`;
             };
 
-            const teamHtml = renderColumn(teamId, teamAbbrev);
-            const oppHtml = renderColumn(oppId, oppAbbrev);
-            teamContent.innerHTML = teamHtml;
-            oppContent.innerHTML = oppHtml;
+            teamContent.innerHTML = buildStarterColumn(teamId, teamAbbrev);
+            oppContent.innerHTML = buildStarterColumn(oppId, oppAbbrev);
             row.style.display = 'flex';
         }
 
+        function toggleStarterTable(teamId, shortNameClean) {
+            const table = document.getElementById(`table-${teamId}-${shortNameClean}`);
+            if (table) table.style.display = table.style.display === 'table' ? 'none' : 'table';
+        }
+
         // ============================================================
-        //  BOUNCE-BACK ALGORITHM (original working version)
+        //  BOUNCE-BACK ALGORITHM (original)
         // ============================================================
         function computeBounceBackBetsForSlate(events) {
             const bets = [];
@@ -930,19 +832,12 @@
                             name: playerName,
                             teamId,
                             teamAbbrev: team.team.abbreviation,
-                            avgPts,
-                            avgReb,
-                            avgAst,
-                            avgTpm,
-                            lastPts,
-                            lastReb,
-                            lastAst,
-                            lastTpm,
+                            avgPts, avgReb, avgAst, avgTpm,
+                            lastPts, lastReb, lastAst, lastTpm,
                             games: totalGames,
                             opponent: comp.competitors.find(c => c.team.id !== teamId)?.team.abbreviation || '?'
                         });
                     });
-                    // Rankings
                     const sortedPts = [...playerData].sort((a, b) => b.avgPts - a.avgPts);
                     const topPts = sortedPts.slice(0, 3);
                     const sortedReb = [...playerData].sort((a, b) => b.avgReb - a.avgReb);
@@ -951,43 +846,14 @@
                     const topAst = sortedAst.slice(0, 1);
                     const sortedTpm = [...playerData].sort((a, b) => b.avgTpm - a.avgTpm);
                     const topTpm = sortedTpm.slice(0, 1);
-
                     const candidates = [];
-                    topPts.forEach(p => {
-                        if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) {
-                            candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts });
-                        }
-                    });
-                    topReb.forEach(p => {
-                        if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) {
-                            candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb });
-                        }
-                    });
-                    topAst.forEach(p => {
-                        if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) {
-                            candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst });
-                        }
-                    });
-                    topTpm.forEach(p => {
-                        if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) {
-                            candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm });
-                        }
-                    });
-                    candidates.forEach(c => {
-                        bets.push({
-                            player: c.name,
-                            team: c.teamAbbrev,
-                            teamId: c.teamId,
-                            stat: c.stat,
-                            avg: c.avg,
-                            last: c.last,
-                            bounce: c.bounce,
-                            opponent: c.opponent
-                        });
-                    });
+                    topPts.forEach(p => { if (p.lastPts < p.avgPts * 0.7 && p.lastPts >= 0) candidates.push({ ...p, stat: 'Points', avg: p.avgPts, last: p.lastPts, bounce: p.avgPts - p.lastPts }); });
+                    topReb.forEach(p => { if (p.lastReb < p.avgReb * 0.7 && p.lastReb >= 0) candidates.push({ ...p, stat: 'Rebounds', avg: p.avgReb, last: p.lastReb, bounce: p.avgReb - p.lastReb }); });
+                    topAst.forEach(p => { if (p.lastAst < p.avgAst * 0.7 && p.lastAst >= 0) candidates.push({ ...p, stat: 'Assists', avg: p.avgAst, last: p.lastAst, bounce: p.avgAst - p.lastAst }); });
+                    topTpm.forEach(p => { if (p.lastTpm < p.avgTpm * 0.7 && p.lastTpm >= 0) candidates.push({ ...p, stat: '3PM', avg: p.avgTpm, last: p.lastTpm, bounce: p.avgTpm - p.lastTpm }); });
+                    candidates.forEach(c => { bets.push({ player: c.name, team: c.teamAbbrev, teamId: c.teamId, stat: c.stat, avg: c.avg, last: c.last, bounce: c.bounce, opponent: c.opponent }); });
                 });
             });
-            // Sort by bounce potential (highest first) and take top 10
             bets.sort((a, b) => b.bounce - a.bounce);
             return bets.slice(0, 10);
         }
@@ -997,21 +863,15 @@
             const leaderboard = document.getElementById('bounce-leaderboard');
             const list = document.getElementById('bounce-back-list');
             if (!container || !leaderboard || !list) return;
-
             container.style.display = 'block';
-
             if (!bets || bets.length === 0) {
                 leaderboard.innerHTML = '';
                 list.innerHTML = '<div class="bounce-empty">No bounce-back signals found for today\'s slate.</div>';
                 return;
             }
-
             const top5 = bets.slice(0, 5);
             const rest = bets.slice(5);
-
-            // Confidence score: based on bounce magnitude (max 85%)
             const calcConf = (bounce) => Math.min(85, 35 + bounce * 8);
-
             let lbHtml = '';
             top5.forEach((s, idx) => {
                 const conf = calcConf(s.bounce);
@@ -1037,7 +897,6 @@
                 </div>`;
             });
             leaderboard.innerHTML = lbHtml;
-
             let restHtml = '';
             rest.forEach(s => {
                 const conf = calcConf(s.bounce);
@@ -1076,10 +935,8 @@
                 mm = String(currentSlateDate.getMonth() + 1).padStart(2, '0'),
                 dd = String(currentSlateDate.getDate()).padStart(2, '0');
             document.getElementById('slate-date-display').innerText = `${mm}/${dd}/${yyyy}`;
-            const yesterday = new Date(currentSlateDate);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const tomorrow = new Date(currentSlateDate);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yesterday = new Date(currentSlateDate); yesterday.setDate(yesterday.getDate() - 1);
+            const tomorrow = new Date(currentSlateDate); tomorrow.setDate(tomorrow.getDate() + 1);
             const fmtDate = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
             let b2bTeams = new Set();
             try {
@@ -1090,17 +947,10 @@
                 const addTeams = async (res) => {
                     if (res && res.ok) {
                         const data = await res.json();
-                        if (data.events) {
-                            data.events.forEach(e => {
-                                if (e.competitions && e.competitions[0] && e.competitions[0].competitors) {
-                                    e.competitions[0].competitors.forEach(c => b2bTeams.add(c.team.id));
-                                }
-                            });
-                        }
+                        if (data.events) data.events.forEach(e => { if (e.competitions?.[0]?.competitors) e.competitions[0].competitors.forEach(c => b2bTeams.add(c.team.id)); });
                     }
                 };
-                await addTeams(resY);
-                await addTeams(resT);
+                await addTeams(resY); await addTeams(resT);
             } catch (e) {}
             try {
                 const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=${yyyy}${mm}${dd}`);
@@ -1112,46 +962,26 @@
                     return;
                 }
                 const teamIds = new Set();
-                data.events.forEach(evt => {
-                    evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id));
-                });
+                data.events.forEach(evt => evt.competitions[0].competitors.forEach(c => teamIds.add(c.team.id)));
                 await Promise.all([...teamIds].map(id => fetchPlayerGameLogs(id, 10).catch(() => null)));
-
                 const bounceBets = computeBounceBackBetsForSlate(data.events);
                 renderBounceBackBets(bounceBets);
-
-                // Slate rendering (unchanged)
+                // Slate rendering (identical to original)
                 let html = '';
-                let totalHits = 0,
-                    totalMisses = 0,
-                    totalPushes = 0,
-                    totalPasses = 0,
-                    spreadHits = 0,
-                    spreadMisses = 0,
-                    spreadPushes = 0,
-                    spreadPasses = 0;
-                let closeSpreadHits = 0,
-                    closeSpreadMisses = 0,
-                    closeSpreadPushes = 0,
-                    closeTotalHits = 0,
-                    closeTotalMisses = 0,
-                    closeTotalPushes = 0;
-                let signalHits = 0,
-                    signalMisses = 0,
-                    signalPushes = 0,
-                    anyFinal = false;
+                let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0,
+                    spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
+                let closeSpreadHits = 0, closeSpreadMisses = 0, closeSpreadPushes = 0,
+                    closeTotalHits = 0, closeTotalMisses = 0, closeTotalPushes = 0;
+                let signalHits = 0, signalMisses = 0, signalPushes = 0, anyFinal = false;
                 for (const evt of data.events) {
                     const comp = evt.competitions[0];
                     const h = comp.competitors.find(x => x.homeAway === 'home');
                     const a = comp.competitors.find(x => x.homeAway === 'away');
                     const isFinal = comp.status.type.completed;
                     if (isFinal) anyFinal = true;
-                    const hScore = parseInt(h.score || 0),
-                        aScore = parseInt(a.score || 0);
-                    const actualTotal = hScore + aScore;
-                    const actualHomeMargin = hScore - aScore;
-                    const sH = window.teamLast10Store[h.team.id];
-                    const sA = window.teamLast10Store[a.team.id];
+                    const hScore = parseInt(h.score || 0), aScore = parseInt(a.score || 0);
+                    const actualTotal = hScore + aScore, actualHomeMargin = hScore - aScore;
+                    const sH = window.teamLast10Store[h.team.id], sA = window.teamLast10Store[a.team.id];
                     if (!sH || !sA) continue;
                     const ep = (sH.curPace + sA.curPace) / 2;
                     let hRaw = ((sH.curOffRtg + sA.curDefRtg) / 2) * (ep / 100) + 3;
@@ -1166,16 +996,14 @@
                         try {
                             const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${evt.id}`);
                             const sumData = await sumRes.json();
-                            if (sumData.pickcenter && sumData.pickcenter.length > 0) {
-                                const od = sumData.pickcenter.find(p => p.provider && p.provider.name === 'consensus') || sumData.pickcenter[0];
-                                if (od) { bookLine = od.overUnder || bookLine;
-                                    bookSpreadStr = od.details || bookSpreadStr; }
+                            if (sumData.pickcenter?.length) {
+                                const od = sumData.pickcenter.find(p => p.provider?.name === 'consensus') || sumData.pickcenter[0];
+                                if (od) { bookLine = od.overUnder || bookLine; bookSpreadStr = od.details || bookSpreadStr; }
                             }
                         } catch (err) {}
                     }
                     let bookLineStr = bookLine > 0 ? bookLine : 'N/A';
-                    let evTotalHtml = "";
-                    let evSpreadHtml = "";
+                    let evTotalHtml = "", evSpreadHtml = "";
                     let pickSide = null;
                     if (bookLine > 0) {
                         let diff = Math.abs(tExp - bookLine);
@@ -1185,23 +1013,22 @@
                         let bhm = 0;
                         if (bookSpreadStr.toUpperCase() !== 'EVEN') {
                             const parts = bookSpreadStr.split(' ');
-                            const fav = parts[0];
-                            const val = parseFloat(parts[1] || 0);
+                            const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                             if (fav === h.team.abbreviation) bhm = Math.abs(val);
                             else if (fav === a.team.abbreviation) bhm = -Math.abs(val);
                         }
                         const marginDiff = (hRaw - aRaw) - bhm;
-                        if (marginDiff > 2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${h.team.abbreviation}</span>`; pickSide = 'home'; } else if (marginDiff < -2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${a.team.abbreviation}</span>`; pickSide = 'away'; } else evSpreadHtml = `<span class="ev-badge neutral">PASS</span>`;
+                        if (marginDiff > 2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${h.team.abbreviation}</span>`; pickSide = 'home'; }
+                        else if (marginDiff < -2.5) { evSpreadHtml = `<span class="ev-badge positive">+EV ${a.team.abbreviation}</span>`; pickSide = 'away'; }
+                        else evSpreadHtml = `<span class="ev-badge neutral">PASS</span>`;
                     }
-                    let spreadResultHtml = '',
-                        totalResultHtml = '';
+                    let spreadResultHtml = '', totalResultHtml = '';
                     if (isFinal) {
                         if (bookSpreadStr !== 'N/A' && pickSide) {
                             let bhl = 0;
                             if (bookSpreadStr.toUpperCase() !== 'EVEN') {
                                 const parts = bookSpreadStr.split(' ');
-                                const fav = parts[0];
-                                const val = parseFloat(parts[1] || 0);
+                                const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                                 if (fav === h.team.abbreviation) bhl = Math.abs(val);
                                 else if (fav === a.team.abbreviation) bhl = -Math.abs(val);
                             }
@@ -1221,8 +1048,7 @@
                     let bookHomeMarginClose = 0;
                     if (bookSpreadStr !== 'N/A' && bookSpreadStr.toUpperCase() !== 'EVEN') {
                         const parts = bookSpreadStr.split(' ');
-                        const fav = parts[0];
-                        const val = parseFloat(parts[1] || 0);
+                        const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                         if (fav === h.team.abbreviation) bookHomeMarginClose = Math.abs(val);
                         else if (fav === a.team.abbreviation) bookHomeMarginClose = -Math.abs(val);
                     }
@@ -1235,21 +1061,17 @@
                             let bhl = 0;
                             if (bookSpreadStr.toUpperCase() !== 'EVEN') {
                                 const parts = bookSpreadStr.split(' ');
-                                const fav = parts[0];
-                                const val = parseFloat(parts[1] || 0);
+                                const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                                 if (fav === h.team.abbreviation) bhl = Math.abs(val);
                                 else if (fav === a.team.abbreviation) bhl = -Math.abs(val);
                             }
                             const md = modelHomeMargin - bhl;
                             let psl = null;
-                            if (md > 2.5) psl = 'home';
-                            else if (md < -2.5) psl = 'away';
+                            if (md > 2.5) psl = 'home'; else if (md < -2.5) psl = 'away';
                             else {
                                 const pw = hRaw > aRaw ? 'home' : 'away';
                                 const aw = actualHomeMargin > 0 ? 'home' : (actualHomeMargin < 0 ? 'away' : 'push');
-                                if (aw === 'push') closeSpreadPushes++;
-                                else if (pw === aw) closeSpreadHits++;
-                                else closeSpreadMisses++;
+                                if (aw === 'push') closeSpreadPushes++; else if (pw === aw) closeSpreadHits++; else closeSpreadMisses++;
                             }
                             if (psl) {
                                 if (actualHomeMargin === bhl) closeSpreadPushes++;
@@ -1267,21 +1089,17 @@
                             let bhl = 0;
                             if (bookSpreadStr.toUpperCase() !== 'EVEN') {
                                 const parts = bookSpreadStr.split(' ');
-                                const fav = parts[0];
-                                const val = parseFloat(parts[1] || 0);
+                                const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                                 if (fav === h.team.abbreviation) bhl = Math.abs(val);
                                 else if (fav === a.team.abbreviation) bhl = -Math.abs(val);
                             }
                             const md = modelHomeMargin - bhl;
                             let psl = null;
-                            if (md > 2.5) psl = 'home';
-                            else if (md < -2.5) psl = 'away';
+                            if (md > 2.5) psl = 'home'; else if (md < -2.5) psl = 'away';
                             else {
                                 const pw = hRaw > aRaw ? 'home' : 'away';
                                 const aw = actualHomeMargin > 0 ? 'home' : (actualHomeMargin < 0 ? 'away' : 'push');
-                                if (aw === 'push') signalPushes++;
-                                else if (pw === aw) signalHits++;
-                                else signalMisses++;
+                                if (aw === 'push') signalPushes++; else if (pw === aw) signalHits++; else signalMisses++;
                             }
                             if (psl) {
                                 if (actualHomeMargin === bhl) signalPushes++;
@@ -1301,15 +1119,12 @@
                             let bhl = 0;
                             if (bookSpreadStr.toUpperCase() !== 'EVEN') {
                                 const parts = bookSpreadStr.split(' ');
-                                const fav = parts[0];
-                                const val = parseFloat(parts[1] || 0);
+                                const fav = parts[0]; const val = parseFloat(parts[1] || 0);
                                 if (fav === h.team.abbreviation) bhl = Math.abs(val);
                                 else if (fav === a.team.abbreviation) bhl = -Math.abs(val);
                             }
                             const md = modelHomeMargin - bhl;
-                            if (md > 2.5) pickSide = 'home';
-                            else if (md < -2.5) pickSide = 'away';
-                            else spreadPasses++;
+                            if (md > 2.5) pickSide = 'home'; else if (md < -2.5) pickSide = 'away'; else spreadPasses++;
                             if (pickSide) {
                                 if (actualHomeMargin === bhl) spreadPushes++;
                                 else if ((pickSide === 'home' && actualHomeMargin > bhl) || (pickSide === 'away' && actualHomeMargin < bhl)) spreadHits++;
@@ -1345,76 +1160,46 @@
             }
         }
 
-        // ============================================================
-        //  AGGREGATED SUMMARY, STANDINGS, RANKINGS, LEADERS, NEWS, CHARTS
-        //  (All from original working code – unchanged)
-        // ============================================================
         async function fetchAggregatedSummary(referenceDate, daysBack, containerId, title) {
             const container = document.getElementById(containerId);
             container.innerHTML = '<div class="loading">Loading summary...</div>';
-            let totalHits = 0,
-                totalMisses = 0,
-                totalPushes = 0,
-                totalPasses = 0,
-                spreadHits = 0,
-                spreadMisses = 0,
-                spreadPushes = 0,
-                spreadPasses = 0;
-            let closeSpreadHits = 0,
-                closeSpreadMisses = 0,
-                closeSpreadPushes = 0,
-                closeTotalHits = 0,
-                closeTotalMisses = 0,
-                closeTotalPushes = 0;
-            let signalHits = 0,
-                signalMisses = 0,
-                signalPushes = 0,
-                daysProcessed = 0;
+            let totalHits = 0, totalMisses = 0, totalPushes = 0, totalPasses = 0,
+                spreadHits = 0, spreadMisses = 0, spreadPushes = 0, spreadPasses = 0;
+            let closeSpreadHits = 0, closeSpreadMisses = 0, closeSpreadPushes = 0,
+                closeTotalHits = 0, closeTotalMisses = 0, closeTotalPushes = 0;
+            let signalHits = 0, signalMisses = 0, signalPushes = 0, daysProcessed = 0;
             for (let i = 0; i < daysBack; i++) {
                 const date = new Date(referenceDate);
                 date.setDate(date.getDate() - i);
-                const yyyy = date.getFullYear(),
-                    mm = String(date.getMonth() + 1).padStart(2, '0'),
-                    dd = String(date.getDate()).padStart(2, '0');
+                const yyyy = date.getFullYear(), mm = String(date.getMonth()+1).padStart(2,'0'), dd = String(date.getDate()).padStart(2,'0');
                 try {
                     const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=${yyyy}${mm}${dd}`);
                     const data = await res.json();
-                    if (!data.events || data.events.length === 0) continue;
+                    if (!data.events || !data.events.length) continue;
                     daysProcessed++;
                     for (const evt of data.events) {
-                        const comp = evt.competitions[0],
-                            h = comp.competitors.find(x => x.homeAway === 'home'),
-                            a = comp.competitors.find(x => x.homeAway === 'away');
+                        const comp = evt.competitions[0], h = comp.competitors.find(x=>x.homeAway==='home'), a = comp.competitors.find(x=>x.homeAway==='away');
                         if (!comp.status.type.completed) continue;
-                        const hScore = parseInt(h.score || 0),
-                            aScore = parseInt(a.score || 0),
-                            actualTotal = hScore + aScore,
-                            actualHomeMargin = hScore - aScore;
-                        const sH = window.teamLast10Store[h.team.id],
-                            sA = window.teamLast10Store[a.team.id];
+                        const hScore = parseInt(h.score||0), aScore = parseInt(a.score||0), actualTotal = hScore+aScore, actualHomeMargin = hScore-aScore;
+                        const sH = window.teamLast10Store[h.team.id], sA = window.teamLast10Store[a.team.id];
                         if (!sH || !sA) continue;
-                        const ep = (sH.curPace + sA.curPace) / 2;
-                        let hRaw = ((sH.curOffRtg + sA.curDefRtg) / 2) * (ep / 100) + 3,
-                            aRaw = ((sA.curOffRtg + sH.curDefRtg) / 2) * (ep / 100);
+                        const ep = (sH.curPace + sA.curPace)/2;
+                        let hRaw = ((sH.curOffRtg + sA.curDefRtg)/2)*(ep/100)+3, aRaw = ((sA.curOffRtg + sH.curDefRtg)/2)*(ep/100);
                         let tExp = hRaw + aRaw;
-                        let bookLine = comp.odds?.[0]?.overUnder || 0,
-                            bookSpreadStr = comp.odds?.[0]?.details || 'N/A';
+                        let bookLine = comp.odds?.[0]?.overUnder || 0, bookSpreadStr = comp.odds?.[0]?.details || 'N/A';
                         if ((!bookLine || bookSpreadStr === 'N/A')) {
                             try {
                                 const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${evt.id}`);
                                 const sumData = await sumRes.json();
-                                if (sumData.pickcenter && sumData.pickcenter.length > 0) {
-                                    const od = sumData.pickcenter.find(p => p.provider && p.provider.name === 'consensus') || sumData.pickcenter[0];
-                                    if (od) { bookLine = od.overUnder || bookLine;
-                                        bookSpreadStr = od.details || bookSpreadStr; }
+                                if (sumData.pickcenter?.length) {
+                                    const od = sumData.pickcenter.find(p=>p.provider?.name==='consensus') || sumData.pickcenter[0];
+                                    if (od) { bookLine = od.overUnder || bookLine; bookSpreadStr = od.details || bookSpreadStr; }
                                 }
-                            } catch (err) {}
+                            } catch(err){}
                         }
                         let bookHomeMargin = 0;
                         if (bookSpreadStr !== 'N/A' && bookSpreadStr.toUpperCase() !== 'EVEN') {
-                            const parts = bookSpreadStr.split(' ');
-                            const fav = parts[0];
-                            const val = parseFloat(parts[1] || 0);
+                            const parts = bookSpreadStr.split(' '); const fav = parts[0]; const val = parseFloat(parts[1]||0);
                             if (fav === h.team.abbreviation) bookHomeMargin = Math.abs(val);
                             else if (fav === a.team.abbreviation) bookHomeMargin = -Math.abs(val);
                         }
@@ -1426,39 +1211,26 @@
                         if (bookSpreadStr !== 'N/A') {
                             let bhm = 0;
                             if (bookSpreadStr.toUpperCase() !== 'EVEN') {
-                                const parts = bookSpreadStr.split(' ');
-                                const fav = parts[0];
-                                const val = parseFloat(parts[1] || 0);
+                                const parts = bookSpreadStr.split(' '); const fav = parts[0]; const val = parseFloat(parts[1]||0);
                                 if (fav === h.team.abbreviation) bhm = Math.abs(val);
                                 else if (fav === a.team.abbreviation) bhm = -Math.abs(val);
                             }
                             const marginDiff = modelHomeMargin - bhm;
                             let pickSide = null;
-                            if (marginDiff > 2.5) pickSide = 'home';
-                            else if (marginDiff < -2.5) pickSide = 'away';
-                            else { spreadPasses++;
-                                spreadOutcome = 'pass'; }
+                            if (marginDiff > 2.5) pickSide = 'home'; else if (marginDiff < -2.5) pickSide = 'away';
+                            else { spreadPasses++; spreadOutcome = 'pass'; }
                             if (pickSide) {
-                                if (actualHomeMargin === bhm) { spreadPushes++;
-                                    if (spreadWithin3) closeSpreadPushes++;
-                                    if (signalBet) signalPushes++;
-                                    spreadOutcome = 'push'; } else if ((pickSide === 'home' && actualHomeMargin > bhm) || (pickSide === 'away' && actualHomeMargin < bhm)) { spreadHits++;
-                                    if (spreadWithin3) closeSpreadHits++;
-                                    if (signalBet) signalHits++;
-                                    spreadOutcome = 'hit'; } else { spreadMisses++;
-                                    if (spreadWithin3) closeSpreadMisses++;
-                                    if (signalBet) signalMisses++;
-                                    spreadOutcome = 'miss'; }
+                                if (actualHomeMargin === bhm) { spreadPushes++; if(spreadWithin3) closeSpreadPushes++; if(signalBet) signalPushes++; spreadOutcome = 'push'; }
+                                else if ((pickSide==='home' && actualHomeMargin>bhm) || (pickSide==='away' && actualHomeMargin<bhm)) { spreadHits++; if(spreadWithin3) closeSpreadHits++; if(signalBet) signalHits++; spreadOutcome = 'hit'; }
+                                else { spreadMisses++; if(spreadWithin3) closeSpreadMisses++; if(signalBet) signalMisses++; spreadOutcome = 'miss'; }
                             }
                         }
                         if (bookLine > 0) {
-                            let diff = Math.abs(tExp - bookLine);
-                            let isOverPick = tExp > bookLine;
+                            let diff = Math.abs(tExp - bookLine); let isOverPick = tExp > bookLine;
                             if (diff > 4.0) {
-                                if (actualTotal === bookLine) { totalPushes++;
-                                    if (totalWithin3) closeTotalPushes++; } else if ((isOverPick && actualTotal > bookLine) || (!isOverPick && actualTotal < bookLine)) { totalHits++;
-                                    if (totalWithin3) closeTotalHits++; } else { totalMisses++;
-                                    if (totalWithin3) closeTotalMisses++; }
+                                if (actualTotal === bookLine) { totalPushes++; if(totalWithin3) closeTotalPushes++; }
+                                else if ((isOverPick && actualTotal > bookLine) || (!isOverPick && actualTotal < bookLine)) { totalHits++; if(totalWithin3) closeTotalHits++; }
+                                else { totalMisses++; if(totalWithin3) closeTotalMisses++; }
                             } else {
                                 totalPasses++;
                                 if (totalWithin3) {
@@ -1469,7 +1241,7 @@
                             }
                         }
                     }
-                } catch (e) {}
+                } catch(e){}
             }
             container.innerHTML = `<div class="summary-box"><div class="summary-title">${title} (${daysProcessed} days)</div>
                 <div class="summary-row"><span class="summary-label">SPREADS:</span><div class="summary-values"><span class="hit">✅ ${spreadHits}</span><span class="miss">❌ ${spreadMisses}</span><span class="push">⚖️ ${spreadPushes}</span><span class="pass">⏸️ ${spreadPasses}</span></div></div>
@@ -1494,25 +1266,25 @@
                     category = data.categories.find(c => c.name.toLowerCase().includes('threepoint') && (c.name.toLowerCase().includes('made') || c.name.toLowerCase().includes('pergame')));
                 }
                 if (!category || !category.leaders) throw new Error("Category not found");
-                const topLeaders = category.leaders.slice(0, 15);
+                const topLeaders = category.leaders.slice(0,15);
                 let statSuffix = category.abbreviation;
                 if (!statSuffix) {
                     if (statType === 'threePointFieldGoalsMadePerGame') statSuffix = '3PM';
-                    else statSuffix = statType.replace('PerGame', '').toUpperCase().substring(0, 3);
+                    else statSuffix = statType.replace('PerGame','').toUpperCase().substring(0,3);
                 }
                 const leadersData = await Promise.all(topLeaders.map(async (leader) => {
                     try {
-                        const athleteRes = await fetch(leader.athlete.$ref.replace("http://", "https://"));
+                        const athleteRes = await fetch(leader.athlete.$ref.replace("http://","https://"));
                         const athleteData = await athleteRes.json();
                         return { name: athleteData.shortName || athleteData.displayName || 'Unknown', value: leader.displayValue };
-                    } catch (e) { return null; }
+                    } catch(e) { return null; }
                 }));
                 let html = '<ul class="leaders-list">';
                 leadersData.filter(l => l !== null).forEach((p, idx) => {
                     html += `<li><span><span class="leader-rank">${idx+1}.</span> ${p.name}</span> <span class="leader-val">${p.value} <span style="font-size:10px;color:#777;">${statSuffix}</span></span></li>`;
                 });
                 container.innerHTML = html + '</ul>';
-            } catch (e) {
+            } catch(e) {
                 container.innerHTML = '<p style="color:red;text-align:center;">Failed to load leaders.</p>';
             }
         }
@@ -1544,9 +1316,7 @@
                 if (data.status === "error") { container.innerHTML = `<p style="color:red;">API Error: ${data.results?.message}</p>`; return; }
                 if (data.results && data.results.length > 0) {
                     const teamMascot = teamName.split(' ').pop().toLowerCase();
-                    const relevantArticles = data.results.filter(article => {
-                        return (article.title || "").toLowerCase().includes(teamMascot) || (article.description || "").toLowerCase().includes(teamMascot);
-                    });
+                    const relevantArticles = data.results.filter(article => (article.title || "").toLowerCase().includes(teamMascot) || (article.description || "").toLowerCase().includes(teamMascot));
                     relevantArticles.forEach(article => {
                         const date = new Date(article.pubDate).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland' });
                         const desc = article.description ? (article.description.substring(0, 100) + "...") : "Read full story...";
@@ -1566,34 +1336,21 @@
             if (pct <= 0.2) return { icon: "🧊", text: "COLD", color: "#1d428a" };
             return { icon: "⚖️", text: "NEUTRAL", color: "#555" };
         }
-
         function getProxyTS(teamId) { let seed = parseInt(teamId); const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 53 + random() * 10; }
         function getProxyOREB(teamId) { let seed = parseInt(teamId) + 50; const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 22 + random() * 12; }
-
         function getNetRatingBadge(net) { if (net >= 8) return '<span class="metric-badge badge-elite">Elite</span>'; if (net >= 4) return '<span class="metric-badge badge-good">Good</span>'; if (net >= 0) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
         function getTSBadge(ts) { if (ts >= 60) return '<span class="metric-badge badge-elite">Elite</span>'; if (ts >= 57) return '<span class="metric-badge badge-good">Good</span>'; if (ts >= 54) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
         function getOREBBadge(oreb) { if (oreb >= 30) return '<span class="metric-badge badge-elite">Elite</span>'; if (oreb >= 27) return '<span class="metric-badge badge-good">Good</span>'; if (oreb >= 24) return '<span class="metric-badge badge-avg">Average</span>'; return '<span class="metric-badge badge-poor">Poor</span>'; }
-
         function getProxyShotProfile(teamId, isDefense = false) {
             let seed = parseInt(teamId) + (isDefense ? 100 : 0);
             const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
-            let rim = 25 + (random() * 10);
-            let paint = 10 + (random() * 10);
-            let mid = 5 + (random() * 15);
-            let c3 = 5 + (random() * 7);
-            let ab3 = 25 + (random() * 15);
+            let rim = 25 + (random() * 10); let paint = 10 + (random() * 10); let mid = 5 + (random() * 15); let c3 = 5 + (random() * 7); let ab3 = 25 + (random() * 15);
             let total = rim + paint + mid + c3 + ab3;
-            return [
-                parseFloat(((rim / total) * 100).toFixed(1)),
-                parseFloat(((paint / total) * 100).toFixed(1)),
-                parseFloat(((mid / total) * 100).toFixed(1)),
-                parseFloat(((c3 / total) * 100).toFixed(1)),
-                parseFloat(((ab3 / total) * 100).toFixed(1))
-            ];
+            return [ parseFloat(((rim/total)*100).toFixed(1)), parseFloat(((paint/total)*100).toFixed(1)), parseFloat(((mid/total)*100).toFixed(1)), parseFloat(((c3/total)*100).toFixed(1)), parseFloat(((ab3/total)*100).toFixed(1)) ];
         }
 
         // ============================================================
-        //  FETCH GAMES AND DRAW CHARTS (full original implementation)
+        //  FETCH GAMES AND DRAW CHARTS (full original)
         // ============================================================
         async function fetchGamesAndDrawCharts(espnId, teamAbbrev) {
             const nextContainer = document.getElementById('next-game-container');
@@ -1610,8 +1367,7 @@
             pastContainer.innerHTML = '<div class="loading">Loading match history...</div>';
             hotContainer.innerHTML = '<div class="loading">Analyzing momentum...</div>';
             h2hContainer.innerHTML = '<div class="loading">Loading H2H history...</div>';
-            oppSection.style.display = 'none';
-            oppMetricsRow.style.display = 'none';
+            oppSection.style.display = 'none'; oppMetricsRow.style.display = 'none';
             const opponentNewsCol = document.getElementById('opponent-news-column');
             if (opponentNewsCol) opponentNewsCol.style.display = 'none';
             const propsSection = document.getElementById('props-recommendation-section');
@@ -1634,29 +1390,21 @@
                 const last5Games = completedGames.slice(-5);
                 const last3GamesForCards = completedGames.slice(-3).reverse();
                 const nextGame = upcomingGames.length > 0 ? upcomingGames[0] : null;
-                let winCount = 0,
-                    totalPts = 0,
-                    validGames = 0;
-                let myDataPts = [],
-                    myWL = [],
-                    perfLabels = [];
+                let winCount = 0, totalPts = 0, validGames = 0;
+                let myDataPts = [], myWL = [], perfLabels = [];
                 last5Games.forEach((game) => {
                     const comp = game.competitions[0];
                     const dateStr = new Date(comp.date).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland', month: 'numeric', day: 'numeric' });
                     perfLabels.push(dateStr);
                     const me = comp.competitors.find(c => String(c.team.id) === String(espnId));
-                    const opp = comp.competitors.find(c => String(c.team.id) !== String(espnId));
                     if (me && me.score) {
                         const pts = parseInt(me.score.value);
                         if (me.winner) winCount++;
-                        totalPts += pts;
-                        validGames++;
-                        myDataPts.push(pts);
-                        myWL.push(me.winner ? 'W' : 'L');
+                        totalPts += pts; validGames++;
+                        myDataPts.push(pts); myWL.push(me.winner ? 'W' : 'L');
                     }
                 });
-                let myNetRtgData = [];
-                let myPace = tStats?.estPace || 100;
+                let myNetRtgData = []; let myPace = tStats?.estPace || 100;
                 const myLast10 = completedGames.slice(-10);
                 myLast10.forEach(game => {
                     const comp = game.competitions[0];
@@ -1664,24 +1412,16 @@
                     const opp = comp.competitors.find(c => String(c.team.id) !== String(espnId));
                     if (me && opp && me.score && opp.score) {
                         const diff = parseInt(me.score.value) - parseInt(opp.score.value);
-                        const net = diff / (myPace / 100);
-                        myNetRtgData.push(parseFloat(net.toFixed(1)));
+                        myNetRtgData.push(parseFloat((diff / (myPace/100)).toFixed(1)));
                     }
                 });
-                let oppId = null,
-                    oppAbbrev = "Opponent",
-                    oppDataPts = [],
-                    oppWL = [];
-                let oppWinCount = 0,
-                    oppTotalPts = 0,
-                    oppValidGames = 0;
-                let oppCompleted = [];
-                let oppNetRtgData = [];
+                let oppId = null, oppAbbrev = "Opponent", oppDataPts = [], oppWL = [];
+                let oppWinCount = 0, oppTotalPts = 0, oppValidGames = 0;
+                let oppCompleted = []; let oppNetRtgData = [];
                 if (nextGame) {
                     const comp = nextGame.competitions[0];
                     const oppTeam = comp.competitors.find(c => String(c.team.id) !== String(espnId));
-                    if (oppTeam) { oppId = oppTeam.team.id;
-                        oppAbbrev = oppTeam.team.abbreviation || "OPP"; }
+                    if (oppTeam) { oppId = oppTeam.team.id; oppAbbrev = oppTeam.team.abbreviation || "OPP"; }
                 }
                 if (oppId) {
                     const opponentNewsCol = document.getElementById('opponent-news-column');
@@ -1697,10 +1437,8 @@
                             const targetOpp = game.competitions[0].competitors.find(c => String(c.team.id) === String(oppId));
                             if (targetOpp && targetOpp.score) {
                                 const pts = parseInt(targetOpp.score.value);
-                                oppDataPts.push(pts);
-                                oppWL.push(targetOpp.winner ? 'W' : 'L');
-                                oppTotalPts += pts;
-                                oppValidGames++;
+                                oppDataPts.push(pts); oppWL.push(targetOpp.winner ? 'W' : 'L');
+                                oppTotalPts += pts; oppValidGames++;
                                 if (targetOpp.winner) oppWinCount++;
                             }
                         });
@@ -1712,18 +1450,17 @@
                             const opponentOfOpp = comp.competitors.find(c => String(c.team.id) !== String(oppId));
                             if (me && opponentOfOpp && me.score && opponentOfOpp.score) {
                                 const diff = parseInt(me.score.value) - parseInt(opponentOfOpp.score.value);
-                                const net = diff / (oppPace / 100);
-                                oppNetRtgData.push(parseFloat(net.toFixed(1)));
+                                oppNetRtgData.push(parseFloat((diff / (oppPace/100)).toFixed(1)));
                             }
                         });
-                    } catch (e) {}
+                    } catch(e) {}
                 }
                 drawChart('perfChart', perfLabels, teamAbbrev, myDataPts, myWL, oppAbbrev, oppDataPts, oppWL);
                 let maxGames = Math.max(myNetRtgData.length, oppNetRtgData.length);
                 let netRtgLabels = Array.from({ length: maxGames }, (_, i) => `G${i+1}`);
                 drawNetRtgChart('netRtgChart', netRtgLabels, teamAbbrev, myNetRtgData, oppAbbrev, oppNetRtgData);
                 let myShotProfile = getProxyShotProfile(espnId, false);
-                let oppDefProfile = oppId ? getProxyShotProfile(oppId, true) : [20, 20, 20, 20, 20];
+                let oppDefProfile = oppId ? getProxyShotProfile(oppId, true) : [20,20,20,20,20];
                 drawShotProfileChart('shotProfileChart', teamAbbrev + ' (Off)', myShotProfile, oppAbbrev + ' (Def)', oppDefProfile);
                 let h2hGames = [];
                 if (oppId) {
@@ -1735,32 +1472,24 @@
                             const prevCompleted = prevData.events.filter(e => e.competitions[0].status.type.completed === true);
                             const prevH2H = prevCompleted.filter(e => e.competitions[0].competitors.some(c => String(c.team.id) === String(oppId)));
                             h2hGames = [...prevH2H, ...currentSeasonH2H].slice(-5);
-                        } catch (e) { h2hGames = currentSeasonH2H; }
+                        } catch(e) { h2hGames = currentSeasonH2H; }
                     } else { h2hGames = currentSeasonH2H.slice(-5); }
                 }
                 if (h2hGames.length > 0) {
-                    let h2hLabels = [],
-                        h2hMyData = [],
-                        h2hMyWL = [],
-                        h2hOppData = [],
-                        h2hOppWL = [];
+                    let h2hLabels=[], h2hMyData=[], h2hMyWL=[], h2hOppData=[], h2hOppWL=[];
                     h2hGames.forEach(game => {
                         const comp = game.competitions[0];
                         h2hLabels.push(new Date(comp.date).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland', month: 'numeric', day: 'numeric' }));
                         const me = comp.competitors.find(c => String(c.team.id) === String(espnId));
                         const opp = comp.competitors.find(c => String(c.team.id) === String(oppId));
                         if (me && opp && me.score && opp.score) {
-                            h2hMyData.push(parseInt(me.score.value));
-                            h2hMyWL.push(me.winner ? 'W' : 'L');
-                            h2hOppData.push(parseInt(opp.score.value));
-                            h2hOppWL.push(opp.winner ? 'W' : 'L');
+                            h2hMyData.push(parseInt(me.score.value)); h2hMyWL.push(me.winner ? 'W' : 'L');
+                            h2hOppData.push(parseInt(opp.score.value)); h2hOppWL.push(opp.winner ? 'W' : 'L');
                         }
                     });
                     h2hContainer.innerHTML = '<canvas id="h2hChart"></canvas>';
                     drawChart('h2hChart', h2hLabels, teamAbbrev, h2hMyData, h2hMyWL, oppAbbrev, h2hOppData, h2hOppWL);
-                } else {
-                    h2hContainer.innerHTML = '<p style="text-align:center;color:#777;font-size:13px;margin-top:50px;">No recent Head-to-Head data available.</p>';
-                }
+                } else { h2hContainer.innerHTML = '<p style="text-align:center;color:#777;font-size:13px;margin-top:50px;">No recent Head-to-Head data available.</p>'; }
                 let myTrend = getTrendStatus(winCount, validGames);
                 let oppTrend = getTrendStatus(oppWinCount, oppValidGames);
                 hotContainer.innerHTML = `
@@ -1779,19 +1508,12 @@
                                 <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${oppWinCount}W - ${oppValidGames-oppWinCount}L</b></div>
                                 <div style="font-size:11px;color:#777;">Avg Pts: ${oppValidGames>0?Math.round(oppTotalPts/oppValidGames):'--'}</div></div></div></div>`;
                 let lastH2HHtml = '';
-                if (nextGame && h2hGames.length > 0) {
-                    lastH2HHtml = await buildLastH2HCard(h2hGames[h2hGames.length - 1].id);
-                } else if (nextGame && h2hGames.length === 0) {
-                    lastH2HHtml = `<div style="margin-top:15px;border-top:2px dashed #ccc;padding-top:10px;text-align:center;font-size:11px;color:#777;">No recent H2H matchup found between these teams.</div>`;
-                }
-                if (nextGame) {
-                    nextContainer.innerHTML = await buildGameCard(nextGame.id, true, lastH2HHtml);
-                } else {
-                    nextContainer.innerHTML = '<div class="panel-box"><p style="text-align:center;color:#777;">No upcoming games scheduled.</p></div>';
-                }
-                if (last3GamesForCards.length === 0) {
-                    pastContainer.innerHTML = '<p>No completed games found.</p>';
-                } else {
+                if (nextGame && h2hGames.length > 0) { lastH2HHtml = await buildLastH2HCard(h2hGames[h2hGames.length-1].id); }
+                else if (nextGame && h2hGames.length === 0) { lastH2HHtml = `<div style="margin-top:15px;border-top:2px dashed #ccc;padding-top:10px;text-align:center;font-size:11px;color:#777;">No recent H2H matchup found between these teams.</div>`; }
+                if (nextGame) { nextContainer.innerHTML = await buildGameCard(nextGame.id, true, lastH2HHtml); }
+                else { nextContainer.innerHTML = '<div class="panel-box"><p style="text-align:center;color:#777;">No upcoming games scheduled.</p></div>'; }
+                if (last3GamesForCards.length === 0) { pastContainer.innerHTML = '<p>No completed games found.</p>'; }
+                else {
                     const pastHTMLs = await Promise.all(last3GamesForCards.map(g => buildGameCard(g.id, false)));
                     pastContainer.innerHTML = pastHTMLs.join('');
                 }
@@ -1803,22 +1525,16 @@
                     oppPastContainer.innerHTML = oppPastHTMLs.join('');
                 }
                 if (tStats) {
-                    const netRtg = tStats.offRtg - tStats.defRtg;
-                    const tsPct = getProxyTS(espnId);
-                    const orebPct = getProxyOREB(espnId);
+                    const netRtg = tStats.offRtg - tStats.defRtg; const tsPct = getProxyTS(espnId); const orebPct = getProxyOREB(espnId);
                     advancedContainer.innerHTML = `
                         <div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${netRtg>0?'+':''}${netRtg.toFixed(1)} ${getNetRatingBadge(netRtg)}</div><div class="metric-desc">${netRtg>=0?'Average or better':'Below average'}</div></div>
                         <div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${tsPct.toFixed(1)}% ${getTSBadge(tsPct)}</div><div class="metric-desc">League avg ~57-58%</div></div>
                         <div class="metric-card"><div class="metric-label">Offensive Rebound %</div><div class="metric-value">${orebPct.toFixed(1)}% ${getOREBBadge(orebPct)}</div><div class="metric-desc">League avg ~27%</div></div>
                         <div class="metric-card"><div class="metric-label">Pace</div><div class="metric-value">${tStats.estPace.toFixed(1)}</div><div class="metric-desc">Possessions per 48 min</div></div>`;
-                } else {
-                    advancedContainer.innerHTML = '<div class="loading">Loading advanced metrics...</div>';
-                }
+                } else { advancedContainer.innerHTML = '<div class="loading">Loading advanced metrics...</div>'; }
                 if (oppId && window.teamAnalyticsStore[oppId]) {
                     const oppStats = window.teamAnalyticsStore[oppId];
-                    const oppNetRtg = oppStats.offRtg - oppStats.defRtg;
-                    const oppTsPct = getProxyTS(oppId);
-                    const oppOrebPct = getProxyOREB(oppId);
+                    const oppNetRtg = oppStats.offRtg - oppStats.defRtg; const oppTsPct = getProxyTS(oppId); const oppOrebPct = getProxyOREB(oppId);
                     oppAdvancedContainer.innerHTML = `
                         <div class="metric-card"><div class="metric-label">Net Rating</div><div class="metric-value">${oppNetRtg>0?'+':''}${oppNetRtg.toFixed(1)} ${getNetRatingBadge(oppNetRtg)}</div><div class="metric-desc">${oppNetRtg>=0?'Average or better':'Below average'}</div></div>
                         <div class="metric-card"><div class="metric-label">True Shooting %</div><div class="metric-value">${oppTsPct.toFixed(1)}% ${getTSBadge(oppTsPct)}</div><div class="metric-desc">League avg ~57-58%</div></div>
@@ -1831,16 +1547,12 @@
                     oppMetricsRow.style.display = 'flex';
                     document.getElementById('opp-dashboard-title').innerHTML = `📊 Opponent (${oppAbbrev}): Sharp Bettor's Dashboard`;
                     document.getElementById('opp-pace-title').innerHTML = `Opponent (${oppAbbrev}): Pace & Efficiency`;
-                } else {
-                    oppMetricsRow.style.display = 'none';
-                }
-                window.currentTeamId = espnId;
-                window.currentOppId = oppId;
+                } else { oppMetricsRow.style.display = 'none'; }
+                window.currentTeamId = espnId; window.currentOppId = oppId;
                 highlightTeamAndOpponent(window.currentTeamId, window.currentOppId);
             } catch (error) {
                 console.error(error);
-                nextContainer.innerHTML = '<p style="color:red;">Error loading games.</p>';
-                pastContainer.innerHTML = '';
+                nextContainer.innerHTML = '<p style="color:red;">Error loading games.</p>'; pastContainer.innerHTML = '';
             }
         }
 
@@ -1848,8 +1560,7 @@
             id: 'winLossPlugin',
             afterDatasetsDraw(chart) {
                 const { ctx } = chart;
-                ctx.font = 'bold 11px sans-serif';
-                ctx.textAlign = 'center';
+                ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
                 chart.data.datasets.forEach((dataset, i) => {
                     if (dataset.type === 'bar') return;
                     const meta = chart.getDatasetMeta(i);
@@ -1873,18 +1584,11 @@
             if (canvasId === 'h2hChart' && h2hChartInstance) h2hChartInstance.destroy();
             let datasets = [{ label: `${myName} Pts`, data: myData, winLossData: myWL, borderColor: '#1d428a', backgroundColor: 'rgba(29,66,138,0.2)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#1d428a', pointRadius: 5, wlColors: { w: '#198754', l: '#dc3545' } }];
             if (oppData && oppData.length > 0) {
-                datasets.push({ label: `${oppName} Pts`, data: oppData, winLossData: oppWL, borderColor: '#777777', backgroundColor: 'rgba(119,119,119,0.1)', borderWidth: 2, fill: true, tension: 0.4, borderDash: [5, 5], pointBackgroundColor: '#555', pointRadius: 4, wlColors: { w: '#0dcaf0', l: '#fd7e14' } });
+                datasets.push({ label: `${oppName} Pts`, data: oppData, winLossData: oppWL, borderColor: '#777777', backgroundColor: 'rgba(119,119,119,0.1)', borderWidth: 2, fill: true, tension: 0.4, borderDash: [5,5], pointBackgroundColor: '#555', pointRadius: 4, wlColors: { w: '#0dcaf0', l: '#fd7e14' } });
             }
             const chart = new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 20, bottom: 10 } },
-                    plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
-                    scales: { y: { suggestedMin: 80, suggestedMax: 135 } }
-                },
+                type: 'line', data: { labels: labels, datasets: datasets },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, bottom: 10 } }, plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }, scales: { y: { suggestedMin: 80, suggestedMax: 135 } } },
                 plugins: [winLossPlugin]
             });
             if (canvasId === 'perfChart') perfChartInstance = chart;
@@ -1899,36 +1603,21 @@
                 datasets.push({ label: `${oppName} Net Rtg`, data: oppData, borderColor: '#c8102e', backgroundColor: '#c8102e', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#c8102e' });
             }
             netRtgChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
-                    scales: { y: { grid: { color: (context) => context.tick.value === 0 ? '#333' : '#e1e4e8', lineWidth: (context) => context.tick.value === 0 ? 2 : 1 } } }
-                }
+                type: 'line', data: { labels: labels, datasets: datasets },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { y: { grid: { color: (context) => context.tick.value === 0 ? '#333' : '#e1e4e8', lineWidth: (context) => context.tick.value === 0 ? 2 : 1 } } } }
             });
         }
 
         function drawShotProfileChart(canvasId, myName, myData, oppName, oppData) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             if (shotProfileChartInstance) shotProfileChartInstance.destroy();
-            const radarLabels = ['At Rim', 'Paint (Non-Rim)', 'Mid-Range', 'Corner 3', 'Above Break 3'];
+            const radarLabels = ['At Rim','Paint (Non-Rim)','Mid-Range','Corner 3','Above Break 3'];
             shotProfileChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: radarLabels,
-                    datasets: [
-                        { label: myName, data: myData, backgroundColor: 'rgba(29,66,138,0.2)', borderColor: '#1d428a', borderWidth: 2, pointBackgroundColor: '#1d428a' },
-                        { label: oppName + ' Allow %', data: oppData, backgroundColor: 'rgba(200,16,46,0.2)', borderColor: '#c8102e', borderWidth: 2, borderDash: [5, 5], pointBackgroundColor: '#c8102e' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 40, ticks: { display: false } } },
-                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
-                }
+                type: 'radar', data: { labels: radarLabels, datasets: [
+                    { label: myName, data: myData, backgroundColor: 'rgba(29,66,138,0.2)', borderColor: '#1d428a', borderWidth: 2, pointBackgroundColor: '#1d428a' },
+                    { label: oppName + ' Allow %', data: oppData, backgroundColor: 'rgba(200,16,46,0.2)', borderColor: '#c8102e', borderWidth: 2, borderDash: [5,5], pointBackgroundColor: '#c8102e' }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 40, ticks: { display: false } } }, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
             });
         }
 
@@ -1940,33 +1629,29 @@
                 const dateStr = new Date(comp.date).toLocaleDateString('en-NZ', { timeZone: 'Pacific/Auckland', month: 'short', day: 'numeric', year: 'numeric' });
                 const homeTeam = comp.competitors.find(c => c.homeAway === 'home');
                 const awayTeam = comp.competitors.find(c => c.homeAway === 'away');
-                const hScore = homeTeam.score || '0';
-                const aScore = awayTeam.score || '0';
-                const hAbbr = homeTeam.team.abbreviation || 'HME';
-                const aAbbr = awayTeam.team.abbreviation || 'AWY';
+                const hScore = homeTeam.score || '0'; const aScore = awayTeam.score || '0';
+                const hAbbr = homeTeam.team.abbreviation || 'HME'; const aAbbr = awayTeam.team.abbreviation || 'AWY';
                 let spreadStr = "Odds N/A";
-                if (data.pickcenter && data.pickcenter.length > 0 && data.pickcenter[0].details) {
+                if (data.pickcenter?.length && data.pickcenter[0].details) {
                     spreadStr = `Odds: ${data.pickcenter[0].details} | O/U: ${data.pickcenter[0].overUnder||'--'}`;
                 }
                 let performersHTML = '';
-                if (data.boxscore && data.boxscore.players) {
+                if (data.boxscore?.players) {
                     data.boxscore.players.forEach(teamData => {
                         const tName = teamData.team.displayName || 'Team';
                         const bgColor = teamData.team.color || '333333';
                         const teamId = teamData.team.id;
                         const statsData = teamData.statistics[0];
                         performersHTML += `<div class="performers-box" style="margin-top:4px;"><div class="team-perf-title" style="background-color:#${bgColor};">${tName} Top 3</div><ul class="performer-list">`;
-                        if (statsData && statsData.athletes) {
+                        if (statsData?.athletes) {
                             const labels = statsData.labels || [];
-                            const ptsIdx = labels.indexOf('PTS');
-                            const rebIdx = labels.indexOf('REB');
-                            const astIdx = labels.indexOf('AST');
+                            const ptsIdx = labels.indexOf('PTS'), rebIdx = labels.indexOf('REB'), astIdx = labels.indexOf('AST');
                             const activePlayers = statsData.athletes.filter(a => !a.didNotPlay);
-                            activePlayers.sort((a, b) => parseInt((b.stats && b.stats[ptsIdx]) || 0) - parseInt((a.stats && a.stats[ptsIdx]) || 0));
-                            activePlayers.slice(0, 3).forEach(p => {
+                            activePlayers.sort((a,b) => parseInt((b.stats?.[ptsIdx])||0) - parseInt((a.stats?.[ptsIdx])||0));
+                            activePlayers.slice(0,3).forEach(p => {
                                 const playerName = p.athlete?.shortName || 'Unknown';
                                 const safeName = playerName.replace(/'/g, "\\'");
-                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
+                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats?.[ptsIdx])||0} PTS, ${(p.stats?.[rebIdx])||0} REB, ${(p.stats?.[astIdx])||0} AST</span></li>`;
                             });
                         }
                         performersHTML += `</ul></div>`;
@@ -1978,7 +1663,7 @@
                     <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:14px;background:#f8f9fa;padding:5px 10px;border-radius:4px;border:1px solid #eee;"><span>${aAbbr} ${aScore}</span><span>@</span><span>${hAbbr} ${hScore}</span></div>
                     <div style="text-align:center;font-size:10px;color:#666;margin:5px 0;">🎯 ${spreadStr}</div>
                     ${performersHTML}</div>`;
-            } catch (e) { return ''; }
+            } catch(e) { return ''; }
         }
 
         async function buildGameCard(matchId, isUpcoming, lastH2HHtml = '') {
@@ -1998,7 +1683,7 @@
                 const awayName = awayTeam.team.shortDisplayName || awayTeam.team.displayName || 'Away Team';
                 const awayAbbr = awayTeam.team.abbreviation || 'AWY';
                 let spreadStr = "Spread Not Available";
-                if (data.pickcenter && data.pickcenter.length > 0 && data.pickcenter[0].details) {
+                if (data.pickcenter?.length && data.pickcenter[0].details) {
                     spreadStr = `Odds: ${data.pickcenter[0].details} | O/U: ${data.pickcenter[0].overUnder||'--'}`;
                 }
                 let predictionHTML = '';
@@ -2013,31 +1698,25 @@
                         let totalExp = homeRawPts + awayRawPts;
                         let homeProb = Math.round((homeRawPts / totalExp) * 100);
                         homeProb = homeProb + ((homeProb - 50) * 1.5);
-                        if (homeProb > 95) homeProb = 95;
-                        if (homeProb < 5) homeProb = 5;
-                        homeProb = Math.round(homeProb);
-                        let awayProb = 100 - homeProb;
+                        if (homeProb > 95) homeProb = 95; if (homeProb < 5) homeProb = 5;
+                        homeProb = Math.round(homeProb); let awayProb = 100 - homeProb;
                         predictionHTML = `<div class="prediction-box"><div class="pred-title">🤖 AI Match Prediction</div><div class="pred-text">Projected Winner: <b>${homeProb>awayProb?homeName:awayName}</b></div><div class="pred-bar-container"><div class="pred-bar away" style="width:${awayProb}%">${awayAbbr} ${awayProb}%</div><div class="pred-bar home" style="width:${homeProb}%">${homeAbbr} ${homeProb}%</div></div><div class="pred-subtext">Calculated via Pace-Adjusted Ratings & Form</div></div>`;
                     } else { predictionHTML = `<div class="prediction-box"><div class="pred-subtext">AI data loading...</div></div>`; }
                     performersHTML = lastH2HHtml;
-                } else if (!isUpcoming && data.boxscore && data.boxscore.players) {
+                } else if (!isUpcoming && data.boxscore?.players) {
                     data.boxscore.players.forEach(teamData => {
-                        const tName = teamData.team.displayName || 'Team';
-                        const bgColor = teamData.team.color || '333333';
-                        const teamId = teamData.team.id;
+                        const tName = teamData.team.displayName || 'Team'; const bgColor = teamData.team.color || '333333'; const teamId = teamData.team.id;
                         const statsData = teamData.statistics[0];
                         performersHTML += `<div class="performers-box"><div class="team-perf-title" style="background-color:#${bgColor};">${tName} Top 3</div><ul class="performer-list">`;
-                        if (statsData && statsData.athletes) {
+                        if (statsData?.athletes) {
                             const labels = statsData.labels || [];
-                            const ptsIdx = labels.indexOf('PTS');
-                            const rebIdx = labels.indexOf('REB');
-                            const astIdx = labels.indexOf('AST');
+                            const ptsIdx = labels.indexOf('PTS'), rebIdx = labels.indexOf('REB'), astIdx = labels.indexOf('AST');
                             const activePlayers = statsData.athletes.filter(a => !a.didNotPlay);
-                            activePlayers.sort((a, b) => parseInt((b.stats && b.stats[ptsIdx]) || 0) - parseInt((a.stats && a.stats[ptsIdx]) || 0));
-                            activePlayers.slice(0, 3).forEach(p => {
+                            activePlayers.sort((a,b) => parseInt((b.stats?.[ptsIdx])||0) - parseInt((a.stats?.[ptsIdx])||0));
+                            activePlayers.slice(0,3).forEach(p => {
                                 const playerName = p.athlete?.shortName || 'Unknown';
                                 const safeName = playerName.replace(/'/g, "\\'");
-                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats&&p.stats[ptsIdx])||0} PTS, ${(p.stats&&p.stats[rebIdx])||0} REB, ${(p.stats&&p.stats[astIdx])||0} AST</span></li>`;
+                                performersHTML += `<li><span class="player-link" onclick="showPlayerGameLog('${teamId}', '${safeName}')">${playerName}</span> <span>${(p.stats?.[ptsIdx])||0} PTS, ${(p.stats?.[rebIdx])||0} REB, ${(p.stats?.[astIdx])||0} AST</span></li>`;
                             });
                         }
                         performersHTML += `</ul></div>`;
@@ -2047,9 +1726,7 @@
                     <div class="team-score ${awayClass}"><span>${awayAbbr} ${awayName}</span><span>${awayScore}</span></div>
                     <div class="team-score ${homeClass}"><span>${homeAbbr} ${homeName} (H)</span><span>${homeScore}</span></div>
                     <div class="spread-box">🎯 ${spreadStr}</div>${predictionHTML}${performersHTML}</div>`;
-            } catch (e) {
-                return `<div class="game-card"><p style="color:red;font-size:12px;">Error loading game details</p></div>`;
-            }
+            } catch (e) { return `<div class="game-card"><p style="color:red;font-size:12px;">Error loading game details</p></div>`; }
         }
 
         function showPlayerGameLog(teamId, playerName) {
@@ -2061,8 +1738,7 @@
             modal.style.display = 'flex';
             const cache = window.playerGameLogsCache[teamId];
             if (!cache || !cache.has(playerName)) {
-                contentEl.innerHTML = '<p style="color:red;">Game log data not available for this player.</p>';
-                return;
+                contentEl.innerHTML = '<p style="color:red;">Game log data not available for this player.</p>'; return;
             }
             const games = cache.get(playerName).slice(-10).reverse();
             if (games.length === 0) { contentEl.innerHTML = '<p>No recent game data.</p>'; return; }
@@ -2077,48 +1753,30 @@
         }
 
         function closeGameLogModal() { document.getElementById('game-log-modal').style.display = 'none'; }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('game-log-modal');
-            if (event.target === modal) closeGameLogModal();
-        };
+        window.onclick = function(event) { const modal = document.getElementById('game-log-modal'); if (event.target === modal) closeGameLogModal(); };
 
         async function populateTeamDropdown() {
             const select = document.getElementById('team-select');
             const teamIds = Object.keys(window.teamAnalyticsStore);
-            if (teamIds.length === 0) {
-                setTimeout(populateTeamDropdown, 500);
-                return;
-            }
+            if (teamIds.length === 0) { setTimeout(populateTeamDropdown, 500); return; }
             select.innerHTML = '';
-            const teams = teamIds.map(id => ({
-                id: id,
-                abbrev: window.teamAnalyticsStore[id].abbrev
-            }));
-            teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
+            const teams = teamIds.map(id => ({ id: id, abbrev: window.teamAnalyticsStore[id].abbrev }));
+            teams.sort((a,b) => a.abbrev.localeCompare(b.abbrev));
             teams.forEach(team => {
                 const option = document.createElement('option');
-                option.value = team.abbrev;
-                option.setAttribute('data-id', team.id);
-                option.textContent = team.abbrev;
+                option.value = team.abbrev; option.setAttribute('data-id', team.id); option.textContent = team.abbrev;
                 select.appendChild(option);
             });
-            teams.forEach(team => {
-                window.teamNameMap[team.id] = team.abbrev;
-            });
+            teams.forEach(team => { window.teamNameMap[team.id] = team.abbrev; });
         }
 
-        async function initGlobalData() {
-            await fetchStandings();
-            await populateTeamDropdown();
-            fetchLeaders();
-        }
+        async function initGlobalData() { await fetchStandings(); await populateTeamDropdown(); fetchLeaders(); }
 
         async function fetchStandings() {
             try {
                 const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
                 const data = await res.json();
-                if (data && data.children) {
+                if (data?.children) {
                     const east = data.children.find(c => c.name.includes('Eastern'));
                     const west = data.children.find(c => c.name.includes('Western'));
                     let totalLeaguePF = 0, totalLeaguePA = 0, teamCount = 0;
@@ -2137,29 +1795,22 @@
                     const buildTable = (conf) => {
                         if (!conf) return '';
                         let tHtml = `<div class="conf-box"><div class="conf-title">${conf.name.replace('Conference','').trim()}</div><table class="standings-table"><tr><th>#</th><th>TM</th><th>W-L</th><th>GB</th><th>L10</th></tr>`;
-                        let sortedTeams = conf.standings.entries.sort((a, b) => parseInt(a.stats.find(s => s.name === 'playoffSeed')?.value || 99) - parseInt(b.stats.find(s => s.name === 'playoffSeed')?.value || 99));
+                        let sortedTeams = conf.standings.entries.sort((a,b) => parseInt(a.stats.find(s=>s.name==='playoffSeed')?.value||99) - parseInt(b.stats.find(s=>s.name==='playoffSeed')?.value||99));
                         sortedTeams.forEach(team => {
-                            const seed = team.stats.find(s => s.name === 'playoffSeed')?.value || '-';
-                            const wins = team.stats.find(s => s.name === 'wins')?.value || 0;
-                            const losses = team.stats.find(s => s.name === 'losses')?.value || 0;
+                            const seed = team.stats.find(s=>s.name==='playoffSeed')?.value || '-';
+                            const wins = team.stats.find(s=>s.name==='wins')?.value || 0;
+                            const losses = team.stats.find(s=>s.name==='losses')?.value || 0;
                             const gamesPlayed = (wins + losses) || 1;
-                            const gb = team.stats.find(s => s.name === 'gamesBehind')?.displayValue || '-';
-                            const l10 = team.stats.find(s => s.abbreviation === 'L10' || s.name === 'last10Games')?.displayValue || '-';
-                            const abbrev = team.team.abbreviation || team.team.shortDisplayName.substring(0, 3).toUpperCase();
-                            const ppg = (team.stats.find(s => s.name === 'pointsFor')?.value || 110) / gamesPlayed;
-                            const oppPpg = (team.stats.find(s => s.name === 'pointsAgainst')?.value || 110) / gamesPlayed;
+                            const gb = team.stats.find(s=>s.name==='gamesBehind')?.displayValue || '-';
+                            const l10 = team.stats.find(s=>s.abbreviation==='L10'||s.name==='last10Games')?.displayValue || '-';
+                            const abbrev = team.team.abbreviation || team.team.shortDisplayName.substring(0,3).toUpperCase();
+                            const ppg = (team.stats.find(s=>s.name==='pointsFor')?.value || 110) / gamesPlayed;
+                            const oppPpg = (team.stats.find(s=>s.name==='pointsAgainst')?.value || 110) / gamesPlayed;
                             let l10Wins = l10 !== '-' ? parseInt(l10.split('-')[0]) : 5;
                             const estPace = baselinePace * ((ppg + oppPpg) / (lgAvgPF + lgAvgPA));
                             window.teamAnalyticsStore[team.team.id] = {
-                                winPct: (wins / gamesPlayed) || 0.5,
-                                estPace,
-                                offRtg: (ppg / estPace) * 100,
-                                defRtg: (oppPpg / estPace) * 100,
-                                formWeight: l10Wins / 10,
-                                ppg,
-                                oppg: oppPpg,
-                                abbrev,
-                                teamId: team.team.id
+                                winPct: (wins/gamesPlayed)||0.5, estPace, offRtg: (ppg/estPace)*100, defRtg: (oppPpg/estPace)*100,
+                                formWeight: l10Wins/10, ppg, oppg: oppPpg, abbrev, teamId: team.team.id
                             };
                             tHtml += `<tr data-team-id="${team.team.id}"><td><b>${seed}</b></td><td><b>${abbrev}</b></td><td>${wins}-${losses}</td><td>${gb}</td><td>${l10}</td></tr>`;
                         });
@@ -2170,7 +1821,7 @@
                     await fetchLast20ForAllTeams();
                     loadDailySlate(0);
                 }
-            } catch (e) { document.getElementById('standings-container').innerHTML = '<p style="color:red">Failed to load standings.</p>'; }
+            } catch(e) { document.getElementById('standings-container').innerHTML = '<p style="color:red">Failed to load standings.</p>'; }
         }
 
         async function fetchLast20ForAllTeams() {
@@ -2190,8 +1841,7 @@
                         const comp = game.competitions[0];
                         const me = comp.competitors.find(c => String(c.team.id) === teamId);
                         const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
-                        if (me && me.score && opp && opp.score) { curPts += parseInt(me.score.value);
-                            curOppPts += parseInt(opp.score.value); }
+                        if (me && me.score && opp && opp.score) { curPts += parseInt(me.score.value); curOppPts += parseInt(opp.score.value); }
                     });
                     const curGames = last10.length;
                     const curAvgPts = curGames > 0 ? curPts / curGames : 0;
@@ -2209,35 +1859,22 @@
                             const comp = game.competitions[0];
                             const me = comp.competitors.find(c => String(c.team.id) === teamId);
                             const opp = comp.competitors.find(c => String(c.team.id) !== teamId);
-                            if (me && me.score && opp && opp.score) { prevPtsSum += parseInt(me.score.value);
-                                prevOppPtsSum += parseInt(opp.score.value); }
+                            if (me && me.score && opp && opp.score) { prevPtsSum += parseInt(me.score.value); prevOppPtsSum += parseInt(opp.score.value); }
                         });
                         const prevGames = prev10.length;
                         if (prevGames > 0) {
-                            prevPts = prevPtsSum / prevGames;
-                            prevOppPts = prevOppPtsSum / prevGames;
+                            prevPts = prevPtsSum / prevGames; prevOppPts = prevOppPtsSum / prevGames;
                             const prevTotalAvg = prevPts + prevOppPts;
                             prevPace = baselinePace * (prevTotalAvg / 230);
-                            prevOffRtg = (prevPts / prevPace) * 100;
-                            prevDefRtg = (prevOppPts / prevPace) * 100;
+                            prevOffRtg = (prevPts / prevPace) * 100; prevDefRtg = (prevOppPts / prevPace) * 100;
                         }
                     }
                     window.teamLast10Store[teamId] = {
-                        abbrev: season.abbrev,
-                        curPace, curOffRtg, curDefRtg,
-                        prevPace, prevOffRtg, prevDefRtg
+                        abbrev: season.abbrev, curPace, curOffRtg, curDefRtg, prevPace, prevOffRtg, prevDefRtg
                     };
-                } catch (e) {
+                } catch(e) {
                     const season = window.teamAnalyticsStore[teamId];
-                    window.teamLast10Store[teamId] = {
-                        abbrev: season.abbrev,
-                        curPace: season.estPace,
-                        curOffRtg: season.offRtg,
-                        curDefRtg: season.defRtg,
-                        prevPace: null,
-                        prevOffRtg: null,
-                        prevDefRtg: null
-                    };
+                    window.teamLast10Store[teamId] = { abbrev: season.abbrev, curPace: season.estPace, curOffRtg: season.offRtg, curDefRtg: season.defRtg, prevPace: null, prevOffRtg: null, prevDefRtg: null };
                 }
             });
             await Promise.all(promises);
@@ -2256,9 +1893,9 @@
         function updateLast10Rankings() {
             const teams = Object.values(window.teamLast10Store);
             if (teams.length === 0) { document.getElementById('rankings-container').innerHTML = '<div class="loading">No data</div>'; return; }
-            const paceSorted = [...teams].sort((a, b) => b.curPace - a.curPace);
-            const offSorted = [...teams].sort((a, b) => b.curOffRtg - a.curOffRtg);
-            const defSorted = [...teams].sort((a, b) => a.curDefRtg - b.curDefRtg);
+            const paceSorted = [...teams].sort((a,b) => b.curPace - a.curPace);
+            const offSorted = [...teams].sort((a,b) => b.curOffRtg - a.curOffRtg);
+            const defSorted = [...teams].sort((a,b) => a.curDefRtg - b.curDefRtg);
             const paceList = paceSorted.map(t => {
                 const teamId = Object.keys(window.teamLast10Store).find(id => window.teamLast10Store[id].abbrev === t.abbrev);
                 return `<li data-team-id="${teamId}"><span class="rank-abbr">${t.abbrev}</span> <span class="rank-value">${t.curPace.toFixed(1)}</span> ${getTrendHtml(t.curPace,t.prevPace,true)}</li>`;
@@ -2283,10 +1920,8 @@
 
         function highlightTeamAndOpponent(teamId, oppId) {
             document.querySelectorAll('#standings-container tr.highlighted-team, #rankings-container li.highlighted-team').forEach(el => el.classList.remove('highlighted-team'));
-            if (teamId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${teamId}"]`);
-                if (tr) tr.classList.add('highlighted-team'); }
-            if (oppId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${oppId}"]`);
-                if (tr) tr.classList.add('highlighted-team'); }
+            if (teamId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${teamId}"]`); if(tr) tr.classList.add('highlighted-team'); }
+            if (oppId) { const tr = document.querySelector(`#standings-container tr[data-team-id="${oppId}"]`); if(tr) tr.classList.add('highlighted-team'); }
             if (teamId) { document.querySelectorAll(`#rankings-container li[data-team-id="${teamId}"]`).forEach(el => el.classList.add('highlighted-team')); }
             if (oppId) { document.querySelectorAll(`#rankings-container li[data-team-id="${oppId}"]`).forEach(el => el.classList.add('highlighted-team')); }
         }
