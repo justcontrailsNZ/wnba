@@ -207,11 +207,21 @@
                 <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                 <div id="bounce-back-list"></div>
             </div>
+            <!-- MOVED: Net Rating Trend and Shot Profile charts from center to left column -->
+            <div class="flex-row">
+                <div class="flex-item panel-box">
+                    <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Net Rating Trend: Pace-Adjusted (Last 10)</div>
+                    <div class="chart-container" style="height:220px;"><canvas id="netRtgChart"></canvas></div>
+                </div>
+                <div class="flex-item panel-box">
+                    <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Shot Profile: Offense vs Opp Defense</div>
+                    <div class="chart-container-large"><canvas id="shotProfileChart"></canvas></div>
+                </div>
+            </div>
         </div>
         <div class="center-col">
             <div id="team-content" style="display:none;">
                 <div class="flex-row">
-                    <div class="flex-item" id="hot-indicator-container"></div>
                     <div class="flex-item panel-box">
                         <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Offensive Output: Overall Last 5</div>
                         <div class="chart-container"><canvas id="perfChart"></canvas></div>
@@ -224,6 +234,10 @@
                         <div class="chart-container" id="h2h-container"><canvas id="h2hChart"></canvas></div>
                     </div>
                 </div>
+                <!-- MOVED: RECENT FORM (L5 MATCHES) under H2H -->
+                <div class="flex-row" id="hot-indicator-row" style="display:none;">
+                    <div class="flex-item" id="hot-indicator-container"></div>
+                </div>
                 <!-- PROJECTED STARTERS ROW -->
                 <div class="flex-row" id="starters-row" style="display:none;">
                     <div class="flex-item panel-box" id="starters-team-box">
@@ -233,17 +247,7 @@
                         <div id="starters-opp-content" class="starters-container"></div>
                     </div>
                 </div>
-                <div class="flex-row">
-                    <div class="flex-item panel-box">
-                        <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Net Rating Trend: Pace-Adjusted (Last 10)</div>
-                        <div class="chart-container" style="height:220px;"><canvas id="netRtgChart"></canvas></div>
-                    </div>
-                    <div class="flex-item panel-box">
-                        <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:5px;text-align:center;">Shot Profile: Offense vs Opp Defense</div>
-                        <div class="chart-container-large"><canvas id="shotProfileChart"></canvas></div>
-                    </div>
-                </div>
-                <!-- Removed: Sharp Bettor's Dashboard (main+opp), Pace & Efficiency (main+opp), News columns -->
+                <!-- The old flex-row for Net Rating and Shot Profile was here – now removed -->
                 <div class="section-title">Last 3 Matches: <span id="main-team-title">Team</span></div>
                 <div class="past-games-grid" id="past-games-container"></div>
                 <div id="opp-past-matches-section" style="display:none;">
@@ -1218,7 +1222,7 @@
         }
 
         // ============================================================
-        //  FETCH GAMES AND DRAW CHARTS (news & dashboards removed)
+        //  FETCH GAMES AND DRAW CHARTS (updated to show hot indicator under H2H)
         // ============================================================
         async function fetchGamesAndDrawCharts(espnId, teamAbbrev) {
             const nextContainer = document.getElementById('next-game-container');
@@ -1227,11 +1231,13 @@
             const oppPastContainer = document.getElementById('opp-past-games-container');
             const hotContainer = document.getElementById('hot-indicator-container');
             const h2hContainer = document.getElementById('h2h-container');
+            const hotIndicatorRow = document.getElementById('hot-indicator-row');
             nextContainer.innerHTML = '<div class="loading">Finding next game...</div>';
             pastContainer.innerHTML = '<div class="loading">Loading match history...</div>';
             hotContainer.innerHTML = '<div class="loading">Analyzing momentum...</div>';
             h2hContainer.innerHTML = '<div class="loading">Loading H2H history...</div>';
             oppSection.style.display = 'none';
+            if (hotIndicatorRow) hotIndicatorRow.style.display = 'none';
             const propsSection = document.getElementById('props-recommendation-section');
             if (propsSection) propsSection.style.display = 'none';
             const startersRow = document.getElementById('starters-row');
@@ -1359,6 +1365,8 @@
                                 <div style="display:inline-block;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:11px;color:#fff;background-color:${oppTrend.color};margin-bottom:8px;">${oppTrend.icon} ${oppTrend.text}</div>
                                 <div style="font-size:13px;color:#333;margin-bottom:2px;"><b>${oppWinCount}W - ${oppValidGames-oppWinCount}L</b></div>
                                 <div style="font-size:11px;color:#777;">Avg Pts: ${oppValidGames>0?Math.round(oppTotalPts/oppValidGames):'--'}</div></div></div></div>`;
+                if (hotIndicatorRow) hotIndicatorRow.style.display = 'flex';
+
                 let lastH2HHtml = '';
                 if (nextGame && h2hGames.length > 0) { lastH2HHtml = await buildLastH2HCard(h2hGames[h2hGames.length-1].id); }
                 else if (nextGame && h2hGames.length === 0) { lastH2HHtml = `<div style="margin-top:15px;border-top:2px dashed #ccc;padding-top:10px;text-align:center;font-size:11px;color:#777;">No recent H2H matchup found between these teams.</div>`; }
