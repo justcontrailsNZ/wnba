@@ -332,20 +332,32 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         function getStatLabelsFromESPN(labels) {
+            // Expanded matching for all common label variations
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
             for (let i=0; i<labels.length; i++) {
-                const l = labels[i].toUpperCase();
-                if (l==='PTS'||l==='POINTS') r.pts=i;
-                if (l==='REB'||l==='REBOUNDS') r.reb=i;
-                if (l==='AST'||l==='ASSISTS') r.ast=i;
-                if (l==='BLK'||l==='BLOCKS') r.blk=i;
-                if (l==='STL'||l==='STEALS') r.stl=i;
-                if (l==='3PM'||l==='3PT'||l.includes('3PT')) r.tpm=i;
-                if (l==='MIN'||l==='MINUTES') r.min=i;
-                if (l==='FGM'||l==='FG'||l==='FIELD GOALS MADE') r.fgm=i;
-                if (l==='FGA'||l==='FIELD GOALS ATTEMPTED') r.fga=i;
-                if (l==='3PA'||l==='THREE POINT ATTEMPTS') r.tpa=i;
-                if (l==='TO'||l==='TURNOVERS'||l==='TOV') r.to=i;
+                const l = labels[i].toUpperCase().trim();
+                // Points
+                if (l==='PTS' || l==='POINTS' || l==='POINT' || l==='P' || l.includes('POINT')) r.pts = i;
+                // Rebounds
+                if (l==='REB' || l==='REBOUNDS' || l==='REBOUND' || l.includes('REBOUND')) r.reb = i;
+                // Assists
+                if (l==='AST' || l==='ASSISTS' || l==='ASSIST' || l.includes('ASSIST')) r.ast = i;
+                // Blocks
+                if (l==='BLK' || l==='BLOCKS' || l==='BLOCK' || l.includes('BLOCK')) r.blk = i;
+                // Steals
+                if (l==='STL' || l==='STEALS' || l==='STEAL' || l.includes('STEAL')) r.stl = i;
+                // 3PM
+                if (l==='3PM' || l==='3PTM' || l==='THREE POINT MADE' || l==='THREE POINTERS MADE' || l==='FG3M' || l==='3PT FG' || l.includes('3PT') && l.includes('MADE')) r.tpm = i;
+                // Minutes
+                if (l==='MIN' || l==='MINUTES' || l.includes('MINUTE')) r.min = i;
+                // FGM
+                if (l==='FGM' || l==='FIELDS GOALS MADE' || l==='FIELD GOAL MADE' || l==='FG MADE' || l==='FGM' || l.includes('FIELD GOAL') && l.includes('MADE')) r.fgm = i;
+                // FGA
+                if (l==='FGA' || l==='FIELD GOALS ATTEMPTED' || l==='FIELD GOAL ATTEMPTED' || l==='FG ATTEMPTED' || l==='FGA' || l.includes('FIELD GOAL') && l.includes('ATTEMPT')) r.fga = i;
+                // 3PA
+                if (l==='3PA' || l==='3PTA' || l==='THREE POINT ATTEMPTS' || l==='THREE POINTERS ATTEMPTED' || l==='FG3A' || l.includes('3PT') && l.includes('ATTEMPT')) r.tpa = i;
+                // Turnovers
+                if (l==='TO' || l==='TURNOVERS' || l==='TURNOVER' || l==='TOV' || l.includes('TURNOVER')) r.to = i;
             }
             return r;
         }
