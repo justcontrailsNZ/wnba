@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
     </script>
     <style>
+        /* ========== RESET & VARIABLES ========== */
         :root {
             --blue: #1d428a;
             --red: #c8102e;
@@ -1128,7 +1129,7 @@
             background: #eef2f5;
         }
 
-        /* COMBINED AVERAGES TABLE (compact) with fixed height and scroll */
+        /* COMBINED AVERAGES TABLE – fixed height and scroll */
         #left-avg-container {
             height: 350px;
             overflow-y: auto;
@@ -1213,7 +1214,7 @@
                 <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                 <div id="bounce-back-list"></div>
             </div>
-            <!-- Team vs Opponent Averages box with fixed height and scroll -->
+            <!-- Team vs Opponent Averages box -->
             <div id="left-avg-container" style="display:none;">
                 <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:8px;text-align:center;">Team vs Opponent (L5)</div>
                 <div id="left-avg-table"></div>
@@ -1336,6 +1337,24 @@
         currentSlateDate.setHours(currentSlateDate.getHours() - 5);
 
         // ============================================================
+        //  FALLBACK TEAM LIST (hardcoded – used if standings API fails)
+        // ============================================================
+        const FALLBACK_TEAMS = [
+            { id: '1', abbrev: 'ATL' },
+            { id: '2', abbrev: 'CHI' },
+            { id: '3', abbrev: 'CON' },
+            { id: '4', abbrev: 'DAL' },
+            { id: '5', abbrev: 'IND' },
+            { id: '6', abbrev: 'LAS' },
+            { id: '7', abbrev: 'MIN' },
+            { id: '8', abbrev: 'NYL' },
+            { id: '9', abbrev: 'PHO' },
+            { id: '10', abbrev: 'SEA' },
+            { id: '11', abbrev: 'WAS' },
+            { id: '12', abbrev: 'LV' }
+        ];
+
+        // ============================================================
         //  STAT CONFIG
         // ============================================================
         const STAT_CONFIG = {
@@ -1354,66 +1373,46 @@
         };
 
         // ============================================================
-        //  FIXED: ULTRA-COMPREHENSIVE LABEL MATCHING with fallback
+        //  ULTRA-COMPREHENSIVE LABEL MATCHING with fallback
         // ============================================================
         function getStatLabelsFromESPN(labels) {
-            // Normalize each label: trim, lowercase, remove all non-alphanumeric
             const norm = labels.map(l => l.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
-            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
-
-            // Also keep the original strings for pattern matching
             const orig = labels.map(l => l.trim().toLowerCase());
+            const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
 
             for (let i = 0; i < norm.length; i++) {
                 const n = norm[i];
                 const o = orig[i];
 
-                // --- Points ---
                 if (n === 'pts' || n === 'points' || o.includes('point')) r.pts = i;
-
-                // --- Rebounds ---
                 if (n === 'reb' || n === 'rebounds' || o.includes('rebound')) r.reb = i;
-
-                // --- Assists ---
                 if (n === 'ast' || n === 'assists' || o.includes('assist')) r.ast = i;
-
-                // --- Blocks ---
                 if (n === 'blk' || n === 'blocks' || o.includes('block')) r.blk = i;
-
-                // --- Steals ---
                 if (n === 'stl' || n === 'steals' || o.includes('steal')) r.stl = i;
-
-                // --- Minutes ---
                 if (n === 'min' || n === 'minutes' || o.includes('minute')) r.min = i;
-
-                // --- Turnovers ---
                 if (n === 'to' || n === 'turnovers' || n === 'tov' || o.includes('turnover')) r.to = i;
 
-                // --- FGM: Field Goals Made ---
-                // Matches: fgm, fg, fieldgoalsmade, fgmade, fg made, field goal made, etc.
+                // FGM
                 if (n === 'fgm' || n === 'fg' || n === 'fieldgoalsmade' || n === 'fgmade' ||
                     (n.includes('fg') && n.includes('made')) ||
                     (o.includes('fg') && o.includes('made')) ||
                     (o.includes('field') && o.includes('goal') && o.includes('made')) ||
                     (o.includes('field') && o.includes('made') && !o.includes('attempt'))) r.fgm = i;
 
-                // --- FGA: Field Goals Attempted ---
-                // Matches: fga, fgattempted, fgatt, fieldgoalsattempted, fg att, etc.
+                // FGA
                 if (n === 'fga' || n === 'fgattempted' || n === 'fgatt' || n === 'fieldgoalsattempted' ||
                     (n.includes('fg') && (n.includes('att') || n.includes('attempt'))) ||
                     (o.includes('fg') && (o.includes('att') || o.includes('attempt'))) ||
                     (o.includes('field') && o.includes('goal') && (o.includes('att') || o.includes('attempt')))) r.fga = i;
 
-                // --- 3PM: 3 Pointers Made ---
-                // Matches: 3pm, 3ptm, fg3m, 3ptmade, 3pmade, threepointmade, three pointers made, etc.
+                // 3PM
                 if (n === '3pm' || n === '3ptm' || n === 'fg3m' || n === '3ptmade' || n === '3pmade' ||
                     n === 'threepointmade' || n === 'threepointersmade' ||
                     (n.includes('3') && n.includes('made')) ||
                     (o.includes('3') && o.includes('made')) ||
                     (o.includes('three') && o.includes('made'))) r.tpm = i;
 
-                // --- 3PA: 3 Pointers Attempted ---
-                // Matches: 3pa, 3pta, fg3a, 3ptattempted, 3pattempted, threepointattempted, etc.
+                // 3PA
                 if (n === '3pa' || n === '3pta' || n === 'fg3a' || n === '3ptattempted' || n === '3pattempted' ||
                     n === 'threepointattempted' || n === 'threepointersattempted' ||
                     (n.includes('3') && (n.includes('att') || n.includes('attempt'))) ||
@@ -1421,8 +1420,7 @@
                     (o.includes('three') && (o.includes('att') || o.includes('attempt')))) r.tpa = i;
             }
 
-            // --- FALLBACK: If any stat is still -1, use the typical ESPN ordering ---
-            // Typical order: PTS, REB, AST, STL, BLK, FGM, FGA, 3PM, 3PA, TO, MIN
+            // Fallback: if still -1, use typical ESPN order: PTS, REB, AST, STL, BLK, FGM, FGA, 3PM, 3PA, TO, MIN
             if (r.fgm === -1 && labels.length > 5) r.fgm = 5;
             if (r.fga === -1 && labels.length > 6) r.fga = 6;
             if (r.tpm === -1 && labels.length > 7) r.tpm = 7;
@@ -1613,7 +1611,7 @@
         }
 
         // ============================================================
-        //  UNIFIED PROP ALPHA (UPA)
+        //  UNIFIED PROP ALPHA (UPA) – same as before
         // ============================================================
         function computeUPA(prop) {
             const mfProj = prop.rawProjection,
@@ -2232,12 +2230,6 @@
             return { icon: "⚖️", text: "NEUTRAL", color: "#555" };
         }
 
-        function getProxyTS(teamId) { let seed = parseInt(teamId); const random = () => { let x = Math.sin(seed++) *
-                10000; return x - Math.floor(x); }; return 53 + random() * 10; }
-
-        function getProxyOREB(teamId) { let seed = parseInt(teamId) + 50; const random = () => { let x = Math.sin(seed++) *
-                10000; return x - Math.floor(x); }; return 22 + random() * 12; }
-
         // ============================================================
         //  FETCH TEAM GAME STATS (for combined averages) and rank computation
         // ============================================================
@@ -2842,12 +2834,35 @@
         window.onclick = function(event) { const modal = document.getElementById('game-log-modal'); if (event.target ===
                 modal) closeGameLogModal(); };
 
+        // ============================================================
+        //  POPULATE DROPDOWN – uses fallback if standings failed
+        // ============================================================
         async function populateTeamDropdown() {
             const select = document.getElementById('team-select');
             const teamIds = Object.keys(window.teamAnalyticsStore);
-            if (teamIds.length === 0) { setTimeout(populateTeamDropdown, 500); return; }
+            let teams = [];
+            if (teamIds.length > 0) {
+                teams = teamIds.map(id => ({ id: id, abbrev: window.teamAnalyticsStore[id].abbrev }));
+            } else {
+                // Use fallback
+                teams = FALLBACK_TEAMS;
+                // Also populate teamAnalyticsStore with default values so other parts work
+                teams.forEach(t => {
+                    if (!window.teamAnalyticsStore[t.id]) {
+                        window.teamAnalyticsStore[t.id] = {
+                            abbrev: t.abbrev,
+                            estPace: 100,
+                            offRtg: 100,
+                            defRtg: 100,
+                            formWeight: 0.5,
+                            ppg: 80,
+                            oppg: 80,
+                            winPct: 0.5
+                        };
+                    }
+                });
+            }
             select.innerHTML = '';
-            const teams = teamIds.map(id => ({ id: id, abbrev: window.teamAnalyticsStore[id].abbrev }));
             teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
             teams.forEach(team => {
                 const option = document.createElement('option');
@@ -2859,13 +2874,25 @@
             teams.forEach(team => { window.teamNameMap[team.id] = team.abbrev; });
         }
 
+        // ============================================================
+        //  INIT – always runs, even if standings fail
+        // ============================================================
         async function initGlobalData() {
-            await fetchStandings();
+            // Try to load standings, but if it fails, we still populate dropdown via fallback
+            await fetchStandings().catch(() => {});
             await populateTeamDropdown();
             fetchLeaders();
-            await fetchAllTeamsL5Stats();
+            // Try to fetch L5 stats for ranks (if standings worked)
+            if (Object.keys(window.teamAnalyticsStore).length > 0) {
+                await fetchAllTeamsL5Stats().catch(() => {});
+            }
+            // Load slate
+            loadDailySlate(0);
         }
 
+        // ============================================================
+        //  FETCH STANDINGS – with fallback to hardcoded data
+        // ============================================================
         async function fetchStandings() {
             try {
                 const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
@@ -2934,10 +2961,33 @@
                     html += buildTable(west) + buildTable(east) + '</div>';
                     document.getElementById('standings-container').innerHTML = html;
                     await fetchLast20ForAllTeams();
-                    loadDailySlate(0);
+                    // loadDailySlate(0) will be called in initGlobalData
+                } else {
+                    throw new Error('No standings data');
                 }
-            } catch (e) { document.getElementById('standings-container').innerHTML =
-                    '<p style="color:red">Failed to load standings.</p>'; }
+            } catch (e) {
+                console.warn('Standings fetch failed, using fallback team list.', e);
+                // Use fallback: populate teamAnalyticsStore with default values
+                FALLBACK_TEAMS.forEach(t => {
+                    if (!window.teamAnalyticsStore[t.id]) {
+                        window.teamAnalyticsStore[t.id] = {
+                            abbrev: t.abbrev,
+                            estPace: 100,
+                            offRtg: 100,
+                            defRtg: 100,
+                            formWeight: 0.5,
+                            ppg: 80,
+                            oppg: 80,
+                            winPct: 0.5
+                        };
+                    }
+                });
+                // Show a simple message in standings container
+                document.getElementById('standings-container').innerHTML =
+                    '<p style="color:#888;text-align:center;font-size:12px;">Standings temporarily unavailable.</p>';
+                // Still try to fetch last10 for these teams (will use fallback data)
+                await fetchLast20ForAllTeams().catch(() => {});
+            }
         }
 
         async function fetchLast20ForAllTeams() {
