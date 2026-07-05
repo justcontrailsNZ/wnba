@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
     </script>
     <style>
-        /* ========== RESET & VARIABLES ========== */
+        /* ===== RESET & VARIABLES ===== */
         :root {
             --blue: #1d428a;
             --red: #c8102e;
@@ -1017,7 +1017,7 @@
             font-style: italic;
         }
 
-        /* PROJECTED STARTERS (ENHANCED) */
+        /* PROJECTED STARTERS */
         .starters-container {
             display: flex;
             gap: 20px;
@@ -1183,7 +1183,7 @@
         }
     </style>
 </head>
-<body onload="initGlobalData()">
+<body>
     <div class="header-box">
         <h1>🏀 WNBA Pro Analytics Dashboard</h1>
         <div class="subtitle">Unified Prop Alpha · Single Signal · Multi‑Model Fusion</div>
@@ -1205,7 +1205,7 @@
                 </div>
                 <div class="slate-scrollable">
                     <div id="slate-data-container">
-                        <div class="loading">Waiting for system init...</div>
+                        <div class="loading">Loading today's slate...</div>
                     </div>
                 </div>
             </div>
@@ -1420,7 +1420,7 @@
                     (o.includes('three') && (o.includes('att') || o.includes('attempt')))) r.tpa = i;
             }
 
-            // Fallback: if still -1, use typical ESPN order: PTS, REB, AST, STL, BLK, FGM, FGA, 3PM, 3PA, TO, MIN
+            // Fallback: use typical ESPN order: PTS, REB, AST, STL, BLK, FGM, FGA, 3PM, 3PA, TO, MIN
             if (r.fgm === -1 && labels.length > 5) r.fgm = 5;
             if (r.fga === -1 && labels.length > 6) r.fga = 6;
             if (r.tpm === -1 && labels.length > 7) r.tpm = 7;
@@ -1533,7 +1533,7 @@
         }
 
         // ============================================================
-        //  MODELS (Bayesian, Matchup, Poisson, GBM)
+        //  MODELS – Bayesian, Matchup, Poisson, GBM (full versions)
         // ============================================================
         function computeBayesianProjection(prop) {
             const vals = prop.allVals,
@@ -1611,7 +1611,7 @@
         }
 
         // ============================================================
-        //  UNIFIED PROP ALPHA (UPA) – same as before
+        //  UNIFIED PROP ALPHA (UPA)
         // ============================================================
         function computeUPA(prop) {
             const mfProj = prop.rawProjection,
@@ -2835,18 +2835,19 @@
                 modal) closeGameLogModal(); };
 
         // ============================================================
-        //  POPULATE DROPDOWN – uses fallback if standings failed
+        //  POPULATE DROPDOWN – always uses fallback if needed
         // ============================================================
         async function populateTeamDropdown() {
             const select = document.getElementById('team-select');
-            const teamIds = Object.keys(window.teamAnalyticsStore);
             let teams = [];
-            if (teamIds.length > 0) {
-                teams = teamIds.map(id => ({ id: id, abbrev: window.teamAnalyticsStore[id].abbrev }));
+
+            // If we have teamAnalyticsStore data, use it; otherwise fallback
+            const storeIds = Object.keys(window.teamAnalyticsStore);
+            if (storeIds.length > 0) {
+                teams = storeIds.map(id => ({ id, abbrev: window.teamAnalyticsStore[id].abbrev }));
             } else {
-                // Use fallback
+                // Use fallback and also populate store with defaults
                 teams = FALLBACK_TEAMS;
-                // Also populate teamAnalyticsStore with default values so other parts work
                 teams.forEach(t => {
                     if (!window.teamAnalyticsStore[t.id]) {
                         window.teamAnalyticsStore[t.id] = {
@@ -2862,6 +2863,7 @@
                     }
                 });
             }
+
             select.innerHTML = '';
             teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
             teams.forEach(team => {
@@ -2875,27 +2877,12 @@
         }
 
         // ============================================================
-        //  INIT – always runs, even if standings fail
-        // ============================================================
-        async function initGlobalData() {
-            // Try to load standings, but if it fails, we still populate dropdown via fallback
-            await fetchStandings().catch(() => {});
-            await populateTeamDropdown();
-            fetchLeaders();
-            // Try to fetch L5 stats for ranks (if standings worked)
-            if (Object.keys(window.teamAnalyticsStore).length > 0) {
-                await fetchAllTeamsL5Stats().catch(() => {});
-            }
-            // Load slate
-            loadDailySlate(0);
-        }
-
-        // ============================================================
         //  FETCH STANDINGS – with fallback to hardcoded data
         // ============================================================
         async function fetchStandings() {
             try {
                 const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings');
+                if (!res.ok) throw new Error('Standings API returned ' + res.status);
                 const data = await res.json();
                 if (data?.children) {
                     const east = data.children.find(c => c.name.includes('Eastern'));
@@ -2961,7 +2948,7 @@
                     html += buildTable(west) + buildTable(east) + '</div>';
                     document.getElementById('standings-container').innerHTML = html;
                     await fetchLast20ForAllTeams();
-                    // loadDailySlate(0) will be called in initGlobalData
+                    return;
                 } else {
                     throw new Error('No standings data');
                 }
@@ -2982,7 +2969,6 @@
                         };
                     }
                 });
-                // Show a simple message in standings container
                 document.getElementById('standings-container').innerHTML =
                     '<p style="color:#888;text-align:center;font-size:12px;">Standings temporarily unavailable.</p>';
                 // Still try to fetch last10 for these teams (will use fallback data)
@@ -3131,6 +3117,27 @@
         }
 
         function changeSlateDate(offset) { loadDailySlate(offset); }
+
+        // ============================================================
+        //  INIT – called when page loads
+        // ============================================================
+        async function initGlobalData() {
+            console.log('Initialising dashboard...');
+            // Try to load standings, but if it fails, we still populate dropdown via fallback
+            await fetchStandings().catch((e) => console.warn('Standings error:', e));
+            await populateTeamDropdown();
+            fetchLeaders().catch((e) => console.warn('Leaders error:', e));
+            // Try to fetch L5 stats for ranks (if standings worked)
+            if (Object.keys(window.teamAnalyticsStore).length > 0) {
+                await fetchAllTeamsL5Stats().catch((e) => console.warn('L5 stats error:', e));
+            }
+            // Load today's slate
+            loadDailySlate(0);
+            console.log('Dashboard initialised.');
+        }
+
+        // Auto-initialise on page load
+        document.addEventListener('DOMContentLoaded', initGlobalData);
     </script>
 </body>
 </html>
