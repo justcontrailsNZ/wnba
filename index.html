@@ -103,7 +103,7 @@
         .opponent-cell { font-weight: bold; color: #1d428a; } .location-cell { font-size: 10px; }
 
         /* SLATE */
-        .syndicate-box { background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; border: 1px solid #d1d9e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; max-height: 60vh; overflow: hidden; }
+        .syndicate-box { background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; border: 1px solid #d1d9e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; max-height: 70vh; overflow-y: auto; }
         .slate-header { display: flex; justify-content: space-between; align-items: center; background: #1d428a; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: #fff; font-weight: bold; font-size: 13px; flex-shrink: 0; }
         .slate-header button { background: #fff; color: #1d428a; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .slate-header button:hover { background: #eef2f5; }
@@ -178,13 +178,28 @@
         .toggle-table-btn { font-size: 11px; color: #1d428a; background: none; border: 1px solid #1d428a; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; }
         .toggle-table-btn:hover { background: #eef2f5; }
 
-        /* COMBINED AVERAGES TABLE (compact) */
+        /* COMBINED AVERAGES TABLE (compact) with fixed height and scroll */
+        #left-avg-container {
+            height: 350px;
+            overflow-y: auto;
+            display: none;
+            background: #fff;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            box-sizing: border-box;
+        }
+        #left-avg-container::-webkit-scrollbar { width: 6px; }
+        #left-avg-container::-webkit-scrollbar-track { background: #f0f2f5; }
+        #left-avg-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         .combined-avg-table { width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 5px; }
         .combined-avg-table th, .combined-avg-table td { padding: 3px 5px; border-bottom: 1px solid #eee; text-align: center; }
         .combined-avg-table th { background: #f1f3f5; font-weight: bold; }
         .combined-avg-table .stat-name { font-weight: bold; color: #333; }
         .combined-avg-table .team-val { color: #1d428a; }
         .combined-avg-table .opp-val { color: #c8102e; }
+        .rank-sup { font-size: 9px; color: #888; }
     </style>
 </head>
 <body onload="initGlobalData()">
@@ -214,8 +229,8 @@
                 <div id="bounce-leaderboard" class="bounce-leaderboard"></div>
                 <div id="bounce-back-list"></div>
             </div>
-            <!-- MOVED: Team vs Opponent Averages box placed here -->
-            <div id="left-avg-container" style="display:none;" class="panel-box">
+            <!-- Team vs Opponent Averages box with fixed height and scroll -->
+            <div id="left-avg-container" style="display:none;">
                 <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:8px;text-align:center;">Team vs Opponent (L5)</div>
                 <div id="left-avg-table"></div>
             </div>
@@ -305,7 +320,6 @@
         //  CONFIG & GLOBALS
         // ============================================================
         let perfChartInstance = null, h2hChartInstance = null, netRtgChartInstance = null;
-        // shotProfileChartInstance removed
         window.teamAnalyticsStore = {};
         window.teamLast10Store = {};
         window.currentTeamId = null;
@@ -313,6 +327,7 @@
         window.teamNameMap = {};
         window.playerGameLogsCache = {};
         window.teamGameStatsCache = {};
+        window.allTeamsL5Stats = {}; // stores { teamId: [gameStats] } for all teams
         let currentSlateDate = new Date();
         currentSlateDate.setHours(currentSlateDate.getHours() - 5);
 
@@ -332,32 +347,26 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         function getStatLabelsFromESPN(labels) {
-            // Expanded matching for all common label variations
+            // Normalise labels: trim, uppercase, remove punctuation.
+            const norm = labels.map(l => l.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''));
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
-            for (let i=0; i<labels.length; i++) {
-                const l = labels[i].toUpperCase().trim();
-                // Points
-                if (l==='PTS' || l==='POINTS' || l==='POINT' || l==='P' || l.includes('POINT')) r.pts = i;
-                // Rebounds
-                if (l==='REB' || l==='REBOUNDS' || l==='REBOUND' || l.includes('REBOUND')) r.reb = i;
-                // Assists
-                if (l==='AST' || l==='ASSISTS' || l==='ASSIST' || l.includes('ASSIST')) r.ast = i;
-                // Blocks
-                if (l==='BLK' || l==='BLOCKS' || l==='BLOCK' || l.includes('BLOCK')) r.blk = i;
-                // Steals
-                if (l==='STL' || l==='STEALS' || l==='STEAL' || l.includes('STEAL')) r.stl = i;
+            for (let i=0; i<norm.length; i++) {
+                const l = norm[i];
+                if (l === 'PTS' || l === 'POINTS' || l === 'POINT' || l.includes('POINT')) r.pts = i;
+                if (l === 'REB' || l === 'REBOUNDS' || l === 'REBOUND' || l.includes('REBOUND')) r.reb = i;
+                if (l === 'AST' || l === 'ASSISTS' || l === 'ASSIST' || l.includes('ASSIST')) r.ast = i;
+                if (l === 'BLK' || l === 'BLOCKS' || l === 'BLOCK' || l.includes('BLOCK')) r.blk = i;
+                if (l === 'STL' || l === 'STEALS' || l === 'STEAL' || l.includes('STEAL')) r.stl = i;
                 // 3PM
-                if (l==='3PM' || l==='3PTM' || l==='THREE POINT MADE' || l==='THREE POINTERS MADE' || l==='FG3M' || l==='3PT FG' || l.includes('3PT') && l.includes('MADE')) r.tpm = i;
-                // Minutes
-                if (l==='MIN' || l==='MINUTES' || l.includes('MINUTE')) r.min = i;
+                if (l === '3PM' || l === '3PTM' || l === 'THREEPOINTMADE' || l === 'FG3M' || l.includes('3PT') && l.includes('MADE') || l.includes('3P') && l.includes('MADE')) r.tpm = i;
+                if (l === 'MIN' || l === 'MINUTES' || l.includes('MINUTE')) r.min = i;
                 // FGM
-                if (l==='FGM' || l==='FIELDS GOALS MADE' || l==='FIELD GOAL MADE' || l==='FG MADE' || l==='FGM' || l.includes('FIELD GOAL') && l.includes('MADE')) r.fgm = i;
+                if (l === 'FGM' || l === 'FIELDSGOALSMADE' || l === 'FGMADE' || l === 'FGM' || l.includes('FIELDGOAL') && l.includes('MADE')) r.fgm = i;
                 // FGA
-                if (l==='FGA' || l==='FIELD GOALS ATTEMPTED' || l==='FIELD GOAL ATTEMPTED' || l==='FG ATTEMPTED' || l==='FGA' || l.includes('FIELD GOAL') && l.includes('ATTEMPT')) r.fga = i;
+                if (l === 'FGA' || l === 'FIELDGOALSATTEMPTED' || l === 'FGATTEMPTED' || l === 'FGA' || l.includes('FIELDGOAL') && l.includes('ATTEMPT')) r.fga = i;
                 // 3PA
-                if (l==='3PA' || l==='3PTA' || l==='THREE POINT ATTEMPTS' || l==='THREE POINTERS ATTEMPTED' || l==='FG3A' || l.includes('3PT') && l.includes('ATTEMPT')) r.tpa = i;
-                // Turnovers
-                if (l==='TO' || l==='TURNOVERS' || l==='TURNOVER' || l==='TOV' || l.includes('TURNOVER')) r.to = i;
+                if (l === '3PA' || l === '3PTA' || l === 'THREEPOINTATTEMPTS' || l === 'FG3A' || l.includes('3PT') && l.includes('ATTEMPT') || l.includes('3P') && l.includes('ATTEMPT')) r.tpa = i;
+                if (l === 'TO' || l === 'TURNOVERS' || l === 'TURNOVER' || l === 'TOV' || l.includes('TURNOVER')) r.to = i;
             }
             return r;
         }
@@ -1022,10 +1031,9 @@
         }
         function getProxyTS(teamId) { let seed = parseInt(teamId); const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 53 + random() * 10; }
         function getProxyOREB(teamId) { let seed = parseInt(teamId) + 50; const random = () => { let x = Math.sin(seed++) * 10000; return x - Math.floor(x); }; return 22 + random() * 12; }
-        // shot profile proxies no longer needed
 
         // ============================================================
-        //  FETCH TEAM GAME STATS (for combined averages)
+        //  FETCH TEAM GAME STATS (for combined averages) and rank computation
         // ============================================================
         async function fetchTeamGameStats(teamId, numGames=5) {
             const cacheKey = `${teamId}_${numGames}`;
@@ -1077,6 +1085,35 @@
             } catch(e) { return []; }
         }
 
+        // Fetch L5 stats for all teams and store in window.allTeamsL5Stats
+        async function fetchAllTeamsL5Stats() {
+            const teamIds = Object.keys(window.teamAnalyticsStore);
+            if (teamIds.length === 0) return;
+            const promises = teamIds.map(async (id) => {
+                const stats = await fetchTeamGameStats(id, 5).catch(() => []);
+                window.allTeamsL5Stats[id] = stats;
+            });
+            await Promise.all(promises);
+        }
+
+        function getRankForStat(teamId, statKey, value) {
+            // compute rank among all teams (higher is better for all stats except turnovers? but we'll do descending for all)
+            const allTeams = Object.keys(window.allTeamsL5Stats);
+            if (allTeams.length === 0) return 'N/A';
+            const avgs = allTeams.map(id => {
+                const arr = window.allTeamsL5Stats[id];
+                if (!arr.length) return null;
+                const sum = arr.reduce((s,g) => s + (g[statKey]||0), 0);
+                return sum / arr.length;
+            }).filter(v => v !== null);
+            if (!avgs.length) return 'N/A';
+            // For turnovers, lower is better, so we rank ascending; for all others, descending
+            const isTurnover = statKey === 'to';
+            const sorted = isTurnover ? avgs.slice().sort((a,b) => a - b) : avgs.slice().sort((a,b) => b - a);
+            const rank = sorted.indexOf(value) + 1;
+            return rank > 0 ? rank : 'N/A';
+        }
+
         function renderCombinedAverages(teamAbbrev, oppAbbrev, teamStatsArray, oppStatsArray) {
             const container = document.getElementById('left-avg-container');
             const tableDiv = document.getElementById('left-avg-table');
@@ -1087,24 +1124,59 @@
             }
             container.style.display = 'block';
             const calcAvg = (arr, key) => {
-                if (!arr.length) return '--';
+                if (!arr.length) return null;
                 const sum = arr.reduce((s,g) => s + (g[key]||0), 0);
-                return (sum / arr.length).toFixed(1);
+                return sum / arr.length;
             };
-            const table = `
-                <table class="combined-avg-table">
-                    <tr><th>Stat</th><th>${teamAbbrev}</th><th>${oppAbbrev}</th></tr>
-                    <tr><td class="stat-name">Points</td><td class="team-val">${calcAvg(teamStatsArray,'pts')}</td><td class="opp-val">${calcAvg(oppStatsArray,'pts')}</td></tr>
-                    <tr><td class="stat-name">Rebounds</td><td class="team-val">${calcAvg(teamStatsArray,'reb')}</td><td class="opp-val">${calcAvg(oppStatsArray,'reb')}</td></tr>
-                    <tr><td class="stat-name">Assists</td><td class="team-val">${calcAvg(teamStatsArray,'ast')}</td><td class="opp-val">${calcAvg(oppStatsArray,'ast')}</td></tr>
-                    <tr><td class="stat-name">Steals</td><td class="team-val">${calcAvg(teamStatsArray,'stl')}</td><td class="opp-val">${calcAvg(oppStatsArray,'stl')}</td></tr>
-                    <tr><td class="stat-name">Blocks</td><td class="team-val">${calcAvg(teamStatsArray,'blk')}</td><td class="opp-val">${calcAvg(oppStatsArray,'blk')}</td></tr>
-                    <tr><td class="stat-name">FGM</td><td class="team-val">${calcAvg(teamStatsArray,'fgm')}</td><td class="opp-val">${calcAvg(oppStatsArray,'fgm')}</td></tr>
-                    <tr><td class="stat-name">FGA</td><td class="team-val">${calcAvg(teamStatsArray,'fga')}</td><td class="opp-val">${calcAvg(oppStatsArray,'fga')}</td></tr>
-                    <tr><td class="stat-name">3PM</td><td class="team-val">${calcAvg(teamStatsArray,'tpm')}</td><td class="opp-val">${calcAvg(oppStatsArray,'tpm')}</td></tr>
-                    <tr><td class="stat-name">3PA</td><td class="team-val">${calcAvg(teamStatsArray,'tpa')}</td><td class="opp-val">${calcAvg(oppStatsArray,'tpa')}</td></tr>
-                    <tr><td class="stat-name">Turnovers</td><td class="team-val">${calcAvg(teamStatsArray,'to')}</td><td class="opp-val">${calcAvg(oppStatsArray,'to')}</td></tr>
-                </table>`;
+
+            const teamAvgs = {};
+            const oppAvgs = {};
+            const statKeys = ['pts', 'reb', 'ast', 'stl', 'blk', 'fgm', 'fga', 'tpm', 'tpa', 'to'];
+            const labels = {
+                pts: 'Points', reb: 'Rebounds', ast: 'Assists', stl: 'Steals',
+                blk: 'Blocks', fgm: 'FGM', fga: 'FGA', tpm: '3PM', tpa: '3PA', to: 'Turnovers'
+            };
+            statKeys.forEach(k => {
+                teamAvgs[k] = calcAvg(teamStatsArray, k);
+                oppAvgs[k] = calcAvg(oppStatsArray, k);
+            });
+
+            // Compute ranks (only if allTeamsL5Stats is populated)
+            const teamId = window.currentTeamId;
+            const oppId = window.currentOppId;
+            let ranksTeam = {}, ranksOpp = {};
+            if (teamId && Object.keys(window.allTeamsL5Stats).length > 0) {
+                statKeys.forEach(k => {
+                    const val = teamAvgs[k];
+                    if (val !== null && val !== undefined) {
+                        const rank = getRankForStat(teamId, k, val);
+                        ranksTeam[k] = rank;
+                    } else ranksTeam[k] = 'N/A';
+                    const valOpp = oppAvgs[k];
+                    if (valOpp !== null && valOpp !== undefined) {
+                        const rank = getRankForStat(oppId, k, valOpp);
+                        ranksOpp[k] = rank;
+                    } else ranksOpp[k] = 'N/A';
+                });
+            }
+
+            let rows = '';
+            statKeys.forEach(k => {
+                const teamVal = teamAvgs[k] !== null ? teamAvgs[k].toFixed(1) : '--';
+                const oppVal = oppAvgs[k] !== null ? oppAvgs[k].toFixed(1) : '--';
+                const teamRank = ranksTeam[k] && ranksTeam[k] !== 'N/A' ? `(#${ranksTeam[k]})` : '';
+                const oppRank = ranksOpp[k] && ranksOpp[k] !== 'N/A' ? `(#${ranksOpp[k]})` : '';
+                rows += `<tr>
+                    <td class="stat-name">${labels[k]}</td>
+                    <td class="team-val">${teamVal} <span class="rank-sup">${teamRank}</span></td>
+                    <td class="opp-val">${oppVal} <span class="rank-sup">${oppRank}</span></td>
+                </tr>`;
+            });
+
+            const table = `<table class="combined-avg-table">
+                <tr><th>Stat</th><th>${teamAbbrev}</th><th>${oppAbbrev}</th></tr>
+                ${rows}
+            </table>`;
             tableDiv.innerHTML = table;
         }
 
@@ -1203,7 +1275,6 @@
                 let maxGames = Math.max(myNetRtgData.length, oppNetRtgData.length);
                 let netRtgLabels = Array.from({ length: maxGames }, (_, i) => `G${i+1}`);
                 drawNetRtgChart('netRtgChart', netRtgLabels, teamAbbrev, myNetRtgData, oppAbbrev, oppNetRtgData);
-                // Shot profile chart removed
                 let h2hGames = [];
                 if (oppId) {
                     let currentSeasonH2H = completedGames.filter(e => e.competitions[0].competitors.some(c => String(c.team.id) === String(oppId)));
@@ -1241,6 +1312,9 @@
                         fetchTeamGameStats(espnId, 5),
                         fetchTeamGameStats(oppId, 5)
                     ]);
+                    // Pass team IDs for rank computation
+                    window.currentTeamId = espnId;
+                    window.currentOppId = oppId;
                     renderCombinedAverages(teamAbbrev, oppAbbrev, teamStats, oppStats);
                 }
 
@@ -1470,7 +1544,13 @@
             teams.forEach(team => { window.teamNameMap[team.id] = team.abbrev; });
         }
 
-        async function initGlobalData() { await fetchStandings(); await populateTeamDropdown(); fetchLeaders(); }
+        async function initGlobalData() {
+            await fetchStandings();
+            await populateTeamDropdown();
+            fetchLeaders();
+            // Fetch L5 stats for all teams for ranking
+            await fetchAllTeamsL5Stats();
+        }
 
         async function fetchStandings() {
             try {
