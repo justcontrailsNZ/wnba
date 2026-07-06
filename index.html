@@ -346,6 +346,9 @@
         // ============================================================
         //  UTILITY FUNCTIONS
         // ============================================================
+        /**
+         * Improved label detection – now correctly finds 3PM, 3PTM, FG3M, etc.
+         */
         function getStatLabelsFromESPN(labels) {
             // Normalize: trim, lowercase, remove all non-alphanumeric
             const norm = labels.map(l => l.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
@@ -362,23 +365,22 @@
                 if (l === 'blk' || l === 'blocks' || l.includes('block')) r.blk = i;
                 // Steals
                 if (l === 'stl' || l === 'steals' || l.includes('steal')) r.stl = i;
-                // 3PM - check for "3pm", "3ptm", "fg3m", "threepointmade", etc.
-                if (l === '3pm' || l === '3ptm' || l === 'fg3m' ||
+                // 3PM – enhanced detection
+                if (l === '3pm' || l === '3ptm' || l === 'fg3m' || l === 'threepointmade' ||
                     (l.includes('3pt') && l.includes('made')) ||
                     (l.includes('3p') && l.includes('made')) ||
-                    (l.includes('three') && l.includes('made'))) r.tpm = i;
+                    (l.includes('three') && l.includes('made')) ||
+                    l === '3pm' // redundant but safe
+                ) r.tpm = i;
                 // Minutes
                 if (l === 'min' || l === 'minutes' || l.includes('minute')) r.min = i;
-                // FGM - check for "fgm", "fg", "fieldgoalmade", etc.
-                if (l === 'fgm' || l === 'fg' || 
-                    (l.includes('fieldgoal') && l.includes('made')) ||
+                // FGM
+                if (l === 'fgm' || l === 'fg' || (l.includes('fieldgoal') && l.includes('made')) ||
                     (l.includes('fg') && l.includes('made'))) r.fgm = i;
-                // FGA - check for "fga", "fgattempted", "fieldgoalattempted", etc.
-                if (l === 'fga' || 
-                    (l.includes('fieldgoal') && l.includes('attempt')) ||
-                    (l.includes('fg') && l.includes('attempt')) ||
-                    l.includes('fga')) r.fga = i;
-                // 3PA - check for "3pa", "3pta", "fg3a", "threepointattempt", etc.
+                // FGA
+                if (l === 'fga' || (l.includes('fieldgoal') && l.includes('attempt')) ||
+                    (l.includes('fg') && l.includes('attempt')) || l.includes('fga')) r.fga = i;
+                // 3PA
                 if (l === '3pa' || l === '3pta' || l === 'fg3a' ||
                     (l.includes('3pt') && l.includes('attempt')) ||
                     (l.includes('3p') && l.includes('attempt')) ||
