@@ -344,46 +344,56 @@
         };
 
         // ============================================================
-        //  IMPROVED LABEL DETECTION – now catches "FGA", "3PA", etc.
+        //  ULTRA-ROBUST LABEL DETECTION – catches FGA, 3PA, etc.
         // ============================================================
         function getStatLabelsFromESPN(labels) {
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
             for (let i = 0; i < labels.length; i++) {
                 const raw = labels[i].trim();
                 const rawLower = raw.toLowerCase();
-                const l = rawLower.replace(/[^a-z0-9]/g, '');
-                // Points
-                if (l === 'pts' || l === 'points' || l.includes('point')) r.pts = i;
-                // Rebounds
-                if (l === 'reb' || l === 'rebounds' || l.includes('rebound')) r.reb = i;
-                // Assists
-                if (l === 'ast' || l === 'assists' || l.includes('assist')) r.ast = i;
-                // Blocks
-                if (l === 'blk' || l === 'blocks' || l.includes('block')) r.blk = i;
-                // Steals
-                if (l === 'stl' || l === 'steals' || l.includes('steal')) r.stl = i;
-                // Minutes
-                if (l === 'min' || l === 'minutes' || l.includes('minute')) r.min = i;
-                // Turnovers
-                if (l === 'to' || l === 'turnovers' || l === 'tov' || l.includes('turnover')) r.to = i;
+                const stripped = rawLower.replace(/[^a-z0-9]/g, '');
 
-                // Field Goal Attempts (check raw and stripped)
+                // Points
+                if (rawLower.includes('pts') || rawLower.includes('points') || stripped.includes('point')) r.pts = i;
+                // Rebounds
+                if (rawLower.includes('reb') || rawLower.includes('rebounds') || stripped.includes('rebound')) r.reb = i;
+                // Assists
+                if (rawLower.includes('ast') || rawLower.includes('assists') || stripped.includes('assist')) r.ast = i;
+                // Blocks
+                if (rawLower.includes('blk') || rawLower.includes('blocks') || stripped.includes('block')) r.blk = i;
+                // Steals
+                if (rawLower.includes('stl') || rawLower.includes('steals') || stripped.includes('steal')) r.stl = i;
+                // Minutes
+                if (rawLower.includes('min') || rawLower.includes('minutes') || stripped.includes('minute')) r.min = i;
+                // Turnovers
+                if (rawLower.includes('to') || rawLower.includes('turnovers') || rawLower.includes('tov') || stripped.includes('turnover')) r.to = i;
+
+                // ---- Field Goal Attempts (FGA) ----
                 if (rawLower.includes('fga') || rawLower.includes('fg attempt') || rawLower.includes('field goal attempt') ||
-                    l === 'fga' || l.includes('fgattempt') || l.includes('fieldgoalattempt')) {
+                    stripped.includes('fgattempt') || stripped.includes('fieldgoalattempt') ||
+                    (rawLower.includes('fg') && rawLower.includes('attempt')) ||
+                    (rawLower.includes('field goal') && rawLower.includes('attempt'))) {
                     r.fga = i;
-                } else if (rawLower.includes('fgm') || rawLower.includes('fg made') || rawLower.includes('field goal made') ||
-                    l === 'fgm' || l.includes('fgmade') || l.includes('fieldgoalmade') ||
-                    (rawLower === 'fg' && !rawLower.includes('attempt') && !rawLower.includes('a'))) {
+                }
+                // ---- Field Goals Made (FGM) ----
+                else if (rawLower.includes('fgm') || rawLower.includes('fg made') || rawLower.includes('field goal made') ||
+                    stripped.includes('fgmade') || stripped.includes('fieldgoalmade') ||
+                    (rawLower.includes('fg') && !rawLower.includes('attempt') && !rawLower.includes('a')) ||
+                    (rawLower.includes('field goal') && !rawLower.includes('attempt'))) {
                     r.fgm = i;
                 }
 
-                // 3PT Attempts
+                // ---- 3PT Attempts (3PA) ----
                 if (rawLower.includes('3pa') || rawLower.includes('3pt attempt') || rawLower.includes('3 point attempt') ||
-                    rawLower.includes('fg3a') || l === '3pa' || l === '3pta' || l.includes('fg3a') ||
-                    (l.includes('3pt') && l.includes('attempt')) || (l.includes('3p') && l.includes('attempt'))) {
+                    rawLower.includes('fg3a') || stripped.includes('3pa') || stripped.includes('3pta') || stripped.includes('fg3a') ||
+                    (rawLower.includes('3pt') && rawLower.includes('attempt')) ||
+                    (rawLower.includes('3p') && rawLower.includes('attempt')) ||
+                    (rawLower.includes('three') && rawLower.includes('attempt'))) {
                     r.tpa = i;
-                } else if (rawLower.includes('3pm') || rawLower.includes('3pt made') || rawLower.includes('3 point made') ||
-                    rawLower.includes('fg3m') || l === '3pm' || l === '3ptm' || l === 'fg3m' ||
+                }
+                // ---- 3PT Made (3PM) ----
+                else if (rawLower.includes('3pm') || rawLower.includes('3pt made') || rawLower.includes('3 point made') ||
+                    rawLower.includes('fg3m') || stripped.includes('3pm') || stripped.includes('3ptm') || stripped.includes('fg3m') ||
                     (rawLower.includes('3pt') && !rawLower.includes('attempt') && !rawLower.includes('a')) ||
                     (rawLower.includes('3p') && !rawLower.includes('attempt') && !rawLower.includes('a')) ||
                     (rawLower.includes('three') && rawLower.includes('made'))) {
