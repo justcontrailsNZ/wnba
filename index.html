@@ -347,46 +347,41 @@
         //  UTILITY FUNCTIONS
         // ============================================================
         /**
-         * Improved label detection – now correctly finds 3PM, 3PTM, FG3M, etc.
+         * Robust label detection using substring matching.
          */
         function getStatLabelsFromESPN(labels) {
-            // Normalize: trim, lowercase, remove all non-alphanumeric
             const norm = labels.map(l => l.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
             for (let i=0; i<norm.length; i++) {
                 const l = norm[i];
-                // Points
-                if (l === 'pts' || l === 'points' || l.includes('point')) r.pts = i;
-                // Rebounds
-                if (l === 'reb' || l === 'rebounds' || l.includes('rebound')) r.reb = i;
-                // Assists
-                if (l === 'ast' || l === 'assists' || l.includes('assist')) r.ast = i;
-                // Blocks
-                if (l === 'blk' || l === 'blocks' || l.includes('block')) r.blk = i;
-                // Steals
-                if (l === 'stl' || l === 'steals' || l.includes('steal')) r.stl = i;
-                // 3PM – enhanced detection
-                if (l === '3pm' || l === '3ptm' || l === 'fg3m' || l === 'threepointmade' ||
+                // Points: pts, points, point
+                if (l.includes('pts') || l.includes('point')) r.pts = i;
+                // Rebounds: reb, rebounds, rebound
+                if (l.includes('reb')) r.reb = i;
+                // Assists: ast, assists, assist
+                if (l.includes('ast')) r.ast = i;
+                // Blocks: blk, blocks, block
+                if (l.includes('blk') || l.includes('block')) r.blk = i;
+                // Steals: stl, steals, steal
+                if (l.includes('stl') || l.includes('steal')) r.stl = i;
+                // Minutes: min, minutes, minute
+                if (l.includes('min')) r.min = i;
+                // FGM: fgm, fg made, fieldgoal made
+                if (l.includes('fgm') || (l.includes('fg') && l.includes('made')) || (l.includes('fieldgoal') && l.includes('made'))) r.fgm = i;
+                // FGA: fga, fg attempt, fieldgoal attempt
+                if (l.includes('fga') || (l.includes('fg') && l.includes('attempt')) || (l.includes('fieldgoal') && l.includes('attempt'))) r.fga = i;
+                // 3PM: 3pm, 3ptm, fg3m, three point made, etc.
+                if (l.includes('3pm') || l.includes('3ptm') || l.includes('fg3m') ||
                     (l.includes('3pt') && l.includes('made')) ||
                     (l.includes('3p') && l.includes('made')) ||
-                    (l.includes('three') && l.includes('made')) ||
-                    l === '3pm' // redundant but safe
-                ) r.tpm = i;
-                // Minutes
-                if (l === 'min' || l === 'minutes' || l.includes('minute')) r.min = i;
-                // FGM
-                if (l === 'fgm' || l === 'fg' || (l.includes('fieldgoal') && l.includes('made')) ||
-                    (l.includes('fg') && l.includes('made'))) r.fgm = i;
-                // FGA
-                if (l === 'fga' || (l.includes('fieldgoal') && l.includes('attempt')) ||
-                    (l.includes('fg') && l.includes('attempt')) || l.includes('fga')) r.fga = i;
-                // 3PA
-                if (l === '3pa' || l === '3pta' || l === 'fg3a' ||
+                    (l.includes('three') && l.includes('made'))) r.tpm = i;
+                // 3PA: 3pa, 3pta, fg3a, three point attempt
+                if (l.includes('3pa') || l.includes('3pta') || l.includes('fg3a') ||
                     (l.includes('3pt') && l.includes('attempt')) ||
                     (l.includes('3p') && l.includes('attempt')) ||
                     (l.includes('three') && l.includes('attempt'))) r.tpa = i;
-                // Turnovers
-                if (l === 'to' || l === 'turnovers' || l === 'tov' || l.includes('turnover')) r.to = i;
+                // Turnovers: to, turnovers, tov
+                if (l.includes('to') || l.includes('turnover') || l.includes('tov')) r.to = i;
             }
             return r;
         }
