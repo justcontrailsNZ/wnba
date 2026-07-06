@@ -344,44 +344,58 @@
         };
 
         // ============================================================
-        //  UTILITY FUNCTIONS
+        //  IMPROVED LABEL DETECTION – now catches "3PT", "3P", "FG", etc.
         // ============================================================
-        /**
-         * Robust label detection using substring matching.
-         */
         function getStatLabelsFromESPN(labels) {
-            const norm = labels.map(l => l.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
             const r = { pts: -1, reb: -1, ast: -1, blk: -1, stl: -1, tpm: -1, min: -1, fgm: -1, fga: -1, tpa: -1, to: -1 };
-            for (let i=0; i<norm.length; i++) {
-                const l = norm[i];
-                // Points: pts, points, point
-                if (l.includes('pts') || l.includes('point')) r.pts = i;
-                // Rebounds: reb, rebounds, rebound
-                if (l.includes('reb')) r.reb = i;
-                // Assists: ast, assists, assist
-                if (l.includes('ast')) r.ast = i;
-                // Blocks: blk, blocks, block
-                if (l.includes('blk') || l.includes('block')) r.blk = i;
-                // Steals: stl, steals, steal
-                if (l.includes('stl') || l.includes('steal')) r.stl = i;
-                // Minutes: min, minutes, minute
-                if (l.includes('min')) r.min = i;
-                // FGM: fgm, fg made, fieldgoal made
-                if (l.includes('fgm') || (l.includes('fg') && l.includes('made')) || (l.includes('fieldgoal') && l.includes('made'))) r.fgm = i;
-                // FGA: fga, fg attempt, fieldgoal attempt
-                if (l.includes('fga') || (l.includes('fg') && l.includes('attempt')) || (l.includes('fieldgoal') && l.includes('attempt'))) r.fga = i;
-                // 3PM: 3pm, 3ptm, fg3m, three point made, etc.
-                if (l.includes('3pm') || l.includes('3ptm') || l.includes('fg3m') ||
-                    (l.includes('3pt') && l.includes('made')) ||
-                    (l.includes('3p') && l.includes('made')) ||
-                    (l.includes('three') && l.includes('made'))) r.tpm = i;
-                // 3PA: 3pa, 3pta, fg3a, three point attempt
-                if (l.includes('3pa') || l.includes('3pta') || l.includes('fg3a') ||
+            for (let i = 0; i < labels.length; i++) {
+                const raw = labels[i];
+                const l = raw.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+                // Points
+                if (l === 'pts' || l === 'points' || l.includes('point')) r.pts = i;
+                // Rebounds
+                if (l === 'reb' || l === 'rebounds' || l.includes('rebound')) r.reb = i;
+                // Assists
+                if (l === 'ast' || l === 'assists' || l.includes('assist')) r.ast = i;
+                // Blocks
+                if (l === 'blk' || l === 'blocks' || l.includes('block')) r.blk = i;
+                // Steals
+                if (l === 'stl' || l === 'steals' || l.includes('steal')) r.stl = i;
+                // Minutes
+                if (l === 'min' || l === 'minutes' || l.includes('minute')) r.min = i;
+                // Turnovers
+                if (l === 'to' || l === 'turnovers' || l === 'tov' || l.includes('turnover')) r.to = i;
+
+                // Field Goal Attempts (check before FGM)
+                if (l === 'fga' || l.includes('fgattempt') || l.includes('fieldgoalattempt') ||
+                    (l.includes('fg') && l.includes('attempt'))) {
+                    r.fga = i;
+                } else if (l === 'fgm' || l.includes('fgmade') || l.includes('fieldgoalmade') ||
+                    (l === 'fg' && !l.includes('attempt')) ||
+                    (l.includes('fg') && !l.includes('a'))) {
+                    // If label is "fg" or "fgm" and not "fga", treat as made
+                    r.fgm = i;
+                }
+
+                // 3PT Attempts (check before 3PTM)
+                if (l === '3pa' || l === '3pta' || l.includes('fg3a') ||
                     (l.includes('3pt') && l.includes('attempt')) ||
                     (l.includes('3p') && l.includes('attempt')) ||
-                    (l.includes('three') && l.includes('attempt'))) r.tpa = i;
-                // Turnovers: to, turnovers, tov
-                if (l.includes('to') || l.includes('turnover') || l.includes('tov')) r.to = i;
+                    (l.includes('three') && l.includes('attempt'))) {
+                    r.tpa = i;
+                } else if (l === '3pm' || l === '3ptm' || l === 'fg3m' ||
+                    (l.includes('3pt') && l.includes('made')) ||
+                    (l.includes('3p') && l.includes('made')) ||
+                    (l.includes('three') && l.includes('made')) ||
+                    (l === '3pt' && !l.includes('attempt')) ||
+                    (l === '3p' && !l.includes('attempt'))) {
+                    r.tpm = i;
+                }
+
+                // Fallback: if we see "3pt" or "3p" and we haven't set tpa, assume made
+                if ((l === '3pt' || l === '3p' || l === 'threept') && r.tpa === -1) {
+                    r.tpm = i;
+                }
             }
             return r;
         }
