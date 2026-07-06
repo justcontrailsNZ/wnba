@@ -1190,7 +1190,7 @@
     </div>
     <div class="controls">
         <select id="team-select">
-            <option value="">Loading teams...</option>
+            <!-- Will be populated by JavaScript -->
         </select>
         <button onclick="fetchTeamData()">Get Team Intel & Props</button>
     </div>
@@ -1337,9 +1337,9 @@
         currentSlateDate.setHours(currentSlateDate.getHours() - 5);
 
         // ============================================================
-        //  FALLBACK TEAM LIST (hardcoded – used if standings API fails)
+        //  HARDCODED TEAM LIST – all 12 WNBA teams with correct ESPN IDs
         // ============================================================
-        const FALLBACK_TEAMS = [
+        const TEAMS = [
             { id: '1', abbrev: 'ATL' },
             { id: '2', abbrev: 'CHI' },
             { id: '3', abbrev: 'CON' },
@@ -1533,7 +1533,7 @@
         }
 
         // ============================================================
-        //  MODELS – Bayesian, Matchup, Poisson, GBM (full versions)
+        //  MODELS – Bayesian, Matchup, Poisson, GBM
         // ============================================================
         function computeBayesianProjection(prop) {
             const vals = prop.allVals,
@@ -2211,9 +2211,11 @@
             }
         }
 
+        // ============================================================
+        //  FETCH TEAM DATA – main entry point
+        // ============================================================
         function fetchTeamData() {
             const selectEl = document.getElementById('team-select');
-            const teamName = selectEl.value;
             const espnId = selectEl.options[selectEl.selectedIndex].getAttribute('data-id');
             const teamAbbrev = selectEl.options[selectEl.selectedIndex].text;
             document.getElementById('team-placeholder').style.display = 'none';
@@ -2835,49 +2837,39 @@
                 modal) closeGameLogModal(); };
 
         // ============================================================
-        //  POPULATE DROPDOWN – always uses fallback if needed
+        //  POPULATE DROPDOWN – immediate, using hardcoded TEAMS
         // ============================================================
-        async function populateTeamDropdown() {
+        function populateTeamDropdown() {
             const select = document.getElementById('team-select');
-            let teams = [];
-
-            // If we have teamAnalyticsStore data, use it; otherwise fallback
-            const storeIds = Object.keys(window.teamAnalyticsStore);
-            if (storeIds.length > 0) {
-                teams = storeIds.map(id => ({ id, abbrev: window.teamAnalyticsStore[id].abbrev }));
-            } else {
-                // Use fallback and also populate store with defaults
-                teams = FALLBACK_TEAMS;
-                teams.forEach(t => {
-                    if (!window.teamAnalyticsStore[t.id]) {
-                        window.teamAnalyticsStore[t.id] = {
-                            abbrev: t.abbrev,
-                            estPace: 100,
-                            offRtg: 100,
-                            defRtg: 100,
-                            formWeight: 0.5,
-                            ppg: 80,
-                            oppg: 80,
-                            winPct: 0.5
-                        };
-                    }
-                });
-            }
-
             select.innerHTML = '';
-            teams.sort((a, b) => a.abbrev.localeCompare(b.abbrev));
-            teams.forEach(team => {
+            // Use the hardcoded TEAMS list, sorted alphabetically
+            const sorted = [...TEAMS].sort((a, b) => a.abbrev.localeCompare(b.abbrev));
+            sorted.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team.abbrev;
                 option.setAttribute('data-id', team.id);
                 option.textContent = team.abbrev;
                 select.appendChild(option);
             });
-            teams.forEach(team => { window.teamNameMap[team.id] = team.abbrev; });
+            // Also populate teamAnalyticsStore with default values for these teams
+            sorted.forEach(t => {
+                if (!window.teamAnalyticsStore[t.id]) {
+                    window.teamAnalyticsStore[t.id] = {
+                        abbrev: t.abbrev,
+                        estPace: 100,
+                        offRtg: 100,
+                        defRtg: 100,
+                        formWeight: 0.5,
+                        ppg: 80,
+                        oppg: 80,
+                        winPct: 0.5
+                    };
+                }
+            });
         }
 
         // ============================================================
-        //  FETCH STANDINGS – with fallback to hardcoded data
+        //  FETCH STANDINGS – tries to get real data, but doesn't block
         // ============================================================
         async function fetchStandings() {
             try {
@@ -2948,30 +2940,18 @@
                     html += buildTable(west) + buildTable(east) + '</div>';
                     document.getElementById('standings-container').innerHTML = html;
                     await fetchLast20ForAllTeams();
+                    // After successful standings, update teamAnalyticsStore with real data
+                    // then re-populate dropdown (optional, but keeps it fresh)
+                    await populateTeamDropdown();
                     return;
                 } else {
                     throw new Error('No standings data');
                 }
             } catch (e) {
-                console.warn('Standings fetch failed, using fallback team list.', e);
-                // Use fallback: populate teamAnalyticsStore with default values
-                FALLBACK_TEAMS.forEach(t => {
-                    if (!window.teamAnalyticsStore[t.id]) {
-                        window.teamAnalyticsStore[t.id] = {
-                            abbrev: t.abbrev,
-                            estPace: 100,
-                            offRtg: 100,
-                            defRtg: 100,
-                            formWeight: 0.5,
-                            ppg: 80,
-                            oppg: 80,
-                            winPct: 0.5
-                        };
-                    }
-                });
+                console.warn('Standings fetch failed, using default data.', e);
                 document.getElementById('standings-container').innerHTML =
                     '<p style="color:#888;text-align:center;font-size:12px;">Standings temporarily unavailable.</p>';
-                // Still try to fetch last10 for these teams (will use fallback data)
+                // Use default values already set by populateTeamDropdown
                 await fetchLast20ForAllTeams().catch(() => {});
             }
         }
@@ -3123,16 +3103,34 @@
         // ============================================================
         async function initGlobalData() {
             console.log('Initialising dashboard...');
-            // Try to load standings, but if it fails, we still populate dropdown via fallback
-            await fetchStandings().catch((e) => console.warn('Standings error:', e));
-            await populateTeamDropdown();
-            fetchLeaders().catch((e) => console.warn('Leaders error:', e));
-            // Try to fetch L5 stats for ranks (if standings worked)
-            if (Object.keys(window.teamAnalyticsStore).length > 0) {
-                await fetchAllTeamsL5Stats().catch((e) => console.warn('L5 stats error:', e));
-            }
-            // Load today's slate
+
+            // 1. Populate dropdown immediately with hardcoded teams
+            populateTeamDropdown();
+
+            // 2. Load today's slate
             loadDailySlate(0);
+
+            // 3. Try to fetch standings & rankings in the background
+            try {
+                await fetchStandings();
+            } catch (e) {
+                console.warn('Standings fetch failed, using defaults.', e);
+            }
+
+            // 4. Try to fetch leaders
+            try {
+                await fetchLeaders();
+            } catch (e) {
+                console.warn('Leaders fetch failed.', e);
+            }
+
+            // 5. Try to fetch L5 stats for team ranks
+            try {
+                await fetchAllTeamsL5Stats();
+            } catch (e) {
+                console.warn('L5 stats fetch failed.', e);
+            }
+
             console.log('Dashboard initialised.');
         }
 
